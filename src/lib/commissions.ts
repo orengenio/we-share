@@ -17,6 +17,7 @@ import { addMonths } from "date-fns";
 import {
   COMMISSION_CONFIGS,
   PARTNER_COMMISSION,
+  LEADER_COMMISSION,
   PRODUCT_PRICING,
   RANK_THRESHOLDS,
 } from "@/types";
@@ -175,6 +176,24 @@ export function calculatePartnerResidualCommission() {
   };
 }
 
+// ─── Partner Leader override commission ───────────────────────────────────────
+
+export function calculateLeaderSetupOverride() {
+  return {
+    rate: LEADER_COMMISSION.setupOverrideRate,
+    amount: parseFloat(LEADER_COMMISSION.setupOverrideAmount.toFixed(2)),
+    type: "LEADER_SETUP_OVERRIDE" as CommissionType,
+  };
+}
+
+export function calculateLeaderResidualOverride() {
+  return {
+    rate: LEADER_COMMISSION.residualOverrideRate,
+    amount: parseFloat(LEADER_COMMISSION.residualOverrideAmount.toFixed(2)),
+    type: "LEADER_RESIDUAL_OVERRIDE" as CommissionType,
+  };
+}
+
 // ─── Fast-start bonus ─────────────────────────────────────────────────────────
 
 export function isEligibleForFastStart(
@@ -261,6 +280,30 @@ export async function processSetupFeeConversion(conversionId: string) {
       amount,
       status: "PENDING",
     });
+
+    // Partner Leader override — if this partner was recruited by a Leader
+    const partnerForLeader = await db.partnerProfile.findUnique({
+      where: { id: conversion.partnerId },
+      select: { uplineLeaderId: true },
+    });
+    if (partnerForLeader?.uplineLeaderId) {
+      const leader = await db.partnerProfile.findUnique({
+        where: { id: partnerForLeader.uplineLeaderId },
+        select: { id: true, isLeader: true, isActive: true },
+      });
+      if (leader?.isLeader && leader.isActive) {
+        const override = calculateLeaderSetupOverride();
+        commissionsToCreate.push({
+          conversionId,
+          partnerId: leader.id,
+          type: override.type,
+          grossRevenue: conversion.grossRevenue,
+          commissionRate: override.rate,
+          amount: override.amount,
+          status: "PENDING",
+        });
+      }
+    }
   }
 
   if (commissionsToCreate.length > 0) {

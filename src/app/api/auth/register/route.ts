@@ -12,13 +12,14 @@ const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   type: z.enum(["AFFILIATE", "PARTNER"]).default("AFFILIATE"),
-  referralCode: z.string().optional(), // upline affiliate code
+  referralCode: z.string().optional(), // upline affiliate code (army builder)
+  leaderCode: z.string().optional(),   // partner leader code (partner program only)
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password, type, referralCode } = schema.parse(body);
+    const { name, email, password, type, referralCode, leaderCode } = schema.parse(body);
 
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -29,13 +30,23 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Resolve upline for army builder
+    // Resolve upline for army builder (affiliates)
     let uplineId: string | null = null;
     if (referralCode && type === "AFFILIATE") {
       const upline = await db.affiliateProfile.findUnique({
         where: { affiliateCode: referralCode },
       });
       if (upline) uplineId = upline.id;
+    }
+
+    // Resolve upline leader for partner program
+    let uplineLeaderId: string | null = null;
+    if (leaderCode && type === "PARTNER") {
+      const leader = await db.partnerProfile.findUnique({
+        where: { partnerCode: leaderCode },
+        select: { id: true, isLeader: true, isActive: true },
+      });
+      if (leader?.isLeader && leader.isActive) uplineLeaderId = leader.id;
     }
 
     const affiliateCode = generateAffiliateCode(name);
@@ -60,6 +71,7 @@ export async function POST(req: NextRequest) {
               partnerProfile: {
                 create: {
                   partnerCode: `P${affiliateCode}`,
+                  ...(uplineLeaderId ? { uplineLeaderId } : {}),
                 },
               },
             }),

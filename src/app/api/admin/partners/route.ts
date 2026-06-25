@@ -6,7 +6,7 @@ import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils
 
 const certifySchema = z.object({
   partnerId: z.string(),
-  action: z.enum(["certify", "unlock_leads", "suspend", "reinstate"]),
+  action: z.enum(["certify", "unlock_leads", "suspend", "reinstate", "promote_leader", "demote_leader"]),
   reason: z.string().optional(),
 });
 
@@ -37,6 +37,12 @@ export async function PATCH(req: NextRequest) {
       updates.isActive = true;
       updates.suspendedAt = null;
       updates.suspendedReason = null;
+    } else if (action === "promote_leader") {
+      updates.isLeader = true;
+      updates.promotedLeaderAt = now;
+    } else if (action === "demote_leader") {
+      updates.isLeader = false;
+      updates.promotedLeaderAt = null;
     }
 
     await db.partnerProfile.update({ where: { id: partnerId }, data: updates });

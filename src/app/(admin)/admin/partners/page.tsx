@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Search, CheckCircle, Lock, UserX, UserCheck } from "lucide-react";
+import { Search, CheckCircle, Crown } from "lucide-react";
 
 interface Partner {
   id: string;
@@ -10,9 +10,11 @@ interface Partner {
   isCertified: boolean;
   leadsUnlocked: boolean;
   isActive: boolean;
+  isLeader: boolean;
   totalLeadsAssigned: number;
   totalDealsWon: number;
   totalEarned: number;
+  totalLeaderOverrides: number;
   pendingBalance: number;
   user: { name: string | null; email: string; createdAt: string };
 }
@@ -76,9 +78,9 @@ export default function AdminPartnersPage() {
                 <th className="py-3 px-4 font-medium text-gray-600">Partner</th>
                 <th className="py-3 px-4 font-medium text-gray-600 text-center">Certified</th>
                 <th className="py-3 px-4 font-medium text-gray-600 text-center">Leads Unlocked</th>
-                <th className="py-3 px-4 font-medium text-gray-600 text-right">Leads</th>
                 <th className="py-3 px-4 font-medium text-gray-600 text-right">Won</th>
                 <th className="py-3 px-4 font-medium text-gray-600 text-right">Earned</th>
+                <th className="py-3 px-4 font-medium text-gray-600 text-right">Leader Overrides</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Status</th>
                 <th className="py-3 px-4"></th>
               </tr>
@@ -87,7 +89,14 @@ export default function AdminPartnersPage() {
               {partners.map(p => (
                 <tr key={p.id} className="table-row-hover">
                   <td className="py-3 px-4">
-                    <p className="font-medium text-gray-900">{p.user.name ?? "—"}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-gray-900">{p.user.name ?? "—"}</p>
+                      {p.isLeader && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-700 bg-amber-100">
+                          <Crown size={9} /> LEADER
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-400 text-xs">{p.user.email}</p>
                     <p className="text-gray-400 text-xs font-mono">{p.partnerCode}</p>
                   </td>
@@ -101,20 +110,31 @@ export default function AdminPartnersPage() {
                       ? <CheckCircle className="w-4 h-4 text-green-600 mx-auto" />
                       : <button onClick={() => performAction(p.id, "unlock_leads")} disabled={actionId === p.id} className="text-xs text-[#003366] hover:underline">Unlock</button>}
                   </td>
-                  <td className="py-3 px-4 text-right text-gray-600">{p.totalLeadsAssigned}</td>
                   <td className="py-3 px-4 text-right text-gray-600">{p.totalDealsWon}</td>
                   <td className="py-3 px-4 text-right font-semibold">{formatCurrency(p.totalEarned)}</td>
+                  <td className="py-3 px-4 text-right">
+                    {p.totalLeaderOverrides > 0
+                      ? <span className="font-semibold text-amber-700">{formatCurrency(p.totalLeaderOverrides)}</span>
+                      : <span className="text-gray-300">—</span>}
+                  </td>
                   <td className="py-3 px-4">
                     <span className={`badge ${p.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                       {p.isActive ? "Active" : "Suspended"}
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    {p.isActive ? (
-                      <button onClick={() => performAction(p.id, "suspend")} disabled={actionId === p.id} className="text-xs text-red-600 hover:underline">Suspend</button>
-                    ) : (
-                      <button onClick={() => performAction(p.id, "reinstate")} disabled={actionId === p.id} className="text-xs text-green-600 hover:underline">Reinstate</button>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {p.isActive ? (
+                        <button onClick={() => performAction(p.id, "suspend")} disabled={actionId === p.id} className="text-xs text-red-600 hover:underline text-left">Suspend</button>
+                      ) : (
+                        <button onClick={() => performAction(p.id, "reinstate")} disabled={actionId === p.id} className="text-xs text-green-600 hover:underline text-left">Reinstate</button>
+                      )}
+                      {p.isLeader ? (
+                        <button onClick={() => performAction(p.id, "demote_leader")} disabled={actionId === p.id} className="text-xs text-amber-600 hover:underline text-left">Demote Leader</button>
+                      ) : (
+                        <button onClick={() => performAction(p.id, "promote_leader")} disabled={actionId === p.id} className="text-xs text-amber-700 hover:underline text-left font-medium">★ Make Leader</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

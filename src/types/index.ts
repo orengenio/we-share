@@ -186,6 +186,14 @@ export const PARTNER_COMMISSION = {
   residualMonths: null,
 };
 
+// Partner Leader override — promoted partners earn on their recruited team
+export const LEADER_COMMISSION = {
+  setupOverrideRate: 0.05,   // 5% of $997 setup = $49.85 per team sale
+  setupOverrideAmount: 49.85,
+  residualOverrideRate: 0.05, // 5% of $247/mo = $12.35/mo per active team client
+  residualOverrideAmount: 12.35,
+};
+
 export const PRODUCT_PRICING = {
   setupFee: 997.00,
   monthlyMaintenance: 247.00,

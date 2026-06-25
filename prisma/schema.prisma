@@ -30,6 +30,8 @@ enum CommissionType {
   ARMY_OVERRIDE_RESIDUAL
   PARTNER_SETUP
   PARTNER_RESIDUAL
+  LEADER_SETUP_OVERRIDE
+  LEADER_RESIDUAL_OVERRIDE
 }
 
 enum CommissionStatus {
@@ -243,6 +245,11 @@ model PartnerProfile {
   taxId               String?
   w9Submitted         Boolean @default(false)
 
+  // Leader Program — Partners can be promoted to Leadership
+  isLeader         Boolean  @default(false)
+  promotedLeaderAt DateTime?
+  uplineLeaderId   String?  // leader who recruited this partner
+
   // Status
   isActive       Boolean  @default(true)
   isCertified    Boolean  @default(false)
@@ -254,16 +261,19 @@ model PartnerProfile {
   terminatedAt   DateTime?
 
   // Running totals
-  totalLeadsAssigned Int   @default(0)
-  totalDealsWon      Int   @default(0)
-  totalEarned        Float @default(0)
-  totalPaid          Float @default(0)
-  pendingBalance     Float @default(0)
+  totalLeadsAssigned   Int   @default(0)
+  totalDealsWon        Int   @default(0)
+  totalEarned          Float @default(0)
+  totalPaid            Float @default(0)
+  pendingBalance       Float @default(0)
+  totalLeaderOverrides Float @default(0)  // leader override earnings only
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  uplineLeader     PartnerProfile?  @relation("PartnerLeaderTree", fields: [uplineLeaderId], references: [id])
+  teamMembers      PartnerProfile[] @relation("PartnerLeaderTree")
   leads            Lead[]
   commissions      Commission[]
   payoutItems      PayoutItem[]
@@ -273,6 +283,8 @@ model PartnerProfile {
   @@index([partnerCode])
   @@index([ghlContactId])
   @@index([isActive])
+  @@index([isLeader])
+  @@index([uplineLeaderId])
 }
 
 // ─── Tracking Engine ─────────────────────────────────────────────────────────
