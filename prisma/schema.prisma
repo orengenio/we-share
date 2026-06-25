@@ -1,0 +1,703 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  AFFILIATE
+  PARTNER
+}
+
+enum AffiliateRank {
+  CATALYST    // 0 sales  — 10% setup, 5% residual x12
+  BUILDER     // 3 sales  — 15% setup, 5% residual x24, 5% override x12
+  ARCHITECT   // 10 sales — 20% setup, 7.5% residual forever, 5% override x24
+  SOVEREIGN   // 25 sales — 25% setup, 10% residual forever, 5%+2.5% override forever
+}
+
+enum CommissionType {
+  SETUP_FEE
+  MONTHLY_MAINTENANCE
+  FAST_START_BONUS
+  ARMY_OVERRIDE_SETUP
+  ARMY_OVERRIDE_RESIDUAL
+  PARTNER_SETUP
+  PARTNER_RESIDUAL
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CLAWBACK
+  VOID
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  APPOINTMENT
+  PROPOSAL
+  WON
+  LOST
+  NURTURE
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ConversionType {
+  SETUP_FEE
+  MONTHLY_MAINTENANCE
+}
+
+enum FraudSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum FraudResolution {
+  DISMISSED
+  WARNED
+  SUSPENDED
+  TERMINATED
+}
+
+// ─── Core User & Auth ────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  role          UserRole  @default(AFFILIATE)
+  emailVerified DateTime?
+  avatarUrl     String?
+  phone         String?
+  timezone      String?   @default("America/Chicago")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  affiliateProfile AffiliateProfile?
+  partnerProfile   PartnerProfile?
+  sessions         Session[]
+  auditLogs        AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
+// ─── Affiliate Program ───────────────────────────────────────────────────────
+
+model AffiliateProfile {
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  affiliateCode  String        @unique
+  rank           AffiliateRank @default(CATALYST)
+  lifetimeSales  Int           @default(0)
+
+  // Army Builder (upline/downline tree — one level override)
+  uplineId         String?
+  uplineProfile    AffiliateProfile?  @relation("ArmyTree", fields: [uplineId], references: [id])
+  downlineProfiles AffiliateProfile[] @relation("ArmyTree")
+
+  // Payout setup
+  stripeConnectId   String?
+  stripeAccountStatus String? // "pending", "enabled", "restricted"
+  taxId             String?
+  w9Submitted       Boolean @default(false)
+  payoutMinimum     Float   @default(25.00)
+
+  // Status & compliance
+  isActive        Boolean  @default(true)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  terminatedAt    DateTime?
+  strikeCount     Int      @default(0)
+
+  // Rank promotion timestamps
+  builderAt   DateTime?
+  architectAt DateTime?
+  sovereignAt DateTime?
+
+  // Fast-start bonus
+  firstSaleAt          DateTime?
+  fastStartBonusEarned Boolean  @default(false)
+  fastStartBonusPaid   Boolean  @default(false)
+
+  // Running totals (denormalized for performance)
+  totalClicks      Int   @default(0)
+  totalLeads       Int   @default(0)
+  totalConversions Int   @default(0)
+  totalEarned      Float @default(0)
+  totalPaid        Float @default(0)
+  pendingBalance   Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links            AffiliateLink[]
+  clicks           Click[]
+  leads            Lead[]
+  conversions      Conversion[]
+  commissions      Commission[]
+  overridesEarned  Override[]       @relation("OverrideEarner")
+  overridesSourced Override[]       @relation("OverrideSource")
+  payoutItems      PayoutItem[]
+  disputes         Dispute[]
+  fraudFlags       FraudFlag[]
+
+  @@index([affiliateCode])
+  @@index([uplineId])
+  @@index([rank])
+  @@index([isActive])
+}
+
+model AffiliateLink {
+  id             String   @id @default(cuid())
+  affiliateId    String
+  code           String   @unique
+  slug           String?
+  destinationUrl String   @default("/")
+  label          String?
+  campaignId     String?
+  isActive       Boolean  @default(true)
+  clickCount     Int      @default(0)
+  leadCount      Int      @default(0)
+  conversionCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliate AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  clicks    Click[]
+
+  @@index([code])
+  @@index([affiliateId])
+}
+
+// ─── Partner Program ─────────────────────────────────────────────────────────
+
+model PartnerProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  partnerCode String  @unique
+
+  // GoHighLevel CRM
+  ghlContactId      String? @unique
+  ghlUserId         String?
+  assignedPhoneNumber String?
+  crmSeatGrantedAt  DateTime?
+
+  // Payout setup
+  stripeConnectId     String?
+  stripeAccountStatus String?
+  taxId               String?
+  w9Submitted         Boolean @default(false)
+
+  // Status
+  isActive       Boolean  @default(true)
+  isCertified    Boolean  @default(false)
+  certifiedAt    DateTime?
+  leadsUnlocked  Boolean  @default(false)
+  leadsUnlockedAt DateTime?
+  suspendedAt    DateTime?
+  suspendedReason String?
+  terminatedAt   DateTime?
+
+  // Running totals
+  totalLeadsAssigned Int   @default(0)
+  totalDealsWon      Int   @default(0)
+  totalEarned        Float @default(0)
+  totalPaid          Float @default(0)
+  pendingBalance     Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leads            Lead[]
+  commissions      Commission[]
+  payoutItems      PayoutItem[]
+  disputes         Dispute[]
+  ghlOpportunities GHLOpportunity[]
+
+  @@index([partnerCode])
+  @@index([ghlContactId])
+  @@index([isActive])
+}
+
+// ─── Tracking Engine ─────────────────────────────────────────────────────────
+
+model Click {
+  id          String @id @default(cuid())
+  affiliateId String
+  linkId      String?
+
+  // Attribution tokens
+  visitorToken  String // persistent 90-day cookie token
+  sessionToken  String // session-scoped token
+
+  // Request metadata
+  ipAddress   String
+  ipHash      String   // hashed for fraud detection without storing raw
+  userAgent   String?
+  referrer    String?
+  landingPage String?
+
+  // Geo (resolved from IP)
+  country String?
+  region  String?
+  city    String?
+
+  // Device
+  deviceType String? // "mobile" | "desktop" | "tablet"
+  browser    String?
+  os         String?
+
+  // Fraud signals
+  isSuspicious Boolean @default(false)
+  fraudReason  String?
+
+  createdAt DateTime @default(now())
+
+  affiliate AffiliateProfile  @relation(fields: [affiliateId], references: [id])
+  link      AffiliateLink?    @relation(fields: [linkId], references: [id])
+  lead      Lead?             @relation("ClickToLead")
+
+  @@index([affiliateId])
+  @@index([visitorToken])
+  @@index([ipHash])
+  @@index([createdAt])
+}
+
+model Lead {
+  id          String  @id @default(cuid())
+  affiliateId String?
+  partnerId   String?
+  clickId     String? @unique
+
+  // Attribution (locked permanently on form submit)
+  attributedAt      DateTime  @default(now())
+  attributionLocked Boolean   @default(true)
+  cookieExpiry      DateTime? // when the 90-day cookie would have expired
+
+  // Contact info
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  company   String?
+  message   String?
+  source    String? // "facebook_ad", "organic", "partner_dm", etc.
+
+  // GoHighLevel sync
+  ghlContactId String? @unique
+
+  // Lead pipeline (for partners)
+  status           LeadStatus @default(NEW)
+  assignedPartnerId String?
+  assignedAt       DateTime?
+  lastTouchedAt    DateTime?
+  touchCount       Int        @default(0)
+  notes            String?
+
+  // SLA enforcement (4h first touch)
+  firstTouchDeadline DateTime?
+  firstTouchAt       DateTime?
+  slaBreached        Boolean   @default(false)
+
+  // Recycling (48h no touch or 7 days no activity)
+  isRecycled Boolean  @default(false)
+  recycledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliate      AffiliateProfile? @relation(fields: [affiliateId], references: [id])
+  partner        PartnerProfile?   @relation(fields: [partnerId], references: [id])
+  click          Click?            @relation("ClickToLead", fields: [clickId], references: [id])
+  conversions    Conversion[]
+  ghlOpportunity GHLOpportunity?
+
+  @@index([affiliateId])
+  @@index([partnerId])
+  @@index([email])
+  @@index([ghlContactId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ─── Revenue & Commissions ───────────────────────────────────────────────────
+
+model Conversion {
+  id          String @id @default(cuid())
+  leadId      String
+  affiliateId String?
+  partnerId   String?
+
+  type           ConversionType @default(SETUP_FEE)
+  grossRevenue   Float
+
+  // Stripe references
+  stripePaymentId  String? @unique
+  stripeCustomerId String?
+  stripeChargeId   String?
+
+  // For recurring
+  billingPeriod  DateTime? // month this maintenance payment covers
+  subscriptionId String?
+  invoiceId      String?
+
+  // Clawback window (30 days)
+  clawbackDeadline DateTime
+  isRefunded       Boolean   @default(false)
+  refundedAt       DateTime?
+  stripeRefundId   String?
+  refundReason     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lead        Lead               @relation(fields: [leadId], references: [id])
+  affiliate   AffiliateProfile?  @relation(fields: [affiliateId], references: [id])
+  partner     PartnerProfile?    @relation(fields: [partnerId], references: [id])
+  commissions Commission[]
+  overrides   Override[]
+
+  @@index([affiliateId])
+  @@index([partnerId])
+  @@index([leadId])
+  @@index([stripePaymentId])
+  @@index([stripeCustomerId])
+  @@index([createdAt])
+}
+
+model Commission {
+  id           String           @id @default(cuid())
+  conversionId String
+  affiliateId  String?
+  partnerId    String?
+
+  type             CommissionType
+  rankAtTime       AffiliateRank?
+  grossRevenue     Float
+  commissionRate   Float
+  amount           Float
+
+  // Residual duration tracking
+  residualMonth    Int?      // 1-based month number (1=first, null=setup fee)
+  residualExpiresAt DateTime? // null = forever
+
+  status     CommissionStatus @default(PENDING)
+  approvedAt DateTime?
+  paidAt     DateTime?
+
+  // Clawback tracking
+  clawbackAt         DateTime?
+  clawbackReason     String?
+  clawbackExecutedBy String?
+  isVoidEntry        Boolean  @default(false)
+  originalCommId     String?
+  voidMemo           String?
+
+  payoutId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conversion Conversion         @relation(fields: [conversionId], references: [id])
+  affiliate  AffiliateProfile?  @relation(fields: [affiliateId], references: [id])
+  partner    PartnerProfile?    @relation(fields: [partnerId], references: [id])
+  payout     Payout?            @relation(fields: [payoutId], references: [id])
+
+  @@index([affiliateId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([conversionId])
+  @@index([payoutId])
+  @@index([createdAt])
+}
+
+model Override {
+  id           String @id @default(cuid())
+  conversionId String
+  earnerId     String // upline affiliate receiving the override
+  sourceId     String // downline affiliate who generated the sale
+
+  overrideType   String // "SETUP_FEE" | "MONTHLY_RESIDUAL"
+  rankAtTime     AffiliateRank
+  overrideRate   Float
+  amount         Float
+
+  // Duration (null expiresAt = unlimited for Sovereign)
+  startDate  DateTime  @default(now())
+  expiresAt  DateTime?
+
+  status   CommissionStatus @default(PENDING)
+  payoutId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conversion Conversion       @relation(fields: [conversionId], references: [id])
+  earner     AffiliateProfile @relation("OverrideEarner", fields: [earnerId], references: [id])
+  source     AffiliateProfile @relation("OverrideSource", fields: [sourceId], references: [id])
+
+  @@index([earnerId])
+  @@index([sourceId])
+  @@index([conversionId])
+  @@index([status])
+}
+
+// ─── Payouts ─────────────────────────────────────────────────────────────────
+
+model Payout {
+  id          String @id @default(cuid())
+  batchLabel  String // e.g. "2026-06 NET-15"
+
+  periodStart   DateTime
+  periodEnd     DateTime
+  scheduledDate DateTime // 15th of following month
+
+  status      PayoutStatus @default(PENDING)
+  processedAt DateTime?
+
+  totalAmount    Float @default(0)
+  recipientCount Int   @default(0)
+
+  initiatedById String?
+  notes         String?
+  errorMessage  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items       PayoutItem[]
+  commissions Commission[]
+
+  @@index([status])
+  @@index([periodStart])
+  @@index([scheduledDate])
+}
+
+model PayoutItem {
+  id          String  @id @default(cuid())
+  payoutId    String
+  affiliateId String?
+  partnerId   String?
+
+  grossAmount     Float
+  adjustments     Float @default(0)
+  netAmount       Float
+
+  stripeTransferId String?
+  stripeAccountId  String?
+
+  status      PayoutStatus @default(PENDING)
+  processedAt DateTime?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payout    Payout            @relation(fields: [payoutId], references: [id])
+  affiliate AffiliateProfile? @relation(fields: [affiliateId], references: [id])
+  partner   PartnerProfile?   @relation(fields: [partnerId], references: [id])
+
+  @@index([payoutId])
+  @@index([affiliateId])
+  @@index([partnerId])
+  @@index([status])
+}
+
+// ─── Disputes ────────────────────────────────────────────────────────────────
+
+model Dispute {
+  id          String  @id @default(cuid())
+  affiliateId String?
+  partnerId   String?
+  commissionId String?
+
+  subject     String
+  description String
+  evidence    String?
+
+  status     DisputeStatus @default(OPEN)
+  filedAt    DateTime      @default(now())
+  fileDeadline DateTime    // 30 days from statement date
+  statementDate DateTime
+
+  resolvedAt   DateTime?
+  resolution   String?
+  resolvedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliate AffiliateProfile? @relation(fields: [affiliateId], references: [id])
+  partner   PartnerProfile?   @relation(fields: [partnerId], references: [id])
+
+  @@index([affiliateId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ─── GoHighLevel Integration ─────────────────────────────────────────────────
+
+model GHLOpportunity {
+  id        String  @id @default(cuid())
+  leadId    String? @unique
+  partnerId String
+
+  ghlOpportunityId String  @unique
+  ghlPipelineId    String?
+  ghlStageId       String?
+  ghlContactId     String?
+
+  title          String?
+  status         String? // "open" | "won" | "lost" | "abandoned"
+  monetaryValue  Float?
+  assignedToGhlUserId String?
+
+  lastSyncedAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  lead    Lead?          @relation(fields: [leadId], references: [id])
+  partner PartnerProfile @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+  @@index([ghlOpportunityId])
+  @@index([ghlContactId])
+}
+
+// ─── Fraud Detection ─────────────────────────────────────────────────────────
+
+model FraudFlag {
+  id          String @id @default(cuid())
+  affiliateId String
+
+  type        String        // "BURST_CLICKS" | "SELF_REFERRAL" | "DUPLICATE_IDENTITY" | "HIGH_REFUND_RATE" | "FAKE_LEAD"
+  severity    FraudSeverity
+  description String
+  evidence    Json?
+
+  ipAddress String?
+
+  reviewedAt   DateTime?
+  reviewedById String?
+  resolution   FraudResolution?
+  resolutionNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliate AffiliateProfile @relation(fields: [affiliateId], references: [id])
+
+  @@index([affiliateId])
+  @@index([type])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+// ─── System Logs ─────────────────────────────────────────────────────────────
+
+model WebhookEvent {
+  id        String @id @default(cuid())
+  source    String // "STRIPE" | "GHL" | "N8N"
+  eventType String
+  payload   Json
+  signature String?
+
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  error       String?
+  attempts    Int       @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([source])
+  @@index([eventType])
+  @@index([processed])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([resource])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─── Application Settings ────────────────────────────────────────────────────
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@index([key])
+}
