@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
-import { Calculator, TrendingUp, Users, Crown, DollarSign } from "lucide-react";
-import { COMMISSION_CONFIGS, PARTNER_COMMISSION, LEADER_COMMISSION, PRODUCT_PRICING, RANK_LABELS } from "@/types";
+import { Calculator, TrendingUp, Crown, DollarSign } from "lucide-react";
+import { COMMISSION_CONFIGS, PARTNER_COMMISSION, LEADER_COMMISSION, PRODUCT_PRICING } from "@/types";
+import { RANK_LABELS } from "@/lib/utils";
 
 type Tab = "affiliate" | "partner" | "leader";
 

@@ -9,6 +9,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const refCode = searchParams.get("ref") ?? "";
+  const leaderRef = searchParams.get("leader") ?? "";
 
   const [form, setForm] = useState({
     name: "",
@@ -16,6 +17,7 @@ function RegisterForm() {
     password: "",
     type: "AFFILIATE" as "AFFILIATE" | "PARTNER",
     referralCode: refCode,
+    leaderCode: leaderRef,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -119,9 +121,21 @@ function RegisterForm() {
             <input
               type="text"
               className="form-input"
-              placeholder="Who referred you?"
+              placeholder="Affiliate referral code"
               value={form.referralCode}
               onChange={(e) => setForm({ ...form, referralCode: e.target.value })}
+            />
+          </div>
+        )}
+        {form.type === "PARTNER" && (
+          <div>
+            <label className="form-label">Leader code <span className="text-gray-400">(optional)</span></label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Partner Leader who invited you"
+              value={form.leaderCode}
+              onChange={(e) => setForm({ ...form, leaderCode: e.target.value })}
             />
           </div>
         )}
