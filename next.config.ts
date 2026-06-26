@@ -1,12 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone", // Required for Coolify/Docker deployment
-  experimental: {
-    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
-  },
+  output: "standalone",
+  serverExternalPackages: ["@prisma/client", "bcryptjs"],
   images: {
-    domains: ["avatars.githubusercontent.com"],
+    remotePatterns: [{ protocol: "https", hostname: "avatars.githubusercontent.com" }],
   },
 };
 

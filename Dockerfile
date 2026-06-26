@@ -34,10 +34,14 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
+
+# Prisma schema + CLI needed to run migrate deploy at startup
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
+# Standalone build (includes its own minimal node_modules for the server)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -48,5 +52,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run migrations then start
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+# Invoke prisma CLI directly (no npx/symlink needed) then start the server
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]

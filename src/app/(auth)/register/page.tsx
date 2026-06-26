@@ -10,12 +10,15 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const refCode = searchParams.get("ref") ?? "";
   const leaderRef = searchParams.get("leader") ?? "";
+  const typeParam = searchParams.get("type");
+  const initialType: "AFFILIATE" | "PARTNER" =
+    typeParam === "PARTNER" ? "PARTNER" : "AFFILIATE";
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
-    type: "AFFILIATE" as "AFFILIATE" | "PARTNER",
+    type: initialType,
     referralCode: refCode,
     leaderCode: leaderRef,
   });
