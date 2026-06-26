@@ -29,8 +29,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
-        heading: ["Space Grotesk", "system-ui", "sans-serif"],
+        sans: ["Public Sans", "system-ui", "sans-serif"],
+        heading: ["Public Sans", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
