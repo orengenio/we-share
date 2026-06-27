@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
-RUN npm ci
+# Coolify may inject NODE_ENV=production at build time — devDeps are required to build Next.js
+RUN npm ci --include=dev
 
 # ─── Builder ──────────────────────────────────────────────────────────────────
 FROM base AS builder
