@@ -56,5 +56,5 @@ EXPOSE 3001
 ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
-# Invoke prisma CLI directly (no npx/symlink needed) then start the server
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
+# Run migrations (auto-recover from a previously failed migration attempt), then start
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy || (node node_modules/prisma/build/index.js migrate resolve --rolled-back 20260627000001_add_password_reset 2>/dev/null; node node_modules/prisma/build/index.js migrate deploy) && exec node server.js"]
