@@ -21,6 +21,9 @@ COPY . .
 RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Prevent Coolify build-time DATABASE_URL from triggering DB calls during next build
+ENV DATABASE_URL=""
+ENV REDIS_URL=""
 RUN npm run build
 
 # ─── Runner ───────────────────────────────────────────────────────────────────

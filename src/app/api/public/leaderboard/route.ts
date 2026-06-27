@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import db from "@/lib/db";
 import { apiSuccess, apiServerError } from "@/lib/utils";
 
-export const revalidate = 300; // cache 5 minutes
+export const dynamic = "force-dynamic";
 
 export async function GET(_req: NextRequest) {
   try {
