@@ -1,15 +1,18 @@
 /**
  * Commission calculation engine for WeShare affiliate & partner programs.
  *
- * Affiliate tiers:
+ * Affiliate tiers (rate × actual package price):
  *   Catalyst (0 sales):  10% setup / 5% residual x12 mo
  *   Builder  (3 sales):  15% setup / 5% residual x24 mo / 5% override x12 mo
  *   Architect(10 sales): 20% setup / 7.5% residual ∞  / 5% override x24 mo
  *   Sovereign(25 sales): 25% setup / 10% residual ∞   / 5% setup override ∞ + 2.5% residual override ∞
  *
- * Partner tier:
- *   35% of $997 setup = $348.95 upfront
- *   25% of $247 maintenance = $61.75/mo for life
+ * Partner tier (flat, any package):
+ *   25% of setup fee
+ *   25% of monthly maintenance for life
+ *
+ * Partner Leader (internal promotion only):
+ *   Full partner commissions PLUS 5% team setup override + 5% team residual override
  */
 
 import { AffiliateRank, CommissionType } from "@prisma/client";
@@ -36,29 +39,20 @@ export function nextRankInfo(
   lifetimeSales: number
 ): { rank: AffiliateRank; salesNeeded: number } | null {
   if (lifetimeSales < RANK_THRESHOLDS.BUILDER) {
-    return {
-      rank: "BUILDER",
-      salesNeeded: RANK_THRESHOLDS.BUILDER - lifetimeSales,
-    };
+    return { rank: "BUILDER", salesNeeded: RANK_THRESHOLDS.BUILDER - lifetimeSales };
   }
   if (lifetimeSales < RANK_THRESHOLDS.ARCHITECT) {
-    return {
-      rank: "ARCHITECT",
-      salesNeeded: RANK_THRESHOLDS.ARCHITECT - lifetimeSales,
-    };
+    return { rank: "ARCHITECT", salesNeeded: RANK_THRESHOLDS.ARCHITECT - lifetimeSales };
   }
   if (lifetimeSales < RANK_THRESHOLDS.SOVEREIGN) {
-    return {
-      rank: "SOVEREIGN",
-      salesNeeded: RANK_THRESHOLDS.SOVEREIGN - lifetimeSales,
-    };
+    return { rank: "SOVEREIGN", salesNeeded: RANK_THRESHOLDS.SOVEREIGN - lifetimeSales };
   }
-  return null; // already Sovereign
+  return null;
 }
 
 // ─── Setup fee commission ─────────────────────────────────────────────────────
 
-export function calculateSetupCommission(rank: AffiliateRank): {
+export function calculateSetupCommission(rank: AffiliateRank, grossRevenue: number): {
   rate: number;
   amount: number;
   type: CommissionType;
@@ -66,7 +60,7 @@ export function calculateSetupCommission(rank: AffiliateRank): {
   const config = COMMISSION_CONFIGS[rank];
   return {
     rate: config.setupFeeRate,
-    amount: parseFloat(config.setupFeeAmount.toFixed(2)),
+    amount: parseFloat((grossRevenue * config.setupFeeRate).toFixed(2)),
     type: "SETUP_FEE",
   };
 }
@@ -75,7 +69,8 @@ export function calculateSetupCommission(rank: AffiliateRank): {
 
 export function calculateResidualCommission(
   rank: AffiliateRank,
-  monthNumber: number // 1-based: which billing cycle is this?
+  monthlyFee: number,
+  monthNumber: number
 ): { eligible: boolean; rate: number; amount: number; expiresAt: Date | null } {
   const config = COMMISSION_CONFIGS[rank];
 
@@ -91,7 +86,7 @@ export function calculateResidualCommission(
   return {
     eligible: true,
     rate: config.residualRate,
-    amount: parseFloat(config.residualAmount.toFixed(2)),
+    amount: parseFloat((monthlyFee * config.residualRate).toFixed(2)),
     expiresAt,
   };
 }
@@ -100,6 +95,7 @@ export function calculateResidualCommission(
 
 export function calculateOverrideSetup(
   earnerRank: AffiliateRank,
+  grossRevenue: number,
   conversionDate: Date
 ): { eligible: boolean; rate: number; amount: number; expiresAt: Date | null } {
   const config = COMMISSION_CONFIGS[earnerRank];
@@ -113,26 +109,22 @@ export function calculateOverrideSetup(
       ? addMonths(conversionDate, config.overrideMonths)
       : null;
 
-  const amount = parseFloat(
-    (PRODUCT_PRICING.setupFee * config.overrideSetupRate).toFixed(2)
-  );
-
   return {
     eligible: true,
     rate: config.overrideSetupRate,
-    amount,
+    amount: parseFloat((grossRevenue * config.overrideSetupRate).toFixed(2)),
     expiresAt,
   };
 }
 
 export function calculateOverrideResidual(
   earnerRank: AffiliateRank,
+  monthlyFee: number,
   enrollmentDate: Date,
   monthNumber: number
 ): { eligible: boolean; rate: number; amount: number; expiresAt: Date | null } {
   const config = COMMISSION_CONFIGS[earnerRank];
 
-  // Only Sovereign earns residual overrides
   if (config.overrideResidualRate === 0) {
     return { eligible: false, rate: 0, amount: 0, expiresAt: null };
   }
@@ -146,50 +138,46 @@ export function calculateOverrideResidual(
     return { eligible: false, rate: 0, amount: 0, expiresAt };
   }
 
-  const amount = parseFloat(
-    (PRODUCT_PRICING.monthlyMaintenance * config.overrideResidualRate).toFixed(2)
-  );
-
   return {
     eligible: true,
     rate: config.overrideResidualRate,
-    amount,
+    amount: parseFloat((monthlyFee * config.overrideResidualRate).toFixed(2)),
     expiresAt,
   };
 }
 
 // ─── Partner commission ───────────────────────────────────────────────────────
 
-export function calculatePartnerSetupCommission() {
+export function calculatePartnerSetupCommission(grossRevenue: number) {
   return {
     rate: PARTNER_COMMISSION.setupFeeRate,
-    amount: parseFloat(PARTNER_COMMISSION.setupFeeAmount.toFixed(2)),
+    amount: parseFloat((grossRevenue * PARTNER_COMMISSION.setupFeeRate).toFixed(2)),
     type: "PARTNER_SETUP" as CommissionType,
   };
 }
 
-export function calculatePartnerResidualCommission() {
+export function calculatePartnerResidualCommission(monthlyFee: number) {
   return {
     rate: PARTNER_COMMISSION.residualRate,
-    amount: parseFloat(PARTNER_COMMISSION.residualAmount.toFixed(2)),
+    amount: parseFloat((monthlyFee * PARTNER_COMMISSION.residualRate).toFixed(2)),
     type: "PARTNER_RESIDUAL" as CommissionType,
   };
 }
 
 // ─── Partner Leader override commission ───────────────────────────────────────
 
-export function calculateLeaderSetupOverride() {
+export function calculateLeaderSetupOverride(grossRevenue: number) {
   return {
     rate: LEADER_COMMISSION.setupOverrideRate,
-    amount: parseFloat(LEADER_COMMISSION.setupOverrideAmount.toFixed(2)),
+    amount: parseFloat((grossRevenue * LEADER_COMMISSION.setupOverrideRate).toFixed(2)),
     type: "LEADER_SETUP_OVERRIDE" as CommissionType,
   };
 }
 
-export function calculateLeaderResidualOverride() {
+export function calculateLeaderResidualOverride(monthlyFee: number) {
   return {
     rate: LEADER_COMMISSION.residualOverrideRate,
-    amount: parseFloat(LEADER_COMMISSION.residualOverrideAmount.toFixed(2)),
+    amount: parseFloat((monthlyFee * LEADER_COMMISSION.residualOverrideRate).toFixed(2)),
     type: "LEADER_RESIDUAL_OVERRIDE" as CommissionType,
   };
 }
@@ -227,10 +215,10 @@ export async function processSetupFeeConversion(conversionId: string) {
     status: "PENDING";
   }[] = [];
 
-  // Affiliate commission
+  // Affiliate commission — rate × actual package gross revenue
   if (conversion.affiliateId && conversion.affiliate) {
     const rank = conversion.affiliate.rank;
-    const { rate, amount } = calculateSetupCommission(rank);
+    const { rate, amount } = calculateSetupCommission(rank, conversion.grossRevenue);
     commissionsToCreate.push({
       conversionId,
       affiliateId: conversion.affiliateId,
@@ -248,7 +236,7 @@ export async function processSetupFeeConversion(conversionId: string) {
         where: { id: conversion.affiliate.uplineId },
       });
       if (upline) {
-        const override = calculateOverrideSetup(upline.rank, conversion.createdAt);
+        const override = calculateOverrideSetup(upline.rank, conversion.grossRevenue, conversion.createdAt);
         if (override.eligible) {
           await db.override.create({
             data: {
@@ -268,9 +256,9 @@ export async function processSetupFeeConversion(conversionId: string) {
     }
   }
 
-  // Partner commission
+  // Partner commission — 25% × actual package gross revenue
   if (conversion.partnerId) {
-    const { rate, amount, type } = calculatePartnerSetupCommission();
+    const { rate, amount, type } = calculatePartnerSetupCommission(conversion.grossRevenue);
     commissionsToCreate.push({
       conversionId,
       partnerId: conversion.partnerId,
@@ -281,7 +269,7 @@ export async function processSetupFeeConversion(conversionId: string) {
       status: "PENDING",
     });
 
-    // Partner Leader override — if this partner was recruited by a Leader
+    // Partner Leader override — 5% × gross revenue paid to the upline leader
     const partnerForLeader = await db.partnerProfile.findUnique({
       where: { id: conversion.partnerId },
       select: { uplineLeaderId: true },
@@ -292,7 +280,7 @@ export async function processSetupFeeConversion(conversionId: string) {
         select: { id: true, isLeader: true, isActive: true },
       });
       if (leader?.isLeader && leader.isActive) {
-        const override = calculateLeaderSetupOverride();
+        const override = calculateLeaderSetupOverride(conversion.grossRevenue);
         commissionsToCreate.push({
           conversionId,
           partnerId: leader.id,
@@ -323,7 +311,7 @@ export async function processSetupFeeConversion(conversionId: string) {
       if (newRank === "SOVEREIGN") rankTimestamps.sovereignAt = new Date();
     }
 
-    // Fast-start bonus
+    // Fast-start bonus — flat $50 on first sale within 14 days of joining
     let fastStartBonus = false;
     if (
       !conversion.affiliate.fastStartBonusEarned &&
@@ -331,16 +319,6 @@ export async function processSetupFeeConversion(conversionId: string) {
       isEligibleForFastStart(conversion.affiliate.createdAt, new Date())
     ) {
       fastStartBonus = true;
-      commissionsToCreate.push({
-        conversionId,
-        affiliateId: conversion.affiliateId,
-        type: "FAST_START_BONUS",
-        rankAtTime: newRank,
-        grossRevenue: 0,
-        commissionRate: 1,
-        amount: PRODUCT_PRICING.fastStartBonus,
-        status: "PENDING",
-      });
       await db.commission.create({
         data: {
           conversionId,
@@ -386,7 +364,6 @@ export async function processClawback(
   reason: string,
   executedBy: string
 ) {
-  // Void all PENDING/APPROVED commissions for this conversion
   const commissions = await db.commission.findMany({
     where: {
       conversionId,
@@ -417,7 +394,6 @@ export async function processClawback(
       where: { conversionId, status: { in: ["PENDING", "APPROVED"] } },
       data: { status: "CLAWBACK" },
     }),
-    // Create void ledger entries for any already-PAID commissions
     ...commissions
       .filter((c) => c.status === "APPROVED")
       .map((c) =>

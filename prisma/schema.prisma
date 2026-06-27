@@ -88,17 +88,19 @@ enum FraudResolution {
 // ─── Core User & Auth ────────────────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String?
-  role          UserRole  @default(AFFILIATE)
-  emailVerified DateTime?
-  avatarUrl     String?
-  phone         String?
-  timezone      String?   @default("America/Chicago")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String?
+  passwordHash        String?
+  role                UserRole  @default(AFFILIATE)
+  emailVerified       DateTime?
+  avatarUrl           String?
+  phone               String?
+  timezone            String?   @default("America/Chicago")
+  passwordResetToken  String?   @unique
+  passwordResetExpiry DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   affiliateProfile AffiliateProfile?
   partnerProfile   PartnerProfile?
@@ -107,6 +109,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([passwordResetToken])
 }
 
 model Session {

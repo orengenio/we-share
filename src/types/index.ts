@@ -122,13 +122,71 @@ export interface AuthSession {
   partnerCode?: string;
 }
 
+// ─── Website packages ─────────────────────────────────────────────────────────
+
+export const WEBSITE_PACKAGES = {
+  STANDARD: {
+    key: "STANDARD",
+    name: "Standard",
+    setupFee: 997,
+    monthlyFee: 247,
+    tagline: "$997 setup + $247/mo",
+    features: [
+      "Up to 5 pages",
+      "Mobile-responsive design",
+      "Basic SEO setup",
+      "Contact form integration",
+      "SSL certificate",
+      "Google Analytics",
+      "Hosting included",
+      "Monthly maintenance",
+    ],
+  },
+  PROFESSIONAL: {
+    key: "PROFESSIONAL",
+    name: "Professional",
+    setupFee: 2497,
+    monthlyFee: 497,
+    tagline: "$2,497 setup + $497/mo",
+    features: [
+      "Everything in Standard",
+      "Up to 15 pages",
+      "Custom WordPress / CMS",
+      "Blog setup & templates",
+      "Advanced SEO & schema",
+      "Speed optimization",
+      "CRM & calendar integration",
+      "3 revision rounds/month",
+      "Weekly maintenance",
+    ],
+  },
+  PREMIUM: {
+    key: "PREMIUM",
+    name: "Premium",
+    setupFee: 4997,
+    monthlyFee: 997,
+    tagline: "$4,997 setup + $997/mo",
+    features: [
+      "Everything in Professional",
+      "Unlimited pages",
+      "E-commerce / portals",
+      "Custom functionality & APIs",
+      "A/B testing setup",
+      "Conversion tracking",
+      "Multi-language support",
+      "Unlimited revisions",
+      "Dedicated web team",
+    ],
+  },
+} as const;
+
+export type WebsitePackageKey = keyof typeof WEBSITE_PACKAGES;
+
 // ─── Commission engine types ──────────────────────────────────────────────────
 
 export interface CommissionConfig {
   setupFeeRate: number;          // e.g. 0.10 for 10%
-  setupFeeAmount: number;        // pre-calculated dollar amount
   residualRate: number;          // e.g. 0.05 for 5%
-  residualAmount: number;        // per-month dollar amount
   residualMonths: number | null; // null = unlimited
   overrideSetupRate: number;     // e.g. 0.05 for 5%
   overrideResidualRate: number;  // e.g. 0.025 for 2.5%
@@ -138,9 +196,7 @@ export interface CommissionConfig {
 export const COMMISSION_CONFIGS: Record<string, CommissionConfig> = {
   CATALYST: {
     setupFeeRate: 0.10,
-    setupFeeAmount: 99.70,
     residualRate: 0.05,
-    residualAmount: 12.35,
     residualMonths: 12,
     overrideSetupRate: 0,
     overrideResidualRate: 0,
@@ -148,9 +204,7 @@ export const COMMISSION_CONFIGS: Record<string, CommissionConfig> = {
   },
   BUILDER: {
     setupFeeRate: 0.15,
-    setupFeeAmount: 149.55,
     residualRate: 0.05,
-    residualAmount: 12.35,
     residualMonths: 24,
     overrideSetupRate: 0.05,
     overrideResidualRate: 0,
@@ -158,9 +212,7 @@ export const COMMISSION_CONFIGS: Record<string, CommissionConfig> = {
   },
   ARCHITECT: {
     setupFeeRate: 0.20,
-    setupFeeAmount: 199.40,
     residualRate: 0.075,
-    residualAmount: 18.53,
     residualMonths: null,
     overrideSetupRate: 0.05,
     overrideResidualRate: 0,
@@ -168,9 +220,7 @@ export const COMMISSION_CONFIGS: Record<string, CommissionConfig> = {
   },
   SOVEREIGN: {
     setupFeeRate: 0.25,
-    setupFeeAmount: 249.25,
     residualRate: 0.10,
-    residualAmount: 24.70,
     residualMonths: null,
     overrideSetupRate: 0.05,
     overrideResidualRate: 0.025,
@@ -178,27 +228,23 @@ export const COMMISSION_CONFIGS: Record<string, CommissionConfig> = {
   },
 };
 
+// Partner: 25% of setup + 25% residual for life (flat, no rank tiers)
 export const PARTNER_COMMISSION = {
-  setupFeeRate: 0.35,
-  setupFeeAmount: 348.95,
+  setupFeeRate: 0.25,
   residualRate: 0.25,
-  residualAmount: 61.75,
-  residualMonths: null,
+  residualMonths: null as null,
 };
 
-// Partner Leader override — promoted partners earn on their recruited team
+// Partner Leader overrides — promoted partners earn on their team's deals (internal only)
 export const LEADER_COMMISSION = {
-  setupOverrideRate: 0.05,   // 5% of $997 setup = $49.85 per team sale
-  setupOverrideAmount: 49.85,
-  residualOverrideRate: 0.05, // 5% of $247/mo = $12.35/mo per active team client
-  residualOverrideAmount: 12.35,
+  setupOverrideRate: 0.05,
+  residualOverrideRate: 0.05,
 };
 
 export const PRODUCT_PRICING = {
-  setupFee: 997.00,
-  monthlyMaintenance: 247.00,
   fastStartBonus: 50.00,
   fastStartWindowDays: 14,
+  payoutSchedule: "weekly-friday" as const,
 };
 
 export const RANK_THRESHOLDS = {

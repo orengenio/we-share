@@ -92,7 +92,7 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="text-sm">
-          <Link href="/reset-password" className="text-gray-400 hover:text-gray-600 text-xs">
+          <Link href="/forgot-password" className="text-gray-400 hover:text-gray-600 text-xs">
             Forgot password?
           </Link>
         </p>
