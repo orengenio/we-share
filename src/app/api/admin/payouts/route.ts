@@ -1,5 +1,5 @@
 /**
- * Payout management — calculates and executes monthly NET-15 payouts
+ * Payout management — calculates and executes weekly Friday payouts
  * via Stripe Connect transfers.
  */
 
@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
     const [year, month] = periodMonth.split("-").map(Number);
     const periodStart = startOfMonth(new Date(year, month - 1));
     const periodEnd = endOfMonth(new Date(year, month - 1));
-    const scheduledDate = new Date(year, month, 15); // 15th of following month
-    const batchLabel = `${periodMonth} NET-15`;
+    const scheduledDate = new Date(year, month - 1, periodEnd.getDate() + ((5 - periodEnd.getDay() + 7) % 7 || 7)); // next Friday
+    const batchLabel = `${periodMonth} Weekly-Friday`;
 
     // Prevent duplicate payout runs
     const existing = await db.payout.findFirst({

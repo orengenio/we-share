@@ -116,7 +116,7 @@ function RunPayoutForm({ onSuccess }: { onSuccess: () => void }) {
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. NET-15 July batch"
+            placeholder="e.g. Friday payout — July week 1"
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
