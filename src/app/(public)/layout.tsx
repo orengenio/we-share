@@ -27,6 +27,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <Link href="/calculator" className="text-gray-600 hover:text-gray-900 font-medium">
               Calculator
             </Link>
+            <Link href="/docs" className="text-gray-600 hover:text-gray-900 font-medium">
+              Documents
+            </Link>
             <Link
               href="/register"
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
