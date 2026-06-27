@@ -29,6 +29,6 @@ export async function GET(
     return apiSuccess({ items });
   } catch (err) {
     console.error("[GET /api/admin/payouts/[id]/items]", err);
-    return apiServerError();
+    return apiServerError(err);
   }
 }

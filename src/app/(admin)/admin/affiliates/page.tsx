@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getSessionFromCookies } from "@/lib/auth";
 import db from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import {
   RANK_COLORS,
   RANK_LABELS,
@@ -28,7 +29,7 @@ const RANKS = ["CATALYST", "BUILDER", "ARCHITECT", "SOVEREIGN"] as const;
 // ─── Data fetcher ──────────────────────────────────────────────────────────────
 
 async function getAffiliates(page: number, q?: string, rank?: string, status?: string) {
-  const where: Parameters<typeof db.affiliateProfile.findMany>[0]["where"] = {};
+  const where: Prisma.AffiliateProfileWhereInput = {};
 
   if (q) {
     where.user = {

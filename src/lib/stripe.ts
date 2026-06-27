@@ -1,19 +1,32 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20.acacia",
-  typescript: true,
-});
+let stripeClient: Stripe | null = null;
 
-export const STRIPE_PRICES = {
-  setupFee: process.env.STRIPE_SETUP_FEE_PRICE_ID!,
-  maintenance: process.env.STRIPE_MAINTENANCE_PRICE_ID!,
-};
+function getStripeClient(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  if (!stripeClient) {
+    stripeClient = new Stripe(key, {
+      apiVersion: "2024-11-20.acacia",
+      typescript: true,
+    });
+  }
+  return stripeClient;
+}
+
+export function getStripePrices() {
+  return {
+    setupFee: process.env.STRIPE_SETUP_FEE_PRICE_ID!,
+    maintenance: process.env.STRIPE_MAINTENANCE_PRICE_ID!,
+  };
+}
 
 // ─── Stripe Connect helpers ───────────────────────────────────────────────────
 
 export async function createConnectAccount(email: string, name: string) {
-  return stripe.accounts.create({
+  return getStripeClient().accounts.create({
     type: "express",
     email,
     capabilities: {
@@ -34,7 +47,7 @@ export async function createConnectOnboardingLink(
   returnUrl: string,
   refreshUrl: string
 ) {
-  return stripe.accountLinks.create({
+  return getStripeClient().accountLinks.create({
     account: accountId,
     return_url: returnUrl,
     refresh_url: refreshUrl,
@@ -43,7 +56,7 @@ export async function createConnectOnboardingLink(
 }
 
 export async function getConnectAccountStatus(accountId: string) {
-  const account = await stripe.accounts.retrieve(accountId);
+  const account = await getStripeClient().accounts.retrieve(accountId);
   return {
     detailsSubmitted: account.details_submitted,
     chargesEnabled: account.charges_enabled,
@@ -58,7 +71,7 @@ export async function createTransfer(
   description: string,
   metadata: Record<string, string> = {}
 ) {
-  return stripe.transfers.create({
+  return getStripeClient().transfers.create({
     amount: Math.round(amount * 100),
     currency: "usd",
     destination: destinationAccountId,
@@ -70,7 +83,7 @@ export async function createTransfer(
 // ─── Webhook verification ─────────────────────────────────────────────────────
 
 export function constructWebhookEvent(payload: string | Buffer, signature: string) {
-  return stripe.webhooks.constructEvent(
+  return getStripeClient().webhooks.constructEvent(
     payload,
     signature,
     process.env.STRIPE_WEBHOOK_SECRET!
@@ -90,15 +103,16 @@ export async function createCheckoutSession({
   successUrl: string;
   cancelUrl: string;
 }) {
-  return stripe.checkout.sessions.create({
+  const prices = getStripePrices();
+  return getStripeClient().checkout.sessions.create({
     mode: "subscription",
     line_items: [
       {
-        price: STRIPE_PRICES.setupFee,
+        price: prices.setupFee,
         quantity: 1,
       },
       {
-        price: STRIPE_PRICES.maintenance,
+        price: prices.maintenance,
         quantity: 1,
       },
     ],

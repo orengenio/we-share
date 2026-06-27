@@ -84,7 +84,7 @@ export async function GET(_req: NextRequest) {
     });
   } catch (err) {
     console.error("[GET /api/public/leaderboard]", err);
-    return apiServerError();
+    return apiServerError(err);
   }
 }
 

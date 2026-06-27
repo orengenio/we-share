@@ -1,12 +1,24 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient: Resend | null = null;
+
+function getResend(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+  if (!resendClient) {
+    resendClient = new Resend(key);
+  }
+  return resendClient;
+}
+
 const FROM = process.env.EMAIL_FROM || "noreply@orengen.io";
 const REPLY_TO = process.env.EMAIL_REPLY_TO || "support@orengen.io";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://weshare.orengen.io";
 
 async function send(to: string, subject: string, html: string) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     replyTo: REPLY_TO,
     to,

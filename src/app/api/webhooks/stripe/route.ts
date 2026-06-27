@@ -15,8 +15,6 @@ import db from "@/lib/db";
 import { addDays } from "date-fns";
 import type Stripe from "stripe";
 
-export const config = { api: { bodyParser: false } };
-
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature") ?? "";

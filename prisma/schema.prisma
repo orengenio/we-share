@@ -276,6 +276,7 @@ model PartnerProfile {
   teamMembers      PartnerProfile[] @relation("PartnerLeaderTree")
   leads            Lead[]
   commissions      Commission[]
+  conversions      Conversion[]
   payoutItems      PayoutItem[]
   disputes         Dispute[]
   ghlOpportunities GHLOpportunity[]
