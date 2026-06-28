@@ -101,7 +101,7 @@ function CreateLinkForm({ onCreated }: CreateLinkFormProps) {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
-        style={{ backgroundColor: "#003366" }}
+        style={{ backgroundColor: "#00254B" }}
       >
         <Plus size={16} />
         New Link
@@ -318,7 +318,7 @@ export default function AffiliateLinksPage() {
                       <td className="px-5 py-3 text-right font-semibold text-gray-900">
                         {link.leadCount.toLocaleString()}
                       </td>
-                      <td className="px-5 py-3 text-right font-semibold" style={{ color: "#003366" }}>
+                      <td className="px-5 py-3 text-right font-semibold" style={{ color: "#00254B" }}>
                         {link.conversionCount.toLocaleString()}
                       </td>
                       <td className="px-5 py-3 text-gray-500 text-xs">
@@ -365,7 +365,7 @@ export default function AffiliateLinksPage() {
               {stat.icon}
               <div>
                 <p className="text-xs text-gray-500">{stat.label}</p>
-                <p className="text-lg font-bold" style={{ color: "#003366" }}>
+                <p className="text-lg font-bold" style={{ color: "#00254B" }}>
                   {stat.value}
                 </p>
               </div>

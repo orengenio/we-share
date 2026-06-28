@@ -123,7 +123,7 @@ export default async function ArmyBuilderPage() {
           className="flex items-center justify-center w-16 h-16 rounded-full mb-4"
           style={{ backgroundColor: "rgba(0,51,102,0.08)" }}
         >
-          <Lock size={28} style={{ color: "#003366" }} />
+          <Lock size={28} style={{ color: "#00254B" }} />
         </div>
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Army Builder is Locked</h2>
         <p className="text-sm text-gray-500 max-w-sm">
@@ -213,7 +213,7 @@ export default async function ArmyBuilderPage() {
             ].map((item) => (
               <div key={item.label} className="rounded-lg bg-gray-50 px-3 py-3">
                 <p className="text-xs text-gray-500 mb-1">{item.label}</p>
-                <p className="text-sm font-bold" style={{ color: "#003366" }}>
+                <p className="text-sm font-bold" style={{ color: "#00254B" }}>
                   {item.value}
                 </p>
               </div>

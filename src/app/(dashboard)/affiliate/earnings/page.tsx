@@ -224,7 +224,7 @@ export default async function AffiliateEarningsPage({ searchParams }: EarningsPa
                     ].join(" ")}
                     style={
                       (statusFilter ?? "") === opt.value
-                        ? { backgroundColor: "#003366" }
+                        ? { backgroundColor: "#00254B" }
                         : undefined
                     }
                   >
@@ -287,7 +287,7 @@ export default async function AffiliateEarningsPage({ searchParams }: EarningsPa
                             ? `${(c.commissionRate * 100).toFixed(1)}%`
                             : "—"}
                         </td>
-                        <td className="px-5 py-3 text-right font-semibold whitespace-nowrap" style={{ color: "#003366" }}>
+                        <td className="px-5 py-3 text-right font-semibold whitespace-nowrap" style={{ color: "#00254B" }}>
                           {c.amount < 0 ? (
                             <span className="text-red-600">{formatCurrency(c.amount)}</span>
                           ) : (

@@ -9,6 +9,11 @@ import { RANK_LABELS } from "@/lib/utils";
 type Tab = "affiliate" | "partner" | "leader";
 type PkgKey = "STANDARD" | "PROFESSIONAL" | "PREMIUM";
 
+const MUTED = "rgba(203,213,225,0.75)";
+const LINE  = "rgba(148,163,184,0.18)";
+const SURF  = "rgba(255,255,255,0.06)";
+const SURF2 = "rgba(255,255,255,0.09)";
+
 const RANK_ORDER = ["CATALYST", "BUILDER", "ARCHITECT", "SOVEREIGN"] as const;
 const PKG_ORDER: PkgKey[] = ["STANDARD", "PROFESSIONAL", "PREMIUM"];
 
@@ -17,20 +22,18 @@ const PKG_ORDER: PkgKey[] = ["STANDARD", "PROFESSIONAL", "PREMIUM"];
 function PackageSelector({ value, onChange }: { value: PkgKey; onChange: (k: PkgKey) => void }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-600 mb-2">Website Package</label>
-      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+      <label className="block text-xs font-semibold mb-2" style={{ color: "rgba(148,163,184,0.7)" }}>Website Package</label>
+      <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${LINE}` }}>
         {PKG_ORDER.map(k => (
           <button
             key={k}
             type="button"
             onClick={() => onChange(k)}
-            className={[
-              "flex-1 py-2 text-xs font-semibold transition-colors",
-              value === k
-                ? "text-white"
-                : "text-gray-500 hover:text-gray-700 bg-white",
-            ].join(" ")}
-            style={value === k ? { backgroundColor: "#003366" } : {}}
+            className="flex-1 py-2 text-xs font-semibold transition-all"
+            style={value === k
+              ? { backgroundColor: "#CC5500", color: "#fff" }
+              : { background: "rgba(255,255,255,0.04)", color: MUTED }
+            }
           >
             <span className="block">{WEBSITE_PACKAGES[k].name}</span>
             <span className="block font-normal opacity-70">{WEBSITE_PACKAGES[k].tagline}</span>
@@ -72,75 +75,77 @@ function AffiliateCalculator({ pkg }: { pkg: PkgKey }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Your Rank</label>
+          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Your Rank</label>
           <select
             value={rank}
             onChange={e => setRank(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#003366]/30"
+            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}`, color: "white" }}
           >
             {RANK_ORDER.map(r => (
-              <option key={r} value={r}>{RANK_LABELS[r]}</option>
+              <option key={r} value={r} style={{ background: "#00254B" }}>{RANK_LABELS[r]}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Sales Per Month</label>
+          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Sales Per Month</label>
           <input
             type="number" min={1} max={100} value={salesPerMonth}
             onChange={e => setSalesPerMonth(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/30"
+            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
           />
         </div>
       </div>
 
       {/* Rate summary */}
-      <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+      <div className="rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center" style={{ background: SURF2, border: `1px solid ${LINE}` }}>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Setup Rate</p>
-          <p className="font-bold text-lg" style={{ color: "#003366" }}>{(config.setupFeeRate * 100).toFixed(0)}%</p>
-          <p className="text-xs text-gray-400">{formatCurrency(setupPerSale)}/sale</p>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Setup Rate</p>
+          <p className="font-bold text-lg text-white">{(config.setupFeeRate * 100).toFixed(0)}%</p>
+          <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{formatCurrency(setupPerSale)}/sale</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Residual Rate</p>
-          <p className="font-bold text-lg" style={{ color: "#003366" }}>{(config.residualRate * 100).toFixed(1)}%</p>
-          <p className="text-xs text-gray-400">{formatCurrency(residualPerClient)}/mo/client</p>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Residual Rate</p>
+          <p className="font-bold text-lg text-white">{(config.residualRate * 100).toFixed(1)}%</p>
+          <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{formatCurrency(residualPerClient)}/mo/client</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Residual Duration</p>
-          <p className="font-bold text-lg" style={{ color: "#003366" }}>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Residual Duration</p>
+          <p className="font-bold text-lg text-white">
             {config.residualMonths === null ? "∞" : `${config.residualMonths} mo`}
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Projection (months)</p>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Projection (months)</p>
           <div className="flex items-center gap-1 justify-center">
             <input
               type="number" min={1} max={60} value={months}
               onChange={e => setMonths(Math.max(1, Math.min(60, parseInt(e.target.value) || 12)))}
-              className="w-16 rounded border border-gray-300 px-1.5 py-1 text-sm font-bold text-center focus:outline-none"
-              style={{ color: "#CC5500" }}
+              className="w-16 rounded px-1.5 py-1 text-sm font-bold text-center focus:outline-none"
+              style={{ background: "rgba(255,255,255,0.1)", border: `1px solid ${LINE}`, color: "#CC5500" }}
             />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Total Setup</p>
-          <p className="text-xl font-bold" style={{ color: "#003366" }}>{formatCurrency(totalSetup)}</p>
+        <div className="rounded-xl p-4 text-center" style={{ background: SURF, border: `1px solid ${LINE}` }}>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Total Setup</p>
+          <p className="text-xl font-bold text-white">{formatCurrency(totalSetup)}</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Total Residual</p>
-          <p className="text-xl font-bold" style={{ color: "#003366" }}>{formatCurrency(totalResidual)}</p>
-          <p className="text-xs text-gray-400">{formatCurrency(lastMonthResidual)}/mo at end</p>
+        <div className="rounded-xl p-4 text-center" style={{ background: SURF, border: `1px solid ${LINE}` }}>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Total Residual</p>
+          <p className="text-xl font-bold text-white">{formatCurrency(totalResidual)}</p>
+          <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{formatCurrency(lastMonthResidual)}/mo at end</p>
         </div>
-        <div className="rounded-xl border bg-white p-4 text-center shadow-sm" style={{ borderColor: "#CC5500" }}>
-          <p className="text-xs text-gray-500 mb-1">Total {months}mo Earnings</p>
+        <div className="rounded-xl p-4 text-center" style={{ background: "rgba(204,85,0,0.12)", border: "1px solid rgba(204,85,0,0.35)" }}>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Total {months}mo Earnings</p>
           <p className="text-xl font-bold" style={{ color: "#CC5500" }}>{formatCurrency(totalSetup + totalResidual)}</p>
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-center" style={{ color: "rgba(148,163,184,0.5)" }}>
         Estimates assume consistent sales pace and client retention. Not a guarantee of income.
       </p>
     </div>
@@ -173,9 +178,9 @@ function PartnerCalculator({ pkg }: { pkg: PkgKey }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-orange-100 bg-orange-50 p-4">
-        <p className="text-sm font-semibold text-orange-900 mb-1">Sales Partner — {WEBSITE_PACKAGES[pkg].name} Package</p>
-        <p className="text-xs text-orange-700">
+      <div className="rounded-xl p-4" style={{ background: "rgba(204,85,0,0.1)", border: "1px solid rgba(204,85,0,0.25)" }}>
+        <p className="text-sm font-semibold text-white mb-1">Sales Partner — {WEBSITE_PACKAGES[pkg].name} Package</p>
+        <p className="text-xs" style={{ color: "rgba(253,186,116,0.85)" }}>
           <strong>25% setup fee</strong> ({formatCurrency(setupPerDeal)}/deal) +{" "}
           <strong>25% monthly residual</strong> ({formatCurrency(residualPerClient)}/mo) for the life of every client.
           Flat rate — no ranking system.
@@ -184,42 +189,44 @@ function PartnerCalculator({ pkg }: { pkg: PkgKey }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Deals Closed Per Month</label>
+          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Deals Closed Per Month</label>
           <input
             type="number" min={1} max={50} value={dealsPerMonth}
             onChange={e => setDealsPerMonth(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/30"
+            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Projection (months)</label>
+          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Projection (months)</label>
           <input
             type="number" min={1} max={60} value={months}
             onChange={e => setMonths(Math.max(1, Math.min(60, parseInt(e.target.value) || 12)))}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/30"
+            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
           />
         </div>
         <div className="flex flex-col justify-end">
-          <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-center">
-            <p className="text-xs text-gray-500">Residual at Mo.{months}</p>
-            <p className="font-bold text-base" style={{ color: "#003366" }}>{formatCurrency(monthlyResidualAtEnd)}/mo</p>
-            <p className="text-xs text-gray-400">{months * dealsPerMonth} active clients</p>
+          <div className="rounded-lg p-3 text-center" style={{ background: SURF2, border: `1px solid ${LINE}` }}>
+            <p className="text-xs" style={{ color: MUTED }}>Residual at Mo.{months}</p>
+            <p className="font-bold text-base text-white">{formatCurrency(monthlyResidualAtEnd)}/mo</p>
+            <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{months * dealsPerMonth} active clients</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Total Setup ({months} mo)</p>
-          <p className="text-xl font-bold" style={{ color: "#003366" }}>{formatCurrency(totalSetup)}</p>
+        <div className="rounded-xl p-4 text-center" style={{ background: SURF, border: `1px solid ${LINE}` }}>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Total Setup ({months} mo)</p>
+          <p className="text-xl font-bold text-white">{formatCurrency(totalSetup)}</p>
         </div>
-        <div className="rounded-xl border bg-white p-4 text-center shadow-sm" style={{ borderColor: "#CC5500" }}>
-          <p className="text-xs text-gray-500 mb-1">Total {months}mo Earnings</p>
+        <div className="rounded-xl p-4 text-center" style={{ background: "rgba(204,85,0,0.12)", border: "1px solid rgba(204,85,0,0.35)" }}>
+          <p className="text-xs mb-1" style={{ color: MUTED }}>Total {months}mo Earnings</p>
           <p className="text-xl font-bold" style={{ color: "#CC5500" }}>{formatCurrency(totalSetup + totalResidual)}</p>
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-center" style={{ color: "rgba(148,163,184,0.5)" }}>
         Assumes zero churn. Actual residuals depend on client retention. For illustration only.
       </p>
     </div>
@@ -266,11 +273,11 @@ function LeaderCalculator({ pkg }: { pkg: PkgKey }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex gap-3">
-        <Lock size={16} className="text-amber-600 mt-0.5 shrink-0" />
+      <div className="rounded-xl p-4 flex gap-3" style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }}>
+        <Lock size={16} className="mt-0.5 shrink-0" style={{ color: "#FCD34D" }} />
         <div>
-          <p className="text-sm font-semibold text-amber-900">Partner Leader — Internal Promotion Only</p>
-          <p className="text-xs text-amber-700 mt-0.5">
+          <p className="text-sm font-semibold text-white">Partner Leader — Internal Promotion Only</p>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(253,224,132,0.8)" }}>
             Leadership is not available at signup. It is an earned position awarded internally to top-performing Sales Partners by OrenGen management.
             This calculator shows what a promoted Leader can earn on the <strong>{WEBSITE_PACKAGES[pkg].name}</strong> package.
           </p>
@@ -285,11 +292,12 @@ function LeaderCalculator({ pkg }: { pkg: PkgKey }) {
           { label: "Projection (months)", value: months, set: setMonths, min: 1, max: 60 },
         ].map(f => (
           <div key={f.label}>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
+            <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>{f.label}</label>
             <input
               type="number" min={f.min} max={f.max} value={f.value}
               onChange={e => f.set(Math.max(f.min, Math.min(f.max, parseFloat(e.target.value) || f.min)))}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/30"
+              className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+              style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
             />
           </div>
         ))}
@@ -297,28 +305,35 @@ function LeaderCalculator({ pkg }: { pkg: PkgKey }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Your Setup", value: totals.mySetup, sub: `${formatCurrency(personalDeals * mySetupPerDeal)}/mo`, highlight: false },
-          { label: "Your Residual", value: totals.myResidual, sub: `${formatCurrency(lastMonth?.myResidual ?? 0)}/mo at end`, highlight: false },
-          { label: "Team Setup Override", value: totals.teamSetup, sub: `${formatCurrency(teamSetupOverridePerDeal)}/deal × team`, highlight: true },
-          { label: "Team Residual Override", value: totals.teamResidual, sub: `${formatCurrency(lastMonth?.teamResidual ?? 0)}/mo at end`, highlight: true },
+          { label: "Your Setup", value: totals.mySetup, sub: `${formatCurrency(personalDeals * mySetupPerDeal)}/mo`, amber: false },
+          { label: "Your Residual", value: totals.myResidual, sub: `${formatCurrency(lastMonth?.myResidual ?? 0)}/mo at end`, amber: false },
+          { label: "Team Setup Override", value: totals.teamSetup, sub: `${formatCurrency(teamSetupOverridePerDeal)}/deal × team`, amber: true },
+          { label: "Team Residual Override", value: totals.teamResidual, sub: `${formatCurrency(lastMonth?.teamResidual ?? 0)}/mo at end`, amber: true },
         ].map(s => (
-          <div key={s.label} className={`rounded-xl border bg-white p-4 text-center ${s.highlight ? "border-amber-200" : "border-gray-200"}`}>
-            <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-            <p className="font-bold text-base" style={{ color: s.highlight ? "#B45309" : "#003366" }}>{formatCurrency(s.value)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+          <div
+            key={s.label}
+            className="rounded-xl p-4 text-center"
+            style={s.amber
+              ? { background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }
+              : { background: SURF, border: `1px solid ${LINE}` }
+            }
+          >
+            <p className="text-xs mb-1" style={{ color: MUTED }}>{s.label}</p>
+            <p className="font-bold text-base" style={{ color: s.amber ? "#FCD34D" : "white" }}>{formatCurrency(s.value)}</p>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.5)" }}>{s.sub}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl p-5 text-center" style={{ backgroundColor: "#003366" }}>
-        <p className="text-white/60 text-xs mb-1">{months}-month total as a Leader ({WEBSITE_PACKAGES[pkg].name} package)</p>
-        <p className="text-3xl font-bold text-white">{formatCurrency(grandTotal)}</p>
-        <p className="text-white/50 text-xs mt-1">
+      <div className="rounded-xl p-5 text-center" style={{ background: "rgba(0,37,75,0.8)", border: `1px solid rgba(148,163,184,0.22)` }}>
+        <p className="text-xs mb-1" style={{ color: "rgba(203,213,225,0.6)" }}>{months}-month total as a Leader ({WEBSITE_PACKAGES[pkg].name} package)</p>
+        <p className="text-3xl font-black text-white">{formatCurrency(grandTotal)}</p>
+        <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.5)" }}>
           {formatCurrency(totals.mySetup + totals.myResidual)} personal + {formatCurrency(totals.teamSetup + totals.teamResidual)} team overrides
         </p>
       </div>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-center" style={{ color: "rgba(148,163,184,0.5)" }}>
         Assumes consistent team performance and zero churn. For illustration only.
       </p>
     </div>
@@ -336,20 +351,20 @@ export default function CalculatorPage() {
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Calculator className="w-8 h-8" style={{ color: "#CC5500" }} />
-          <h1 className="text-3xl font-bold" style={{ color: "#003366" }}>Earnings Calculator</h1>
+          <h1 className="text-3xl font-black text-white">Earnings Calculator</h1>
         </div>
-        <p className="text-gray-500">
+        <p style={{ color: MUTED }}>
           See what you could earn. Pick a package, choose your track, and adjust the numbers.
         </p>
       </div>
 
-      {/* Package selector — shared across all tabs */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
+      {/* Package selector */}
+      <div className="rounded-xl p-5" style={{ background: SURF, border: `1px solid ${LINE}`, backdropFilter: "blur(10px)" }}>
         <PackageSelector value={pkg} onChange={setPkg} />
       </div>
 
       {/* Track tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex" style={{ borderBottom: `1px solid ${LINE}` }}>
         {([
           { key: "affiliate", label: "Affiliate", icon: <StarIcon size={15} /> },
           { key: "partner", label: "Sales Partner", icon: <TrendingUp size={15} /> },
@@ -358,17 +373,18 @@ export default function CalculatorPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={[
-              "flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-              tab === t.key ? "border-[#CC5500] text-[#CC5500]" : "border-transparent text-gray-500 hover:text-gray-800",
-            ].join(" ")}
+            className="flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style={tab === t.key
+              ? { borderColor: "#CC5500", color: "#CC5500" }
+              : { borderColor: "transparent", color: MUTED }
+            }
           >
             {t.icon} {t.label}
           </button>
         ))}
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6">
+      <div className="rounded-xl p-6" style={{ background: SURF, border: `1px solid ${LINE}`, backdropFilter: "blur(10px)" }}>
         {tab === "affiliate" && <AffiliateCalculator pkg={pkg} />}
         {tab === "partner" && <PartnerCalculator pkg={pkg} />}
         {tab === "leader" && <LeaderCalculator pkg={pkg} />}
@@ -377,8 +393,8 @@ export default function CalculatorPage() {
       <div className="text-center">
         <a
           href="/register"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white"
-          style={{ backgroundColor: "#CC5500" }}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "#CC5500", boxShadow: "0 8px 24px rgba(204,85,0,0.3)" }}
         >
           <DollarSign size={16} /> Join WeShare &amp; Start Earning
         </a>

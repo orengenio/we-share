@@ -92,7 +92,7 @@ export default function AdminCommissionsPage() {
             onClick={approveSelected}
             disabled={approving}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-            style={{ backgroundColor: "#003366" }}
+            style={{ backgroundColor: "#00254B" }}
           >
             <CheckCircle size={14} />
             {approving ? "Approving…" : `Approve ${selected.size} selected`}
@@ -107,7 +107,7 @@ export default function AdminCommissionsPage() {
             key={s}
             onClick={() => { setStatus(s); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${status === s ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-            style={status === s ? { backgroundColor: "#003366" } : undefined}
+            style={status === s ? { backgroundColor: "#00254B" } : undefined}
           >
             {s}
           </button>
@@ -168,7 +168,7 @@ export default function AdminCommissionsPage() {
                     </td>
                     <td className="py-3 px-4 font-mono text-xs text-gray-600">{c.type}</td>
                     <td className="py-3 px-4 text-gray-500 text-xs">{c.rankAtTime ?? "—"}</td>
-                    <td className="py-3 px-4 text-right font-semibold" style={{ color: "#003366" }}>
+                    <td className="py-3 px-4 text-right font-semibold" style={{ color: "#00254B" }}>
                       {formatCurrency(c.amount)}
                     </td>
                     <td className="py-3 px-4">

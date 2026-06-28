@@ -63,7 +63,7 @@ export default function StatsCard({
             style={
               highlight
                 ? { backgroundColor: "rgba(204,85,0,0.1)" }
-                : { backgroundColor: "rgba(0,51,102,0.08)", color: "#003366" }
+                : { backgroundColor: "rgba(0,51,102,0.08)", color: "#00254B" }
             }
           >
             {icon}
@@ -75,7 +75,7 @@ export default function StatsCard({
       <div className="space-y-1">
         <p
           className="text-2xl font-bold tracking-tight leading-none"
-          style={{ color: highlight ? "#CC5500" : "#003366" }}
+          style={{ color: highlight ? "#CC5500" : "#00254B" }}
         >
           {value}
         </p>

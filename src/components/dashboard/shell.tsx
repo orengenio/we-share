@@ -113,7 +113,7 @@ export default function DashboardShell({ session, children }: DashboardShellProp
       {/* ── Sidebar ── */}
       <aside
         className="flex flex-col shrink-0 w-60 h-full overflow-y-auto"
-        style={{ backgroundColor: "#003366" }}
+        style={{ backgroundColor: "#00254B" }}
       >
         {/* Logo */}
         <div className="px-6 py-6 border-b border-white/10">
@@ -251,7 +251,7 @@ export default function DashboardShell({ session, children }: DashboardShellProp
             {/* Avatar (top bar repeat) */}
             <div
               className="flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold text-white"
-              style={{ backgroundColor: "#003366" }}
+              style={{ backgroundColor: "#00254B" }}
             >
               {initials}
             </div>

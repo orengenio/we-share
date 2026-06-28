@@ -111,7 +111,7 @@ export default async function AdminFraudPage({ searchParams }: PageProps) {
                   ? "text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200",
               ].join(" ")}
-              style={showResolved === opt.value ? { backgroundColor: "#003366" } : undefined}
+              style={showResolved === opt.value ? { backgroundColor: "#00254B" } : undefined}
             >
               {opt.label}
             </Link>

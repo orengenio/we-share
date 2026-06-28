@@ -222,7 +222,7 @@ export default async function AdminOverviewPage() {
                       <span className="text-gray-600 font-medium">
                         {RANK_LABELS[rank] ?? rank}
                       </span>
-                      <span className="font-bold" style={{ color: "#003366" }}>
+                      <span className="font-bold" style={{ color: "#00254B" }}>
                         {count.toLocaleString()}
                       </span>
                     </div>
@@ -263,7 +263,7 @@ export default async function AdminOverviewPage() {
             >
               <div
                 className="flex items-center justify-center w-9 h-9 rounded-lg"
-                style={{ backgroundColor: "rgba(0,51,102,0.08)", color: "#003366" }}
+                style={{ backgroundColor: "rgba(0,51,102,0.08)", color: "#00254B" }}
               >
                 {item.icon}
               </div>

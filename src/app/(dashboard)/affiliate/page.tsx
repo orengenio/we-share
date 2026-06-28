@@ -287,7 +287,7 @@ export default async function AffiliateDashboardPage() {
             <Link
               href="/affiliate/links"
               className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-white transition-colors"
-              style={{ backgroundColor: "#003366" }}
+              style={{ backgroundColor: "#00254B" }}
             >
               Manage Links
               <ArrowRight size={12} />
@@ -353,7 +353,7 @@ export default async function AffiliateDashboardPage() {
                         <td className="px-5 py-3 text-gray-500">
                           {formatDate(conv.createdAt)}
                         </td>
-                        <td className="px-5 py-3 text-right font-semibold" style={{ color: "#003366" }}>
+                        <td className="px-5 py-3 text-right font-semibold" style={{ color: "#00254B" }}>
                           {formatCurrency(totalComm)}
                         </td>
                         <td className="px-5 py-3">

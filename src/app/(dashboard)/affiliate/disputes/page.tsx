@@ -143,7 +143,7 @@ export default function AffiliateDisputesPage() {
               {disputes.map(d => (
                 <tr key={d.id} className="table-row-hover">
                   <td className="py-3 px-4">
-                    <p className="font-semibold" style={{ color: "#003366" }}>{formatCurrency(d.commission.amount)}</p>
+                    <p className="font-semibold" style={{ color: "#00254B" }}>{formatCurrency(d.commission.amount)}</p>
                     <p className="text-xs font-mono text-gray-400">{d.commission.type}</p>
                   </td>
                   <td className="py-3 px-4 text-gray-700">{d.reason}</td>

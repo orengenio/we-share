@@ -119,7 +119,7 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
             <Link
               href={buildHref({ rank: undefined, page: "1" })}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!rank ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-              style={!rank ? { backgroundColor: "#003366" } : undefined}
+              style={!rank ? { backgroundColor: "#00254B" } : undefined}
             >
               All Ranks
             </Link>
@@ -128,7 +128,7 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
                 key={r}
                 href={buildHref({ rank: r, page: "1" })}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${rank === r ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-                style={rank === r ? { backgroundColor: "#003366" } : undefined}
+                style={rank === r ? { backgroundColor: "#00254B" } : undefined}
               >
                 {RANK_LABELS[r]}
               </Link>
@@ -212,7 +212,7 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
                       <td className="px-4 py-3 font-semibold text-gray-900">
                         {aff.lifetimeSales.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold" style={{ color: "#003366" }}>
+                      <td className="px-4 py-3 text-right font-semibold" style={{ color: "#00254B" }}>
                         {formatCurrency(aff.totalEarned)}
                       </td>
                       <td className="px-4 py-3 text-right">

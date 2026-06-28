@@ -106,7 +106,7 @@ export default function AdminDisputesPage() {
                         <p className="text-gray-400 text-xs">{user?.email}</p>
                       </td>
                       <td className="py-3 px-4">
-                        <p className="font-semibold" style={{ color: "#003366" }}>
+                        <p className="font-semibold" style={{ color: "#00254B" }}>
                           {formatCurrency(d.commission.amount)}
                         </p>
                         <p className="text-gray-400 text-xs font-mono">{d.commission.type}</p>
@@ -130,7 +130,7 @@ export default function AdminDisputesPage() {
                         {d.status !== "RESOLVED" && d.status !== "REJECTED" && (
                           <button
                             onClick={() => setResolveForm({ id: d.id, resolution: "APPROVED", notes: "" })}
-                            className="text-xs text-[#003366] font-medium hover:underline"
+                            className="text-xs text-[#00254B] font-medium hover:underline"
                           >
                             Review
                           </button>
