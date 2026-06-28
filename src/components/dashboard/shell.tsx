@@ -11,13 +11,13 @@ import {
   AlertCircle,
   UserCheck,
   Building2,
-  CreditCard,
   Wallet,
   ShieldAlert,
   Bell,
   LogOut,
   ChevronRight,
   BarChart3,
+  BookOpen,
 } from "lucide-react";
 import type { AuthSession } from "@/types";
 
@@ -47,6 +47,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "My Leads", href: "/partner/leads", icon: <UserCheck size={18} /> },
         { label: "Earnings", href: "/partner/earnings", icon: <DollarSign size={18} /> },
         { label: "Disputes", href: "/partner/disputes", icon: <AlertCircle size={18} /> },
+        { label: "Resources", href: "/resources", icon: <BookOpen size={18} /> },
       ];
     default:
       // AFFILIATE
@@ -56,6 +57,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Earnings", href: "/affiliate/earnings", icon: <DollarSign size={18} /> },
         { label: "Army Builder", href: "/affiliate/army", icon: <Users size={18} /> },
         { label: "Disputes", href: "/affiliate/disputes", icon: <AlertCircle size={18} /> },
+        { label: "Resources", href: "/resources", icon: <BookOpen size={18} /> },
       ];
   }
 }

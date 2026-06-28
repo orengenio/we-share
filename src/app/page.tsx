@@ -42,26 +42,28 @@ export default async function Home() {
         }}
       >
         <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-            <Image
-              src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
-              alt="OrenGen Worldwide"
-              width={130}
-              height={32}
-              unoptimized
-            />
-            <span
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <a href="https://orengen.io" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
+                alt="OrenGen Worldwide"
+                width={130}
+                height={32}
+                unoptimized
+              />
+            </a>
+            <Link
+              href="/"
               className="hidden sm:block text-[10px] font-bold tracking-[0.18em] uppercase pl-3"
               style={{ color: "rgba(148,163,184,0.6)", borderLeft: `1px solid ${LINE}` }}
             >
               WeShare
-            </span>
-          </Link>
+            </Link>
+          </div>
           <nav className="hidden sm:flex items-center gap-1">
             {[
               { href: "/leaderboard", label: "Leaderboard" },
               { href: "/calculator",  label: "Calculator"  },
-              { href: "/docs",        label: "Documents"   },
             ].map(({ href, label }) => (
               <Link
                 key={href}
@@ -103,7 +105,7 @@ export default async function Home() {
             style={{ letterSpacing: "-0.05em", color: "#f8fafc" }}
           >
             Get Paid to Sell<br />
-            <span style={{ color: "#CC5500" }}>Premium AI Websites.</span>
+            <span style={{ color: "#CC5500" }}>Premium Websites.</span>
           </h1>
           <p className="text-lg max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: MUTED }}>
             Refer clients or close deals on OrenGen&apos;s website packages.
@@ -482,17 +484,18 @@ export default async function Home() {
         style={{ borderColor: LINE, background: "rgba(0,37,75,0.35)" }}
       >
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Image
-            src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
-            alt="OrenGen Worldwide"
-            width={100}
-            height={25}
-            unoptimized
-          />
+          <a href="https://orengen.io" target="_blank" rel="noopener noreferrer">
+            <Image
+              src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
+              alt="OrenGen Worldwide"
+              width={100}
+              height={25}
+              unoptimized
+            />
+          </a>
           <div className="flex items-center gap-5 text-sm" style={{ color: "rgba(148,163,184,0.6)" }}>
             <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
             <Link href="/calculator"  className="hover:text-white transition-colors">Calculator</Link>
-            <Link href="/docs"        className="hover:text-white transition-colors">Documents</Link>
             <Link href="/login"       className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/register"    className="font-bold hover:text-white transition-colors" style={{ color: "#CC5500" }}>Join Free</Link>
           </div>
