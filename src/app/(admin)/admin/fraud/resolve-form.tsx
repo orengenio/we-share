@@ -48,7 +48,7 @@ export default function FraudResolveForm({ flagId }: Props) {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors"
-        style={{ backgroundColor: "#003366" }}
+        style={{ backgroundColor: "#00254B" }}
       >
         <ShieldCheck size={12} />
         Resolve

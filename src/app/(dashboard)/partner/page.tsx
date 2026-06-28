@@ -194,7 +194,7 @@ export default async function PartnerDashboardPage() {
                   <div className="w-full space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">{stage.label}</span>
-                      <span className="text-xs font-bold" style={{ color: "#003366" }}>{count}</span>
+                      <span className="text-xs font-bold" style={{ color: "#00254B" }}>{count}</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                       <div
@@ -276,7 +276,7 @@ export default async function PartnerDashboardPage() {
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm text-center">
               <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
-              <p className="text-lg font-bold" style={{ color: "#003366" }}>{stat.value}</p>
+              <p className="text-lg font-bold" style={{ color: "#00254B" }}>{stat.value}</p>
             </div>
           ))}
         </div>

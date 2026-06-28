@@ -124,7 +124,7 @@ function RunPayoutForm({ onSuccess }: { onSuccess: () => void }) {
           type="submit"
           disabled={isPending}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60 transition-colors"
-          style={{ backgroundColor: "#003366" }}
+          style={{ backgroundColor: "#00254B" }}
         >
           {isPending ? <Loader2 size={14} className="animate-spin" /> : <Calendar size={14} />}
           {isPending ? "Creating…" : "Create Batch"}
@@ -196,7 +196,7 @@ function ExpandedItems({ payoutId }: { payoutId: string }) {
                   <td className="px-3 py-2 text-gray-500">
                     {item.adjustments !== 0 ? formatCurrency(item.adjustments) : "—"}
                   </td>
-                  <td className="px-3 py-2 text-right font-bold" style={{ color: "#003366" }}>
+                  <td className="px-3 py-2 text-right font-bold" style={{ color: "#00254B" }}>
                     {formatCurrency(item.netAmount)}
                   </td>
                   <td className="px-3 py-2">
@@ -331,7 +331,7 @@ export default function AdminPayoutsPage() {
 
                   <div className="flex items-center gap-4 text-sm shrink-0">
                     <div className="text-right">
-                      <p className="font-bold" style={{ color: "#003366" }}>
+                      <p className="font-bold" style={{ color: "#00254B" }}>
                         {formatCurrency(payout.totalAmount)}
                       </p>
                       <p className="text-xs text-gray-400 flex items-center gap-1 justify-end">

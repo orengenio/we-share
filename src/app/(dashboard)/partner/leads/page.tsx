@@ -214,7 +214,7 @@ export default function PartnerLeadsPage() {
                     ? "text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
                 ].join(" ")}
-                style={statusFilter === s.value ? { backgroundColor: "#003366" } : undefined}
+                style={statusFilter === s.value ? { backgroundColor: "#00254B" } : undefined}
               >
                 {s.label}
               </button>

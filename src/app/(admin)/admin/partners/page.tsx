@@ -103,12 +103,12 @@ export default function AdminPartnersPage() {
                   <td className="py-3 px-4 text-center">
                     {p.isCertified
                       ? <CheckCircle className="w-4 h-4 text-green-600 mx-auto" />
-                      : <button onClick={() => performAction(p.id, "certify")} disabled={actionId === p.id} className="text-xs text-[#003366] hover:underline">Certify</button>}
+                      : <button onClick={() => performAction(p.id, "certify")} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline">Certify</button>}
                   </td>
                   <td className="py-3 px-4 text-center">
                     {p.leadsUnlocked
                       ? <CheckCircle className="w-4 h-4 text-green-600 mx-auto" />
-                      : <button onClick={() => performAction(p.id, "unlock_leads")} disabled={actionId === p.id} className="text-xs text-[#003366] hover:underline">Unlock</button>}
+                      : <button onClick={() => performAction(p.id, "unlock_leads")} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline">Unlock</button>}
                   </td>
                   <td className="py-3 px-4 text-right text-gray-600">{p.totalDealsWon}</td>
                   <td className="py-3 px-4 text-right font-semibold">{formatCurrency(p.totalEarned)}</td>

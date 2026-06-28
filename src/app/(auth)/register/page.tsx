@@ -73,7 +73,7 @@ function RegisterForm() {
             onClick={() => setForm({ ...form, type: t })}
             className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
               form.type === t
-                ? "bg-[#003366] text-white shadow-sm"
+                ? "bg-[#00254B] text-white shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >

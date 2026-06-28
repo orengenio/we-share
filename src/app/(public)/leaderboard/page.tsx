@@ -35,6 +35,9 @@ interface LeaderEntry {
 
 type Tab = "affiliates" | "partners" | "leaders";
 
+const MUTED = "rgba(203,213,225,0.75)";
+const LINE  = "rgba(148,163,184,0.18)";
+const SURF  = "rgba(255,255,255,0.06)";
 const MEDAL = ["🥇", "🥈", "🥉"];
 
 export default function LeaderboardPage() {
@@ -59,22 +62,22 @@ export default function LeaderboardPage() {
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Trophy className="w-8 h-8" style={{ color: "#CC5500" }} />
-          <h1 className="text-3xl font-bold" style={{ color: "#003366" }}>Leaderboard</h1>
+          <h1 className="text-3xl font-black text-white">Leaderboard</h1>
         </div>
-        <p className="text-gray-500 max-w-xl mx-auto">
+        <p className="max-w-xl mx-auto" style={{ color: MUTED }}>
           The top performers in the WeShare affiliate and partner program. Earn commissions, build your team, and climb the ranks.
         </p>
         <a
           href="/register"
-          className="inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-lg text-sm font-semibold text-white"
-          style={{ backgroundColor: "#CC5500" }}
+          className="inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "#CC5500", boxShadow: "0 4px 16px rgba(204,85,0,0.3)" }}
         >
-          Join & Compete
+          Join &amp; Compete
         </a>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-gray-200">
+      <div className="flex items-center gap-1" style={{ borderBottom: `1px solid ${LINE}` }}>
         {([
           { key: "affiliates", label: "Affiliates", icon: <Star size={15} /> },
           { key: "partners", label: "Sales Partners", icon: <TrendingUp size={15} /> },
@@ -83,12 +86,11 @@ export default function LeaderboardPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={[
-              "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-              tab === t.key
-                ? "border-[#CC5500] text-[#CC5500]"
-                : "border-transparent text-gray-500 hover:text-gray-800",
-            ].join(" ")}
+            className="flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style={tab === t.key
+              ? { borderColor: "#CC5500", color: "#CC5500" }
+              : { borderColor: "transparent", color: MUTED }
+            }
           >
             {t.icon} {t.label}
           </button>
@@ -99,11 +101,11 @@ export default function LeaderboardPage() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(10)].map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: SURF }} />
           ))}
         </div>
       ) : !data ? (
-        <p className="text-center text-gray-400 py-12">Could not load leaderboard.</p>
+        <p className="text-center py-12" style={{ color: MUTED }}>Could not load leaderboard.</p>
       ) : tab === "affiliates" ? (
         <AffiliatesBoard entries={data.affiliates} />
       ) : tab === "partners" ? (
@@ -120,7 +122,10 @@ function RankBadge({ pos }: { pos: number }) {
     return <span className="text-2xl leading-none">{MEDAL[pos - 1]}</span>;
   }
   return (
-    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-600">
+    <span
+      className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold"
+      style={{ background: "rgba(255,255,255,0.08)", color: MUTED }}
+    >
       {pos}
     </span>
   );
@@ -133,24 +138,25 @@ function AffiliatesBoard({ entries }: { entries: AffiliateEntry[] }) {
       {entries.map(e => (
         <div
           key={e.rank}
-          className={[
-            "flex items-center gap-4 p-4 rounded-xl border bg-white",
-            e.rank <= 3 ? "border-amber-200 shadow-sm" : "border-gray-100",
-          ].join(" ")}
+          className="flex items-center gap-4 p-4 rounded-xl"
+          style={e.rank <= 3
+            ? { background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }
+            : { background: SURF, border: `1px solid ${LINE}` }
+          }
         >
           <RankBadge pos={e.rank} />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 truncate">{e.displayName}</p>
+            <p className="font-semibold text-white truncate">{e.displayName}</p>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${RANK_COLORS[e.affiliateRank] ?? "bg-gray-100 text-gray-600"}`}>
                 {RANK_LABELS[e.affiliateRank as keyof typeof RANK_LABELS] ?? e.affiliateRank}
               </span>
-              <span className="text-xs text-gray-400">{e.lifetimeSales} sales</span>
+              <span className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{e.lifetimeSales} sales</span>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <p className="font-bold text-lg" style={{ color: "#003366" }}>{formatCurrency(e.totalEarned)}</p>
-            <p className="text-xs text-gray-400">total earned</p>
+            <p className="font-bold text-lg text-white">{formatCurrency(e.totalEarned)}</p>
+            <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>total earned</p>
           </div>
         </div>
       ))}
@@ -165,26 +171,30 @@ function PartnersBoard({ entries }: { entries: PartnerEntry[] }) {
       {entries.map(e => (
         <div
           key={e.rank}
-          className={[
-            "flex items-center gap-4 p-4 rounded-xl border bg-white",
-            e.rank <= 3 ? "border-amber-200 shadow-sm" : "border-gray-100",
-          ].join(" ")}
+          className="flex items-center gap-4 p-4 rounded-xl"
+          style={e.rank <= 3
+            ? { background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }
+            : { background: SURF, border: `1px solid ${LINE}` }
+          }
         >
           <RankBadge pos={e.rank} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-gray-900 truncate">{e.displayName}</p>
+              <p className="font-semibold text-white truncate">{e.displayName}</p>
               {e.isLeader && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-700 bg-amber-100">
+                <span
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                  style={{ background: "rgba(251,191,36,0.15)", color: "#FCD34D" }}
+                >
                   <Crown size={9} /> LEADER
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">{e.dealsWon} deals closed</p>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.5)" }}>{e.dealsWon} deals closed</p>
           </div>
           <div className="text-right shrink-0">
-            <p className="font-bold text-lg" style={{ color: "#003366" }}>{formatCurrency(e.totalEarned)}</p>
-            <p className="text-xs text-gray-400">total earned</p>
+            <p className="font-bold text-lg text-white">{formatCurrency(e.totalEarned)}</p>
+            <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>total earned</p>
           </div>
         </div>
       ))}
@@ -198,31 +208,32 @@ function LeadersBoard({ entries }: { entries: LeaderEntry[] }) {
   }
   return (
     <div className="space-y-2">
-      <p className="text-xs text-gray-500 pb-1">
+      <p className="text-xs pb-1" style={{ color: "rgba(148,163,184,0.5)" }}>
         Leaders earn 5% of their team&apos;s setup + 5% of monthly residuals on top of their personal commissions.
       </p>
       {entries.map(e => (
         <div
           key={e.rank}
-          className={[
-            "flex items-center gap-4 p-4 rounded-xl border bg-white",
-            e.rank <= 3 ? "border-amber-200 shadow-sm" : "border-gray-100",
-          ].join(" ")}
+          className="flex items-center gap-4 p-4 rounded-xl"
+          style={e.rank <= 3
+            ? { background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }
+            : { background: SURF, border: `1px solid ${LINE}` }
+          }
         >
           <RankBadge pos={e.rank} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <Crown size={14} className="text-amber-600 shrink-0" />
-              <p className="font-semibold text-gray-900 truncate">{e.displayName}</p>
+              <Crown size={14} style={{ color: "#FCD34D" }} className="shrink-0" />
+              <p className="font-semibold text-white truncate">{e.displayName}</p>
             </div>
             <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} /> {e.teamSize} team</span>
-              <span className="text-xs text-gray-400">{e.personalDealsWon} personal deals</span>
+              <span className="text-xs flex items-center gap-1" style={{ color: "rgba(148,163,184,0.5)" }}><Users size={11} /> {e.teamSize} team</span>
+              <span className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{e.personalDealsWon} personal deals</span>
             </div>
           </div>
           <div className="text-right shrink-0 space-y-0.5">
-            <p className="font-bold text-lg" style={{ color: "#003366" }}>{formatCurrency(e.totalEarned)}</p>
-            <p className="text-xs text-amber-600 font-medium">{formatCurrency(e.leaderOverrides)} overrides</p>
+            <p className="font-bold text-lg text-white">{formatCurrency(e.totalEarned)}</p>
+            <p className="text-xs font-medium" style={{ color: "#FCD34D" }}>{formatCurrency(e.leaderOverrides)} overrides</p>
           </div>
         </div>
       ))}
@@ -233,8 +244,8 @@ function LeadersBoard({ entries }: { entries: LeaderEntry[] }) {
 function EmptyState({ msg }: { msg: string }) {
   return (
     <div className="py-16 text-center">
-      <Trophy className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-      <p className="text-gray-400 text-sm">{msg}</p>
+      <Trophy className="w-12 h-12 mx-auto mb-3" style={{ color: "rgba(148,163,184,0.2)" }} />
+      <p className="text-sm" style={{ color: MUTED }}>{msg}</p>
       <a href="/register" className="inline-block mt-4 text-sm font-semibold underline" style={{ color: "#CC5500" }}>
         Join WeShare
       </a>

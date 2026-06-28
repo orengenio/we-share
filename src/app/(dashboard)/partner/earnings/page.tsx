@@ -72,11 +72,11 @@ export default function PartnerEarningsPage() {
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-gray-500">{stat.label}</span>
-              <span style={{ color: stat.highlight ? "#CC5500" : "#003366" }} className="opacity-70">{stat.icon}</span>
+              <span style={{ color: stat.highlight ? "#CC5500" : "#00254B" }} className="opacity-70">{stat.icon}</span>
             </div>
             <p
               className="text-xl font-bold"
-              style={{ color: stat.highlight ? "#CC5500" : "#003366" }}
+              style={{ color: stat.highlight ? "#CC5500" : "#00254B" }}
             >
               {stat.value}
             </p>
@@ -120,7 +120,7 @@ export default function PartnerEarningsPage() {
                       ? `${c.conversion.lead.firstName} ${c.conversion.lead.lastName}`
                       : "—"}
                   </td>
-                  <td className="py-3 px-4 text-right font-semibold" style={{ color: "#003366" }}>
+                  <td className="py-3 px-4 text-right font-semibold" style={{ color: "#00254B" }}>
                     {formatCurrency(c.amount)}
                   </td>
                   <td className="py-3 px-4">

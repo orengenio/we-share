@@ -58,7 +58,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       <p className="text-gray-500 font-medium mb-1">
         {label ? formatMonthLabel(label) : ""}
       </p>
-      <p className="font-bold" style={{ color: "#003366" }}>
+      <p className="font-bold" style={{ color: "#00254B" }}>
         {formatCurrency(payload[0].value)}
       </p>
     </div>
@@ -92,9 +92,9 @@ export default function EarningsChart({ data }: EarningsChartProps) {
         >
           <defs>
             <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#003366" stopOpacity={0.18} />
-              <stop offset="75%" stopColor="#003366" stopOpacity={0.04} />
-              <stop offset="100%" stopColor="#003366" stopOpacity={0} />
+              <stop offset="0%" stopColor="#00254B" stopOpacity={0.18} />
+              <stop offset="75%" stopColor="#00254B" stopOpacity={0.04} />
+              <stop offset="100%" stopColor="#00254B" stopOpacity={0} />
             </linearGradient>
           </defs>
 
@@ -124,7 +124,7 @@ export default function EarningsChart({ data }: EarningsChartProps) {
           <Tooltip
             content={<CustomTooltip />}
             cursor={{
-              stroke: "#003366",
+              stroke: "#00254B",
               strokeWidth: 1,
               strokeDasharray: "4 4",
             }}
@@ -133,7 +133,7 @@ export default function EarningsChart({ data }: EarningsChartProps) {
           <Area
             type="monotone"
             dataKey="commissions"
-            stroke="#003366"
+            stroke="#00254B"
             strokeWidth={2}
             fill="url(#earningsGradient)"
             dot={false}
