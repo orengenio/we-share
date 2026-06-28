@@ -20,15 +20,18 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       >
         <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-            <Image
-              src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
-              alt="OrenGen Worldwide"
-              width={130}
-              height={32}
-              unoptimized
-            />
-            <span
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <a href="https://orengen.io" target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+              <Image
+                src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
+                alt="OrenGen Worldwide"
+                width={130}
+                height={32}
+                unoptimized
+              />
+            </a>
+            <Link
+              href="/"
               className="hidden sm:block text-[10px] font-bold tracking-[0.18em] uppercase pl-3"
               style={{
                 color: "rgba(148,163,184,0.65)",
@@ -36,15 +39,14 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               }}
             >
               WeShare
-            </span>
-          </Link>
+            </Link>
+          </div>
 
           {/* Nav links */}
           <nav className="flex items-center gap-1">
             {[
               { href: "/leaderboard", label: "Leaderboard" },
               { href: "/calculator",  label: "Calculator"  },
-              { href: "/docs",        label: "Documents"   },
             ].map(({ href, label }) => (
               <Link
                 key={href}

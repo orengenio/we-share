@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full max-w-md">
         {/* OrenGen logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
+          <a href="https://orengen.io" target="_blank" rel="noopener noreferrer" className="inline-block">
             <Image
               src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
               alt="OrenGen Worldwide"
@@ -21,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               className="mx-auto"
               unoptimized
             />
-          </Link>
+          </a>
           <p
             className="text-xs font-bold tracking-widest uppercase mt-3"
             style={{ color: "rgba(148,163,184,0.7)", letterSpacing: "0.18em" }}
