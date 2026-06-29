@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { getSessionFromCookies } from "@/lib/auth";
 import { CheckCircle, ArrowRight, Lock } from "lucide-react";
 import { WEBSITE_PACKAGES } from "@/types";
+import PublicHeader from "@/components/public/header";
 
 const LINE  = "rgba(148,163,184,0.2)";
 const SURF  = "rgba(255,255,255,0.07)";
@@ -31,68 +31,7 @@ export default async function Home() {
       }}
     >
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header
-        className="sticky top-0 z-50 border-b"
-        style={{
-          borderColor: LINE,
-          background: "rgba(0,37,75,0.72)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <a href="https://orengen.io" target="_blank" rel="noopener noreferrer">
-              <Image
-                src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
-                alt="OrenGen Worldwide"
-                width={130}
-                height={32}
-                unoptimized
-              />
-            </a>
-            <Link
-              href="/"
-              className="hidden sm:block text-[10px] font-bold tracking-[0.18em] uppercase pl-3"
-              style={{ color: "rgba(148,163,184,0.6)", borderLeft: `1px solid ${LINE}` }}
-            >
-              WeShare
-            </Link>
-          </div>
-          <nav className="hidden sm:flex items-center gap-1">
-            {[
-              { href: "/leaderboard", label: "Leaderboard" },
-              { href: "/calculator",  label: "Calculator"  },
-            ].map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="px-3.5 py-2 rounded-full text-sm font-semibold transition-colors"
-                style={{ color: MUTED }}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Link
-              href="/register"
-              className="px-4 py-2 rounded-xl text-sm font-bold text-white"
-              style={{ background: "#CC5500", boxShadow: "0 8px 24px rgba(204,85,0,0.3)" }}
-            >
-              Join Now
-            </Link>
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-xl text-sm font-semibold"
-              style={{ color: MUTED, border: `1px solid ${LINE}`, background: SURF }}
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <section className="pt-24 pb-20 px-6">
