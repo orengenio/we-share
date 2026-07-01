@@ -65,7 +65,7 @@ export default function LeaderboardPage() {
           <h1 className="text-3xl font-black text-white">Leaderboard</h1>
         </div>
         <p className="max-w-xl mx-auto" style={{ color: MUTED }}>
-          The top performers in the WeShare affiliate and partner program. Earn commissions, build your team, and climb the ranks.
+          The top performers in the WeShare referral partner and sales partner program. Earn commissions, build your team, and climb the ranks.
         </p>
         <a
           href="/register"
@@ -79,7 +79,7 @@ export default function LeaderboardPage() {
       {/* Tabs */}
       <div className="flex items-center gap-1" style={{ borderBottom: `1px solid ${LINE}` }}>
         {([
-          { key: "affiliates", label: "Affiliates", icon: <Star size={15} /> },
+          { key: "affiliates", label: "Referral Partners", icon: <Star size={15} /> },
           { key: "partners", label: "Sales Partners", icon: <TrendingUp size={15} /> },
           { key: "leaders", label: "Leaders", icon: <Crown size={15} /> },
         ] as { key: Tab; label: string; icon: React.ReactNode }[]).map(t => (
@@ -132,7 +132,7 @@ function RankBadge({ pos }: { pos: number }) {
 }
 
 function AffiliatesBoard({ entries }: { entries: AffiliateEntry[] }) {
-  if (entries.length === 0) return <EmptyState msg="No affiliate data yet. Be the first!" />;
+  if (entries.length === 0) return <EmptyState msg="No referral partner data yet. Be the first!" />;
   return (
     <div className="space-y-2">
       {entries.map(e => (

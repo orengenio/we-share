@@ -366,7 +366,7 @@ export default function CalculatorPage() {
       {/* Track tabs */}
       <div className="flex" style={{ borderBottom: `1px solid ${LINE}` }}>
         {([
-          { key: "affiliate", label: "Affiliate", icon: <StarIcon size={15} /> },
+          { key: "affiliate", label: "Referral Partner", icon: <StarIcon size={15} /> },
           { key: "partner", label: "Sales Partner", icon: <TrendingUp size={15} /> },
           { key: "leader", label: "Partner Leader", icon: <Crown size={15} /> },
         ] as { key: Tab; label: string; icon: React.ReactNode }[]).map(t => (

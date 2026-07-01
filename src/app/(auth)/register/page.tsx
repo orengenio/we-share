@@ -77,7 +77,7 @@ function RegisterForm() {
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            {t === "AFFILIATE" ? "Affiliate" : "Sales Partner"}
+            {t === "AFFILIATE" ? "Referral Partner" : "Sales Partner"}
           </button>
         ))}
       </div>
@@ -124,7 +124,7 @@ function RegisterForm() {
             <input
               type="text"
               className="form-input"
-              placeholder="Affiliate referral code"
+              placeholder="Referral code"
               value={form.referralCode}
               onChange={(e) => setForm({ ...form, referralCode: e.target.value })}
             />

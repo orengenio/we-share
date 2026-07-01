@@ -159,7 +159,7 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-900">
-              Affiliates{" "}
+              Referral Partners{" "}
               <span className="text-gray-400 font-normal">({total.toLocaleString()})</span>
             </h2>
           </div>
@@ -167,7 +167,7 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
           {affiliates.length === 0 ? (
             <div className="py-16 text-center">
               <Users size={36} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-sm font-medium text-gray-500">No affiliates found</p>
+              <p className="text-sm font-medium text-gray-500">No referral partners found</p>
               {(q || rank || status) && (
                 <Link href="/admin/affiliates" className="text-xs text-orange-600 hover:underline mt-1 inline-block">
                   Clear all filters

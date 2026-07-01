@@ -164,7 +164,7 @@ export default async function AdminFraudPage({ searchParams }: PageProps) {
 
                       <div>
                         <p className="text-sm font-semibold text-gray-900">
-                          {flag.affiliate.user.name ?? "Unknown Affiliate"}{" "}
+                          {flag.affiliate.user.name ?? "Unknown Referral Partner"}{" "}
                           <span className="text-gray-400 font-normal text-xs">
                             ({flag.affiliate.user.email})
                           </span>

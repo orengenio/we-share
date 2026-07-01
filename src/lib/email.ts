@@ -37,9 +37,9 @@ export async function sendAffiliateWelcome(
   const link = `${APP_URL}/r/${affiliateCode}`;
   return send(
     email,
-    "Welcome to WeShare — your affiliate link is ready",
+    "Welcome to WeShare — your referral link is ready",
     `<h2>Welcome, ${name}!</h2>
-<p>You're officially a WeShare affiliate. Your unique tracking link is:</p>
+<p>You're officially a WeShare Referral Partner. Your unique tracking link is:</p>
 <p><strong><a href="${link}">${link}</a></strong></p>
 <p>Share this link. Every sale you refer earns you a commission — and monthly residuals that grow with your rank.</p>
 <p>Log in to your dashboard to track clicks, leads, and earnings:<br>

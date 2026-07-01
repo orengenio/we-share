@@ -177,7 +177,7 @@ export async function syncLeadToGHL(lead: {
   }
 
   const tags = ["WeShare Lead"];
-  if (lead.affiliateCode) tags.push(`Affiliate: ${lead.affiliateCode}`);
+  if (lead.affiliateCode) tags.push(`Referral Partner: ${lead.affiliateCode}`);
   if (lead.source) tags.push(`Source: ${lead.source}`);
 
   const result = await createContact({

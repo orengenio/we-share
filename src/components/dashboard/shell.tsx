@@ -34,7 +34,7 @@ function getNavItems(role: string): NavItem[] {
     case "ADMIN":
       return [
         { label: "Overview", href: "/admin", icon: <BarChart3 size={18} /> },
-        { label: "Affiliates", href: "/admin/affiliates", icon: <Users size={18} /> },
+        { label: "Referral Partners", href: "/admin/affiliates", icon: <Users size={18} /> },
         { label: "Partners", href: "/admin/partners", icon: <Building2 size={18} /> },
         { label: "Commissions", href: "/admin/commissions", icon: <DollarSign size={18} /> },
         { label: "Payouts", href: "/admin/payouts", icon: <Wallet size={18} /> },
@@ -62,12 +62,30 @@ function getNavItems(role: string): NavItem[] {
   }
 }
 
+// ─── Role display label ───────────────────────────────────────────────────────
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "ADMIN",
+  AFFILIATE: "REFERRAL PARTNER",
+  PARTNER: "SALES PARTNER",
+};
+
+function getRoleLabel(role: string): string {
+  return ROLE_LABELS[role] ?? role;
+}
+
 // ─── Page title helper ────────────────────────────────────────────────────────
+
+const PAGE_TITLE_OVERRIDES: Record<string, string> = {
+  affiliate: "Referral Partner",
+  affiliates: "Referral Partners",
+};
 
 function getPageTitle(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return "Dashboard";
   const last = segments[segments.length - 1];
+  if (PAGE_TITLE_OVERRIDES[last]) return PAGE_TITLE_OVERRIDES[last];
   return last.charAt(0).toUpperCase() + last.slice(1).replace(/-/g, " ");
 }
 
@@ -150,7 +168,7 @@ export default function DashboardShell({ session, children }: DashboardShellProp
                 session.role === "ADMIN" ? "#FF8C42" : "rgba(255,255,255,0.5)",
             }}
           >
-            {session.role}
+            {getRoleLabel(session.role)}
           </span>
         </div>
 
