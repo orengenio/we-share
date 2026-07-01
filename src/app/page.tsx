@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { getSessionFromCookies } from "@/lib/auth";
 import { CheckCircle, ArrowRight, Lock } from "lucide-react";
