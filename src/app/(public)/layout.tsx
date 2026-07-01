@@ -21,7 +21,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           background: "rgba(0,37,75,0.3)",
         }}
       >
-        © {new Date().getFullYear()} OrenGen Worldwide LLC · WeShare Affiliate &amp; Partner Program
+        © {new Date().getFullYear()} OrenGen Worldwide LLC · WeShare Referral Partner &amp; Sales Partner Program
       </footer>
     </div>
   );

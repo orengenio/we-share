@@ -20,7 +20,7 @@ Professional business website (new or rebuilt): **$997 setup + $247/month** main
 - **Payouts:** weekly, every Friday, via Stripe Connect (onboard from your dashboard — required). $25 minimum rolls forward. Stripe issues your 1099.
 - **Clawback:** client refund within 30 days reverses the upfront as a negative ledger entry on your next payout.
 - **Residuals are payment-driven:** client skips or churns → that month doesn't pay. Save the client, save the income.
-- If a WeShare affiliate sourced the lead, their commission comes from OrenGen's share — **your rates never change.**
+- If a WeShare Referral Partner sourced the lead, their commission comes from OrenGen's share — **your rates never change.**
 
 ## 3 · Onboarding SOP
 
@@ -32,7 +32,7 @@ Professional business website (new or rebuilt): **$997 setup + $247/month** main
 
 ## 4 · Lead Lifecycle SOP
 
-1. **Assignment** — leads appear in your CRM pipeline with source tag (house / affiliate / self-sourced).
+1. **Assignment** — leads appear in your CRM pipeline with source tag (house / referral partner / self-sourced).
 2. **First touch within 4 business hours.** Speed is the single biggest close-rate lever.
 3. **Cadence:** minimum **6 touches across 10 business days** — call, voicemail, SMS, email, mixed. Use the scripts.
 4. **Status discipline:** every lead sits in exactly one stage — New → Contacted → Appointment → Proposal → Won / Lost / Nurture. Update same day, every day.

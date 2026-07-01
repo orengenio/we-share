@@ -171,7 +171,7 @@ export default async function ArmyBuilderPage() {
           <StatsCard
             title="Army Size"
             value={downlines.length}
-            subtitle="Active downline affiliates"
+            subtitle="Active downline referral partners"
             icon={<Users size={16} />}
           />
         </div>
@@ -244,7 +244,7 @@ export default async function ArmyBuilderPage() {
                 </code>
               </div>
               <p className="text-xs text-orange-600 mt-2">
-                Your affiliate code: <strong>{affiliate.affiliateCode}</strong>
+                Your referral code: <strong>{affiliate.affiliateCode}</strong>
               </p>
             </div>
           </div>
@@ -254,7 +254,7 @@ export default async function ArmyBuilderPage() {
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">
-              Downline Affiliates{" "}
+              Downline Referral Partners{" "}
               <span className="text-gray-400 font-normal">({downlines.length})</span>
             </h2>
           </div>
@@ -265,7 +265,7 @@ export default async function ArmyBuilderPage() {
               <p className="text-sm font-medium text-gray-500">No downline yet</p>
               <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
                 Share your referral link with other people interested in becoming WeShare
-                affiliates to build your army and earn override commissions.
+                Referral Partners to build your army and earn override commissions.
               </p>
             </div>
           ) : (

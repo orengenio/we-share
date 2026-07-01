@@ -3,9 +3,9 @@ import { FileText, Download, Scale, BookOpen, ClipboardList, ShieldCheck } from 
 
 const LEGAL_DOCS = [
   {
-    file: "affiliate-agreement.pdf",
-    title: "Affiliate Agreement",
-    description: "Commission terms, attribution rules, conduct requirements, and program obligations for WeShare Affiliates.",
+    file: "referral-partner-agreement.pdf",
+    title: "Referral Partner Agreement",
+    description: "Commission terms, attribution rules, conduct requirements, and program obligations for WeShare Referral Partners.",
     roles: ["AFFILIATE", "ADMIN"],
   },
   {
@@ -42,8 +42,8 @@ const LEGAL_DOCS = [
 
 const HANDBOOK_DOCS = [
   {
-    file: "affiliate-handbook.pdf",
-    title: "Affiliate Handbook",
+    file: "referral-partner-handbook.pdf",
+    title: "Referral Partner Handbook",
     description: "Complete operating manual — rank structure, commission tables across all 3 packages, daily playbook, attribution rules, and enforcement.",
     roles: ["AFFILIATE", "ADMIN"],
   },
@@ -109,12 +109,12 @@ export default async function ResourcesPage() {
     ? null
     : isPartner
     ? HANDBOOK_DOCS.find(d => d.file === "partner-handbook.pdf")!
-    : HANDBOOK_DOCS.find(d => d.file === "affiliate-handbook.pdf")!;
+    : HANDBOOK_DOCS.find(d => d.file === "referral-partner-handbook.pdf")!;
 
   const visibleLegal = LEGAL_DOCS.filter(d => d.roles.includes(role));
   const visibleHandbooks = HANDBOOK_DOCS.filter(d => d.roles.includes(role));
 
-  const roleName = isAdmin ? "Admin" : isPartner ? "Sales Partner" : "Affiliate";
+  const roleName = isAdmin ? "Admin" : isPartner ? "Sales Partner" : "Referral Partner";
 
   return (
     <div className="max-w-3xl space-y-10">

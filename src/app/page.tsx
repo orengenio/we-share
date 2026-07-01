@@ -56,7 +56,7 @@ export default async function Home() {
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-sm"
               style={{ background: "#CC5500", boxShadow: "0 14px 36px rgba(204,85,0,0.3)" }}
             >
-              Start as an Affiliate <ArrowRight size={16} />
+              Start as a Referral Partner <ArrowRight size={16} />
             </Link>
             <Link
               href="/register?type=PARTNER"
@@ -148,7 +148,7 @@ export default async function Home() {
           </div>
 
           <p className="text-center text-xs mt-6" style={{ color: "rgba(148,163,184,0.55)" }}>
-            Affiliate commissions vary by rank (10–25% setup, 5–10% residual). Sales Partner: flat 25% on all packages.{" "}
+            Referral Partner commissions vary by rank (10–25% setup, 5–10% residual). Sales Partner: flat 25% on all packages.{" "}
             <Link href="/calculator" className="underline" style={{ color: "#CC5500" }}>Use the calculator →</Link>
           </p>
         </div>
@@ -169,7 +169,7 @@ export default async function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Affiliate */}
+            {/* Referral Partner */}
             <div
               className="rounded-2xl p-8 flex flex-col"
               style={{ border: `1px solid ${LINE}`, background: SURF, backdropFilter: "blur(12px)" }}
@@ -183,7 +183,7 @@ export default async function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-black mb-2" style={{ color: "#f8fafc", letterSpacing: "-0.03em" }}>
-                Affiliate
+                Referral Partner
               </h3>
               <p className="text-sm mb-5 leading-relaxed flex-1" style={{ color: MUTED }}>
                 Share your unique link. When someone becomes an OrenGen website client through your link,
@@ -214,7 +214,7 @@ export default async function Home() {
                 className="block text-center py-2.5 rounded-xl text-sm font-bold text-white"
                 style={{ background: "#CC5500", boxShadow: "0 8px 24px rgba(204,85,0,0.28)" }}
               >
-                Join as Affiliate
+                Join as Referral Partner
               </Link>
             </div>
 
@@ -324,7 +324,7 @@ export default async function Home() {
           </div>
           <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { step: "01", title: "Create your free account", desc: "Pick your track — Affiliate or Sales Partner. Zero setup cost, no credit card required." },
+              { step: "01", title: "Create your free account", desc: "Pick your track — Referral Partner or Sales Partner. Zero setup cost, no credit card required." },
               { step: "02", title: "Get your unique link",     desc: "Your personal referral link and partner code are ready immediately after signup." },
               { step: "03", title: "Earn every Friday",        desc: "Approved commissions are paid every Friday via Stripe direct deposit. $25 minimum balance." },
             ].map(s => (
@@ -389,7 +389,7 @@ export default async function Home() {
               Ready to Start Earning?
             </h2>
             <p className="mb-8" style={{ color: MUTED }}>
-              Join as an Affiliate and share links, or apply as a Sales Partner and close deals directly.
+              Join as a Referral Partner and share links, or apply as a Sales Partner and close deals directly.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link

@@ -1,4 +1,4 @@
-# WeShare by OrenGen — Affiliate Handbook
+# WeShare by OrenGen — Referral Partner Handbook
 **Rules of the Program · Standard Operating Procedures · v1.0 (June 2026)**
 
 Welcome to WeShare. You share OrenGen's website offer with businesses that need it. When they become paying clients, you get paid — upfront and every month they stay. This handbook is the complete rulebook. Read it once; it protects your money.
@@ -61,7 +61,7 @@ You **never sell, quote, or invoice**. Send traffic; OrenGen's sales partners an
 ## 6 · Program Rules (The Law)
 
 **Required:**
-1. **Disclose.** Any post, video, or message promoting WeShare must include a clear affiliate disclosure (e.g., "#ad" or "I earn commissions from OrenGen"). This is FTC law, not our preference.
+1. **Disclose.** Any post, video, or message promoting WeShare must include a clear paid-partnership disclosure (e.g., "#ad" or "I earn commissions from OrenGen"). This is FTC law, not our preference.
 2. **Income claims:** use only OrenGen-published figures, always with the results-vary disclaimer (included in the Ad Copy Pack). Never promise, guarantee, or imply guaranteed income.
 3. One account per person. Accurate information at all times.
 
@@ -73,7 +73,7 @@ You **never sell, quote, or invoice**. Send traffic; OrenGen's sales partners an
 - Misrepresenting the offer, pricing, or what OrenGen delivers
 - Promoting on content involving anything illegal, hateful, or adult
 
-## 7 · Army Builder Rules (Recruiting Affiliates)
+## 7 · Army Builder Rules (Recruiting Referral Partners)
 
 - Unlocks at **Builder** — you sell 3 before you sponsor anyone. Earn first, then lead.
 - You earn overrides **only when your recruits make real customer sales.** Recruiting itself pays $0 — always has, always will.

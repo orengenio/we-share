@@ -83,7 +83,7 @@ export default function AdminLeadsPage() {
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
                 <th className="py-3 px-4 font-medium text-gray-600">Lead</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Status</th>
-                <th className="py-3 px-4 font-medium text-gray-600">Affiliate</th>
+                <th className="py-3 px-4 font-medium text-gray-600">Referral Partner</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Partner</th>
                 <th className="py-3 px-4 font-medium text-gray-600">SLA</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Created</th>

@@ -183,7 +183,7 @@ export default async function AdminOverviewPage() {
             icon={<Wallet size={16} />}
           />
           <StatsCard
-            title="Active Affiliates"
+            title="Active Referral Partners"
             value={stats.activeAffiliates.toLocaleString()}
             subtitle={`of ${stats.totalAffiliates} total`}
             icon={<Users size={16} />}
@@ -242,7 +242,7 @@ export default async function AdminOverviewPage() {
                 className="flex items-center gap-1 text-xs font-medium hover:underline"
                 style={{ color: "#CC5500" }}
               >
-                View all affiliates <ArrowRight size={12} />
+                View all referral partners <ArrowRight size={12} />
               </Link>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default async function AdminOverviewPage() {
         {/* Quick links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { href: "/admin/affiliates", label: "Manage Affiliates", icon: <Users size={18} /> },
+            { href: "/admin/affiliates", label: "Manage Referral Partners", icon: <Users size={18} /> },
             { href: "/admin/partners", label: "Manage Partners", icon: <Building2 size={18} /> },
             { href: "/admin/payouts", label: "Run Payouts", icon: <CreditCard size={18} /> },
             { href: "/admin/fraud", label: "Fraud Review", icon: <ShieldAlert size={18} /> },
