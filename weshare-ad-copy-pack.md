@@ -73,7 +73,7 @@ Here's the whole pitch in four lines:
 Businesses need websites. OrenGen builds them ($997 + $247/mo).
 You share your link. Our closers and engineers do everything else.
 You earn ~$100 per sale — plus a residual every month the client stays.
-Ranks are permanent, the dashboard is real-time, payouts run monthly via Stripe.
+Ranks are permanent, the dashboard is real-time, payouts run weekly via Stripe.
 
 Close one sale in your first 14 days and we stack a $50 bonus on top. Three sales unlocks the ability to recruit affiliates under you and earn on their production too.
 
@@ -90,7 +90,7 @@ I just got my WeShare payout — it's the program I mentioned where you share Or
 
 ### Headlines
 1. We supply the leads and the scripts. You supply the close.
-2. $349 per close. $61.75/month per client. For life.
+2. $249 per close. $61.75/month per client. For life.
 3. 100% commission — for people who know exactly what that means.
 4. Sell once. Collect every month.
 5. Closers wanted. Tourists need not apply.
@@ -101,7 +101,7 @@ I just got my WeShare payout — it's the program I mentioned where you share Or
 
 The role: close website deals ($997 setup + $247/mo) for warm leads we hand you, using scripts we've already proven.
 
-The pay: $348.95 per close, plus $61.75/month per client for the life of the client. Twenty active clients on your book = $1,235/month landing whether you sold that month or not — and it compounds with every close.
+The pay: $249.25 per close, plus $61.75/month per client for the life of the client. Twenty active clients on your book = $1,235/month landing whether you sold that month or not — and it compounds with every close.
 
 You get: assigned leads, a company number, full CRM access, the script library, and a fulfillment team that delivers everything you sell.
 
@@ -115,23 +115,23 @@ Curated roster. Certification required. Apply: [link]
 
 OrenGen hands you warm leads and proven scripts for a product every business needs: professional websites at $997 + $247/mo.
 
-You earn $349 per close and $61.75/month per client FOR LIFE. Ten closes a month is ~$3,490 upfront — and a residual book that grows by $617/month, every month, on top of itself.
+You earn $249 per close and $61.75/month per client FOR LIFE. Ten closes a month is ~$2,493 upfront — and a residual book that grows by $617/month, every month, on top of itself.
 
 CRM, company number, training, and fulfillment all provided. You bring the phone skills.
 **Headline:** Leads Provided. Scripts Provided. You Close.
 **CTA:** Apply Now
 
 ### DM Script — Partner Prospect
-Saw your sales background — OrenGen is adding commission-only closers for our website service. We provide leads, scripts, CRM, and a company line; you close at $349 upfront + $61.75/mo per client for life. The residual book is the play: it stacks monthly and never resets. Want the breakdown? [partner page link]
+Saw your sales background — OrenGen is adding commission-only closers for our website service. We provide leads, scripts, CRM, and a company line; you close at $249 upfront + $61.75/mo per client for life. The residual book is the play: it stacks monthly and never resets. Want the breakdown? [partner page link]
 
 ### Partner Recruitment Email
-**Subject:** Leads provided. $349/close + lifetime monthly residuals.
+**Subject:** Leads provided. $249/close + lifetime monthly residuals.
 **Body:**
 We'll keep this short because closers respect short.
 
 OrenGen builds business websites: $997 setup, $247/month maintenance. We have the leads and the scripts. We need the closes.
 
-Your comp: 35% of every setup ($348.95) the moment funds clear, plus 25% of maintenance ($61.75/mo) per client for the life of the client. The residual is the wealth engine — every close raises your monthly floor permanently.
+Your comp: 25% of every setup ($249.25) the moment funds clear, plus 25% of maintenance ($61.75/mo) per client for the life of the client. The residual is the wealth engine — every close raises your monthly floor permanently.
 
 Provided: warm leads, proven scripts, CRM seat, company phone number, full fulfillment and support behind every sale. Required: speed to lead, cadence discipline, professionalism on the brand.
 
@@ -141,7 +141,7 @@ Curated roster — there's a certification call before leads unlock. Apply: [lin
 
 ## 3 · Landing Page Hero Lines
 - **Affiliate:** "Share a link. Build a paycheck that grows every month." / sub: "Free to join · ~$100 per sale · monthly residuals · ranks you can never lose."
-- **Partner:** "Sell once. Get paid forever." / sub: "We give you the leads and scripts. You close — $349 upfront + $61.75/month per client, for life."
+- **Partner:** "Sell once. Get paid forever." / sub: "We give you the leads and scripts. You close — $249 upfront + $61.75/month per client, for life."
 
 ## 4 · Creative Angles Backlog
 Permanence ("the un-demotable rank") · Receipts content (dashboard/statement screenshots — real, never mocked) · "Every business you walk past" street-POV video · Anti-MLM clarity ("free to join, paid on sales only, one level — here's why that matters") · Residual stacking visualizer · Fast Start countdown campaign · Sovereign spotlight interviews.

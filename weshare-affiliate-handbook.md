@@ -51,7 +51,7 @@ You **never sell, quote, or invoice**. Send traffic; OrenGen's sales partners an
 
 ## 5 · Getting Paid
 
-- **Schedule:** monthly, NET-15 (June earnings pay by July 15).
+- **Schedule:** weekly, every Friday.
 - **Minimum:** $25 — smaller balances roll forward automatically.
 - **First payout** is held 14 days for standard verification. Every payout after is automatic.
 - **Clawbacks:** if a client refunds within 30 days, the matching commission reverses as a negative ledger entry against your next payout. Your statement shows every entry to the penny.

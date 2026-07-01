@@ -11,9 +11,9 @@
 3. Lead SLA monitor: leads with no first touch in 4+ business hours → warn partner; 48h → recycle.
 4. Cancellation signals → notify closing partner for save call.
 
-## 3 · Monthly Payout Run (15th, 9:00 AM CT)
-1. Open admin payout view: all `approved` commissions, prior month, grouped per user.
-2. Verify: total out vs. Stripe revenue for the month (out should be ≤ ~40% of collected setup + ~37.5% of collected MRR — anything higher, stop and trace).
+## 3 · Weekly Payout Run (Fridays, 9:00 AM CT)
+1. Open admin payout view: all `approved` commissions, prior week, grouped per user.
+2. Verify: total out vs. Stripe revenue for the week (out should be ≤ ~40% of collected setup + ~37.5% of collected MRR — anything higher, stop and trace).
 3. Exclusions auto-applied: balances < $25 (rollover), no Connect account (notify), first-payout 14-day holds, accounts under review.
 4. Click **Approve** → n8n WF-E executes transfers → commissions flip to `paid` → statements email automatically.
 5. Spot-audit 3 random payouts to the ledger. File the run summary.

@@ -13,11 +13,11 @@ Professional business website (new or rebuilt): **$997 setup + $247/month** main
 
 | Stream | Rate | Amount | Paid |
 |---|---|---|---|
-| Upfront | 35% of setup | **$348.95 per close** | After client's payment clears |
+| Upfront | 25% of setup | **$249.25 per close** | After client's payment clears |
 | Residual | 25% of maintenance | **$61.75/mo per client — for life of the client** | Each month the client pays |
 
 - **Payable when funds clear.** A close isn't a commission until the client's money lands.
-- **Payouts:** monthly, NET-15, via Stripe Connect (onboard from your dashboard — required). $25 minimum rolls forward. Stripe issues your 1099.
+- **Payouts:** weekly, every Friday, via Stripe Connect (onboard from your dashboard — required). $25 minimum rolls forward. Stripe issues your 1099.
 - **Clawback:** client refund within 30 days reverses the upfront as a negative ledger entry on your next payout.
 - **Residuals are payment-driven:** client skips or churns → that month doesn't pay. Save the client, save the income.
 - If a WeShare affiliate sourced the lead, their commission comes from OrenGen's share — **your rates never change.**
