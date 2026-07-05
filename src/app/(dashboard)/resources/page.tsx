@@ -53,12 +53,13 @@ const HANDBOOK_DOCS = [
     description: "Full rules of engagement — offer details, commission tables, lead lifecycle, CRM requirements, compliance, and what happens at separation.",
     roles: ["PARTNER", "ADMIN"],
   },
-  {
-    file: "internal-sop.pdf",
-    title: "Internal Operations SOP",
-    description: "Admin-only procedures for application review, weekly Friday payout runs, fraud detection, dispute resolution, and KPI tracking.",
-    roles: ["ADMIN"],
-  },
+  // NOTE: the confidential Internal Operations SOP is intentionally NOT served
+  // here. Files under /public are downloadable by anyone who guesses the URL
+  // (there is no per-file auth on static assets), so a "roles: [ADMIN]" gate in
+  // this list would not actually protect it. It has been removed from
+  // public/docs/. To surface it to admins again, serve it through an
+  // authenticated API route (e.g. /api/admin/docs/internal-sop) that checks the
+  // session role before streaming the file — do not put it back under /public.
 ];
 
 function DocCard({

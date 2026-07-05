@@ -1,31 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth";
 
-const PUBLIC_PATHS = [
-  "/",
-  "/login",
-  "/register",
-  "/reset-password",
-  "/api/auth/login",
-  "/api/auth/register",
-  "/api/auth/reset-password",
-  "/api/track",
-  "/api/webhooks",
-  "/r/",
-];
-
-const ADMIN_PATHS = ["/admin", "/api/admin"];
+// Auth is enforced with an explicit allowlist of PROTECTED page prefixes.
+// Everything not listed here is public by default — this is deliberately an
+// allowlist (not a denylist) so a new public page can never be accidentally
+// gated, and signup/login/marketing pages can never be locked out.
+//
+// Note: API routes are NOT gated here — every /api route performs its own
+// getSessionFromRequest() + role check and returns proper 401/403 JSON
+// (redirecting an API request to /login would break client fetches). This
+// middleware only guards navigable page routes as defense-in-depth on top of
+// the per-page session checks.
+const ADMIN_PATHS = ["/admin"];
 const AFFILIATE_PATHS = ["/affiliate"];
 const PARTNER_PATHS = ["/partner"];
+// Any authenticated user (role-agnostic) may reach these.
+const AUTHENTICATED_PATHS = ["/resources"];
+
+function matchesPrefix(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public paths
-  const isPublic = PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(p)
-  );
-  if (isPublic) return NextResponse.next();
+  const isAdmin = matchesPrefix(pathname, ADMIN_PATHS);
+  const isAffiliate = matchesPrefix(pathname, AFFILIATE_PATHS);
+  const isPartner = matchesPrefix(pathname, PARTNER_PATHS);
+  const isAuthed = matchesPrefix(pathname, AUTHENTICATED_PATHS);
+
+  // Not a protected page → public, pass straight through.
+  if (!isAdmin && !isAffiliate && !isPartner && !isAuthed) {
+    return NextResponse.next();
+  }
 
   const session = await getSessionFromRequest(req);
 
@@ -35,24 +42,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based route protection
-  if (ADMIN_PATHS.some((p) => pathname.startsWith(p)) && session.role !== "ADMIN") {
+  // Role-based route protection (ADMIN may view everything).
+  if (isAdmin && session.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", req.url));
   }
-
-  if (
-    AFFILIATE_PATHS.some((p) => pathname.startsWith(p)) &&
-    session.role !== "AFFILIATE" &&
-    session.role !== "ADMIN"
-  ) {
+  if (isAffiliate && session.role !== "AFFILIATE" && session.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", req.url));
   }
-
-  if (
-    PARTNER_PATHS.some((p) => pathname.startsWith(p)) &&
-    session.role !== "PARTNER" &&
-    session.role !== "ADMIN"
-  ) {
+  if (isPartner && session.role !== "PARTNER" && session.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/", req.url));
   }
 

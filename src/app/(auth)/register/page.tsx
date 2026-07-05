@@ -24,6 +24,7 @@ function RegisterForm() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -142,10 +143,43 @@ function RegisterForm() {
             />
           </div>
         )}
+        <label className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed cursor-pointer">
+          <input
+            type="checkbox"
+            required
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-[#CC5500]"
+          />
+          <span>
+            I am at least 18 years old and I agree to the{" "}
+            <a
+              href="/docs/program-terms.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#CC5500] font-medium hover:underline"
+            >
+              Program Terms
+            </a>{" "}
+            and{" "}
+            <a
+              href="/docs/privacy-policy.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#CC5500] font-medium hover:underline"
+            >
+              Privacy Policy
+            </a>
+            . I understand commissions are earned only on real customer sales and
+            that any earnings figures shown are illustrative projections, not
+            guarantees.
+          </span>
+        </label>
+
         <button
           type="submit"
-          disabled={loading}
-          className="btn-primary w-full"
+          disabled={loading || !agreed}
+          className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Creating account…" : "Create account"}
         </button>
@@ -156,10 +190,6 @@ function RegisterForm() {
         <Link href="/login" className="text-[#CC5500] font-medium hover:underline">
           Sign in
         </Link>
-      </p>
-
-      <p className="mt-4 text-xs text-gray-400 text-center leading-relaxed">
-        By creating an account you agree to our program terms. Earnings are illustrative projections — not guarantees. Individual results vary.
       </p>
     </>
   );
