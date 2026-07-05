@@ -101,6 +101,22 @@ export function requireRole(session: AuthSession | null, ...roles: string[]): as
   }
 }
 
+// ─── Admin bootstrap ──────────────────────────────────────────────────────────
+
+/**
+ * Emails listed in the ADMIN_EMAILS env var (comma-separated) are treated as
+ * platform admins. This is the bootstrap mechanism for the first admin: whoever
+ * owns one of these addresses is elevated to ADMIN on registration and on login,
+ * so there is no need to hand-edit the database. Case-insensitive.
+ */
+export function isAdminEmail(email: string): boolean {
+  const list = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return list.includes(email.trim().toLowerCase());
+}
+
 // ─── Affiliate cookie (90-day attribution) ────────────────────────────────────
 
 export const AFFILIATE_COOKIE = "ws_ref";

@@ -46,7 +46,7 @@ function RegisterForm() {
       }
 
       const { role } = data.data.user;
-      router.push(role === "PARTNER" ? "/partner" : "/affiliate");
+      router.push(role === "ADMIN" ? "/admin" : role === "PARTNER" ? "/partner" : "/affiliate");
     } catch {
       setError("Network error. Please try again.");
     } finally {

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import db from "@/lib/db";
-import { createSessionToken, setSessionCookie } from "@/lib/auth";
+import { createSessionToken, setSessionCookie, isAdminEmail } from "@/lib/auth";
 import { generateAffiliateCode } from "@/lib/utils";
 import { sendAffiliateWelcome } from "@/lib/email";
 import { apiSuccess, apiError } from "@/lib/utils";
@@ -51,13 +51,19 @@ export async function POST(req: NextRequest) {
 
     const affiliateCode = generateAffiliateCode(name);
 
+    // Admin bootstrap: an email listed in ADMIN_EMAILS registers as a platform
+    // admin with no referral/sales profile.
+    const isAdmin = isAdminEmail(normalizedEmail);
+
     const user = await db.user.create({
       data: {
         name,
         email: normalizedEmail,
         passwordHash,
-        role: type,
-        ...(type === "AFFILIATE"
+        role: isAdmin ? "ADMIN" : type,
+        ...(isAdmin
+          ? {}
+          : type === "AFFILIATE"
           ? {
               affiliateProfile: {
                 create: {
