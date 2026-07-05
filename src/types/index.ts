@@ -247,6 +247,13 @@ export const PRODUCT_PRICING = {
   payoutSchedule: "weekly-friday" as const,
 };
 
+// One-time milestone bonuses, paid automatically on first promotion to each rank.
+export const MILESTONE_BONUSES: Record<string, number> = {
+  BUILDER: 100.0,
+  ARCHITECT: 500.0,
+  SOVEREIGN: 1500.0,
+};
+
 export const RANK_THRESHOLDS = {
   BUILDER: 3,
   ARCHITECT: 10,

@@ -40,6 +40,23 @@ export async function POST(req: NextRequest) {
 
     let successCount = 0;
     let failCount = 0;
+    // Only recipients whose transfer actually completed get their ledger rows
+    // marked PAID; failed recipients' rows are released to roll into a future
+    // batch, so money is never marked paid without a transfer.
+    const paidAffiliateIds: string[] = [];
+    const paidPartnerIds: string[] = [];
+    const failedAffiliateIds: string[] = [];
+    const failedPartnerIds: string[] = [];
+
+    function recordOutcome(item: (typeof payout.items)[number], ok: boolean) {
+      if (ok) {
+        if (item.affiliateId) paidAffiliateIds.push(item.affiliateId);
+        if (item.partnerId) paidPartnerIds.push(item.partnerId);
+      } else {
+        if (item.affiliateId) failedAffiliateIds.push(item.affiliateId);
+        if (item.partnerId) failedPartnerIds.push(item.partnerId);
+      }
+    }
 
     for (const item of payout.items) {
       if (!item.stripeAccountId) {
@@ -47,6 +64,7 @@ export async function POST(req: NextRequest) {
           where: { id: item.id },
           data: { status: "FAILED", errorMessage: "No Stripe Connect account configured" },
         });
+        recordOutcome(item, false);
         failCount++;
         continue;
       }
@@ -84,6 +102,7 @@ export async function POST(req: NextRequest) {
           ).catch(console.error);
         }
 
+        recordOutcome(item, true);
         successCount++;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -91,6 +110,7 @@ export async function POST(req: NextRequest) {
           where: { id: item.id },
           data: { status: "FAILED", errorMessage: message },
         });
+        recordOutcome(item, false);
         failCount++;
       }
     }
@@ -102,11 +122,42 @@ export async function POST(req: NextRequest) {
       data: { status: finalStatus, processedAt: new Date() },
     });
 
-    // Update commission statuses
+    // Mark PAID only the ledger rows of recipients whose transfer completed.
+    const paidWhere = {
+      payoutId,
+      status: "APPROVED" as const,
+      OR: [
+        { affiliateId: { in: paidAffiliateIds } },
+        { partnerId: { in: paidPartnerIds } },
+      ],
+    };
     await db.commission.updateMany({
-      where: { payoutId, status: "APPROVED" },
+      where: paidWhere,
       data: { status: "PAID", paidAt: new Date() },
     });
+    await db.override.updateMany({
+      where: { payoutId, status: "APPROVED", earnerId: { in: paidAffiliateIds } },
+      data: { status: "PAID" },
+    });
+
+    // Release failed recipients' rows so a future batch can retry them.
+    if (failedAffiliateIds.length > 0 || failedPartnerIds.length > 0) {
+      await db.commission.updateMany({
+        where: {
+          payoutId,
+          status: "APPROVED",
+          OR: [
+            { affiliateId: { in: failedAffiliateIds } },
+            { partnerId: { in: failedPartnerIds } },
+          ],
+        },
+        data: { payoutId: null },
+      });
+      await db.override.updateMany({
+        where: { payoutId, status: "APPROVED", earnerId: { in: failedAffiliateIds } },
+        data: { payoutId: null },
+      });
+    }
 
     await db.auditLog.create({
       data: {

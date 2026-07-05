@@ -8,7 +8,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
-import { processSetupFeeConversion } from "@/lib/commissions";
+import { processSetupFeeConversion, processResidualConversion } from "@/lib/commissions";
 import { addDays } from "date-fns";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
@@ -61,8 +61,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Process commissions
-    const result = await processSetupFeeConversion(conversion.id);
+    // Process commissions — setup and residual take different paths.
+    const result =
+      data.type === "MONTHLY_MAINTENANCE"
+        ? await processResidualConversion(conversion.id)
+        : await processSetupFeeConversion(conversion.id);
 
     await db.auditLog.create({
       data: {

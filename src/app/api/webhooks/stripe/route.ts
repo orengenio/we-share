@@ -10,7 +10,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { constructWebhookEvent } from "@/lib/stripe";
-import { processSetupFeeConversion, processClawback } from "@/lib/commissions";
+import {
+  processSetupFeeConversion,
+  processResidualConversion,
+  processClawback,
+  resolvePackageFee,
+} from "@/lib/commissions";
 import db from "@/lib/db";
 import { addDays } from "date-fns";
 import type Stripe from "stripe";
@@ -88,13 +93,16 @@ export async function POST(req: NextRequest) {
           : null;
 
         if (!existing) {
+          // Resolve the real package setup fee from the amount paid (robust to
+          // a checkout that bundles setup + first month — see resolvePackageFee).
+          const setupFee = resolvePackageFee((session.amount_total ?? 0) / 100, "setup");
           const conversion = await db.conversion.create({
             data: {
               leadId: lead.id,
               affiliateId: lead.affiliateId,
               partnerId: lead.partnerId,
               type: "SETUP_FEE",
-              grossRevenue: 997.00,
+              grossRevenue: setupFee,
               stripePaymentId: session.payment_intent as string ?? session.id,
               stripeCustomerId: session.customer as string,
               clawbackDeadline: addDays(new Date(), 30),
@@ -119,7 +127,6 @@ export async function POST(req: NextRequest) {
         if (!lead) break;
 
         const billingPeriod = new Date((invoice.period_start ?? 0) * 1000);
-        const monthKey = `${billingPeriod.getFullYear()}-${billingPeriod.getMonth()}`;
 
         // Check idempotency
         const existing = await db.conversion.findFirst({
@@ -134,13 +141,15 @@ export async function POST(req: NextRequest) {
         });
         if (existing) break;
 
+        // Resolve the real monthly fee from the amount actually paid.
+        const monthlyFee = resolvePackageFee((invoice.amount_paid ?? 0) / 100, "monthly");
         const conversion = await db.conversion.create({
           data: {
             leadId: lead.id,
             affiliateId: lead.affiliateId,
             partnerId: lead.partnerId,
             type: "MONTHLY_MAINTENANCE",
-            grossRevenue: 247.00,
+            grossRevenue: monthlyFee,
             stripePaymentId: invoice.payment_intent as string ?? invoice.id,
             stripeCustomerId: invoice.customer as string,
             subscriptionId: invoice.subscription as string,
@@ -149,7 +158,7 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        await processSetupFeeConversion(conversion.id);
+        await processResidualConversion(conversion.id);
         break;
       }
 
