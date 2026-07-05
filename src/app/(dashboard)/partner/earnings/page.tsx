@@ -20,7 +20,7 @@ interface Commission {
   residualMonth: number | null;
   createdAt: string;
   conversion: {
-    grossAmount: number;
+    grossRevenue: number;
     lead: { firstName: string; lastName: string } | null;
   } | null;
 }
@@ -89,7 +89,7 @@ export default function PartnerEarningsPage() {
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-900">Commission History</h2>
         </div>
-        {stats.commissions.length === 0 ? (
+        {(stats.commissions ?? []).length === 0 ? (
           <div className="py-12 text-center">
             <DollarSign className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-500">No commissions yet</p>
@@ -107,7 +107,7 @@ export default function PartnerEarningsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {stats.commissions.map(c => (
+              {(stats.commissions ?? []).map(c => (
                 <tr key={c.id} className="table-row-hover">
                   <td className="py-3 px-4">
                     <span className="font-mono text-xs text-gray-600">{c.type}</span>

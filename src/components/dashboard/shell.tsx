@@ -36,6 +36,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Overview", href: "/admin", icon: <BarChart3 size={18} /> },
         { label: "Referral Partners", href: "/admin/affiliates", icon: <Users size={18} /> },
         { label: "Partners", href: "/admin/partners", icon: <Building2 size={18} /> },
+        { label: "Leads", href: "/admin/leads", icon: <UserCheck size={18} /> },
         { label: "Commissions", href: "/admin/commissions", icon: <DollarSign size={18} /> },
         { label: "Payouts", href: "/admin/payouts", icon: <Wallet size={18} /> },
         { label: "Fraud", href: "/admin/fraud", icon: <ShieldAlert size={18} /> },

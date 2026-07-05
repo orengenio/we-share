@@ -33,6 +33,7 @@ export default function AdminCommissionsPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [approving, setApproving] = useState(false);
+  const [approveError, setApproveError] = useState<string | null>(null);
   const PAGE_SIZE = 25;
 
   const load = useCallback(async () => {
@@ -69,13 +70,23 @@ export default function AdminCommissionsPage() {
   async function approveSelected() {
     if (selected.size === 0) return;
     setApproving(true);
-    await fetch("/api/admin/commissions", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: Array.from(selected), action: "approve" }),
-    });
-    await load();
-    setApproving(false);
+    try {
+      const res = await fetch("/api/admin/commissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commissionIds: Array.from(selected) }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setApproveError(json.error ?? "Approval failed");
+        return;
+      }
+      setSelected(new Set());
+      setApproveError(null);
+      await load();
+    } finally {
+      setApproving(false);
+    }
   }
 
   const pendingOnly = status === "PENDING";
@@ -100,9 +111,15 @@ export default function AdminCommissionsPage() {
         )}
       </div>
 
+      {approveError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {approveError}
+        </div>
+      )}
+
       {/* Status filter */}
       <div className="flex gap-1.5 flex-wrap">
-        {["PENDING", "APPROVED", "PAID", "VOID", "DISPUTED"].map(s => (
+        {["PENDING", "APPROVED", "PAID", "CLAWBACK", "VOID"].map(s => (
           <button
             key={s}
             onClick={() => { setStatus(s); setPage(1); }}
@@ -140,7 +157,7 @@ export default function AdminCommissionsPage() {
                 <th className="py-3 px-4 font-medium text-gray-600">Recipient</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Type</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Rank</th>
-                <th className="py-3 px-4 font-medium text-gray-600text-right">Amount</th>
+                <th className="py-3 px-4 font-medium text-gray-600 text-right">Amount</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Status</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Date</th>
               </tr>
