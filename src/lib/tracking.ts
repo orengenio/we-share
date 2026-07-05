@@ -126,7 +126,9 @@ export async function recordClick({
   landingPage: string | null;
 }) {
   const ipHash = hashIP(ipAddress);
-  const isBurst = await checkBurstClicks(ipHash);
+  // A Redis outage must degrade fraud detection, not kill click recording —
+  // otherwise the whole attribution/commission chain silently records nothing.
+  const isBurst = await checkBurstClicks(ipHash).catch(() => false);
   const ua = parseUserAgent(userAgent);
 
   // Find affiliate by code

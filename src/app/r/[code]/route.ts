@@ -13,6 +13,26 @@ const VISITOR_COOKIE = "ws_vid";
 const SESSION_COOKIE = "ws_sid";
 const COOKIE_90_DAYS = 90 * 24 * 60 * 60;
 
+/**
+ * A tracking link's destination is partner-controlled, so an absolute URL is
+ * only honored when it points at an orengen.io host — otherwise weshare could
+ * be used as an open-redirect phishing hop. Relative paths and non-orengen
+ * hosts fall back to the app root.
+ */
+function safeDestination(destinationUrl: string, appUrl: string): string {
+  if (!destinationUrl) return appUrl;
+  if (!destinationUrl.startsWith("http")) {
+    return `${appUrl}${destinationUrl.startsWith("/") ? "" : "/"}${destinationUrl}`;
+  }
+  try {
+    const host = new URL(destinationUrl).hostname.toLowerCase();
+    if (host === "orengen.io" || host.endsWith(".orengen.io")) return destinationUrl;
+  } catch {
+    /* fall through */
+  }
+  return appUrl;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { code: string } }
@@ -32,9 +52,7 @@ export async function GET(
 
   if (link && link.isActive && link.affiliate.isActive) {
     affiliateCode = link.affiliate.affiliateCode;
-    destination = link.destinationUrl.startsWith("http")
-      ? link.destinationUrl
-      : `${appUrl}${link.destinationUrl}`;
+    destination = safeDestination(link.destinationUrl, appUrl);
     linkCode = code;
   } else {
     // Try as affiliate code directly

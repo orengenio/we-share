@@ -8,6 +8,8 @@ const updateSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   phone: z.string().optional(),
   timezone: z.string().optional(),
+  // Opt in/out of public leaderboard display of your name + earnings.
+  showOnLeaderboard: z.boolean().optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -16,13 +18,29 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = updateSchema.parse(body);
+    const { showOnLeaderboard, ...userData } = updateSchema.parse(body);
 
     const user = await db.user.update({
       where: { id: session.userId },
-      data,
+      data: userData,
       select: { id: true, email: true, name: true, phone: true, timezone: true },
     });
+
+    // Leaderboard consent lives on the profile, not the user record.
+    if (showOnLeaderboard !== undefined) {
+      if (session.affiliateId) {
+        await db.affiliateProfile.update({
+          where: { id: session.affiliateId },
+          data: { showOnLeaderboard },
+        });
+      }
+      if (session.partnerId) {
+        await db.partnerProfile.update({
+          where: { id: session.partnerId },
+          data: { showOnLeaderboard },
+        });
+      }
+    }
 
     return apiSuccess(user);
   } catch (err) {
