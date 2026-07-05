@@ -32,6 +32,14 @@ export async function POST(req: NextRequest) {
       return apiError("Invalid email or password", 401);
     }
 
+    // Block sign-in for suspended/terminated accounts (admins are exempt).
+    const suspended =
+      (user.affiliateProfile && !user.affiliateProfile.isActive) ||
+      (user.partnerProfile && !user.partnerProfile.isActive);
+    if (suspended && user.role !== "ADMIN" && !isAdminEmail(user.email)) {
+      return apiError("Your account is suspended. Contact support@orengen.io.", 403);
+    }
+
     // Admin bootstrap: elevate an existing account whose email is in
     // ADMIN_EMAILS but whose stored role hasn't caught up yet.
     let role = user.role;

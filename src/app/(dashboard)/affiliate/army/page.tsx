@@ -292,9 +292,8 @@ export default async function ArmyBuilderPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {downlines.map((dl) => {
-                    const salesThisMonth = dl.conversions.filter(
-                      (c) => new Date(c.id) >= startOfMonth
-                    ).length;
+                    // dl.conversions is already filtered to this month by the query.
+                    const salesThisMonth = dl.conversions.length;
                     return (
                       <tr key={dl.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-5 py-3">
