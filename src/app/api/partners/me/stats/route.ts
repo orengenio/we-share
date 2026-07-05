@@ -69,6 +69,32 @@ export async function GET(req: NextRequest) {
     })
   );
 
+  // Recent commission history for the earnings table.
+  const commissions = await db.commission.findMany({
+    where: { partnerId: session.partnerId },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+    include: {
+      conversion: {
+        select: {
+          grossRevenue: true,
+          lead: { select: { firstName: true, lastName: true } },
+        },
+      },
+    },
+  });
+
+  // This month's residual actually earned (accurate across mixed packages).
+  const residualThisMonth = await db.commission.aggregate({
+    where: {
+      partnerId: session.partnerId,
+      type: "PARTNER_RESIDUAL",
+      status: { not: "VOID" },
+      createdAt: { gte: startOfMonth(now), lte: endOfMonth(now) },
+    },
+    _sum: { amount: true },
+  });
+
   return apiSuccess({
     totalLeadsAssigned: partner.totalLeadsAssigned,
     totalDealsWon: partner.totalDealsWon,
@@ -76,6 +102,8 @@ export async function GET(req: NextRequest) {
     totalPaid: partner.totalPaid,
     pendingBalance: pendingBalance._sum.amount ?? 0,
     monthlyResidualRunRate: activeClients * 61.75,
+    monthlyResidual: residualThisMonth._sum.amount ?? 0,
+    commissions,
     activeClients,
     slaBreaches,
     isCertified: partner.isCertified,

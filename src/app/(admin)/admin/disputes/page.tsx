@@ -1,24 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { Fragment, useState, useEffect, useCallback } from "react";
+import { formatDate } from "@/lib/utils";
 import { AlertCircle } from "lucide-react";
 
 interface Dispute {
   id: string;
-  reason: string;
-  details: string | null;
+  subject: string;
+  description: string;
   status: string;
   resolution: string | null;
-  adminNotes: string | null;
+  statementDate: string;
+  commissionId: string | null;
   createdAt: string;
-  resolvedAt: string | null;
-  commission: {
-    amount: number;
-    type: string;
-    affiliate: { user: { name: string | null; email: string } } | null;
-    partner: { user: { name: string | null; email: string } } | null;
-  };
+  affiliate: { user: { name: string | null; email: string } } | null;
+  partner: { user: { name: string | null; email: string } } | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -33,17 +29,18 @@ export default function AdminDisputesPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [resolveForm, setResolveForm] = useState<{
-    id: string; resolution: string; notes: string;
+    id: string; status: string; resolution: string;
   } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch("/api/admin/disputes");
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (data.success) {
-      setDisputes(data.data.items);
-      setTotal(data.data.total);
+      setDisputes(data.data.items ?? []);
+      setTotal(data.data.total ?? 0);
     }
     setLoading(false);
   }, []);
@@ -52,19 +49,32 @@ export default function AdminDisputesPage() {
 
   async function resolve() {
     if (!resolveForm) return;
+    setError(null);
+    if (resolveForm.resolution.trim().length < 10) {
+      setError("Resolution notes must be at least 10 characters.");
+      return;
+    }
     setSaving(true);
-    await fetch("/api/admin/disputes", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        disputeId: resolveForm.id,
-        resolution: resolveForm.resolution,
-        adminNotes: resolveForm.notes,
-      }),
-    });
-    setResolveForm(null);
-    await load();
-    setSaving(false);
+    try {
+      const res = await fetch("/api/admin/disputes", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          disputeId: resolveForm.id,
+          status: resolveForm.status,
+          resolution: resolveForm.resolution,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Failed to resolve dispute");
+        return;
+      }
+      setResolveForm(null);
+      await load();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -73,6 +83,10 @@ export default function AdminDisputesPage() {
         <h1 className="text-2xl font-bold text-gray-900">Disputes</h1>
         <p className="text-gray-500 text-sm">{total} total dispute{total !== 1 ? "s" : ""}</p>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
+      )}
 
       <div className="card overflow-hidden">
         {loading ? (
@@ -88,33 +102,28 @@ export default function AdminDisputesPage() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
                 <th className="py-3 px-4 font-medium text-gray-600">User</th>
-                <th className="py-3 px-4 font-medium text-gray-600">Commission</th>
-                <th className="py-3 px-4 font-medium text-gray-600">Reason</th>
+                <th className="py-3 px-4 font-medium text-gray-600">Subject</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Status</th>
+                <th className="py-3 px-4 font-medium text-gray-600">Statement</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Filed</th>
                 <th className="py-3 px-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {disputes.map(d => {
-                const user = d.commission.affiliate?.user ?? d.commission.partner?.user;
+                const user = d.affiliate?.user ?? d.partner?.user;
                 return (
-                  <>
-                    <tr key={d.id} className="table-row-hover">
+                  <Fragment key={d.id}>
+                    <tr className="table-row-hover">
                       <td className="py-3 px-4">
                         <p className="font-medium text-gray-900">{user?.name ?? "—"}</p>
                         <p className="text-gray-400 text-xs">{user?.email}</p>
                       </td>
-                      <td className="py-3 px-4">
-                        <p className="font-semibold" style={{ color: "#00254B" }}>
-                          {formatCurrency(d.commission.amount)}
-                        </p>
-                        <p className="text-gray-400 text-xs font-mono">{d.commission.type}</p>
-                      </td>
                       <td className="py-3 px-4 max-w-xs">
-                        <p className="text-gray-800 font-medium text-xs">{d.reason}</p>
-                        {d.details && (
-                          <p className="text-gray-500 text-xs truncate">{d.details}</p>
+                        <p className="text-gray-800 font-medium text-xs">{d.subject}</p>
+                        <p className="text-gray-500 text-xs truncate">{d.description}</p>
+                        {d.commissionId && (
+                          <p className="text-gray-400 text-[10px] font-mono mt-0.5">#{d.commissionId}</p>
                         )}
                       </td>
                       <td className="py-3 px-4">
@@ -125,11 +134,12 @@ export default function AdminDisputesPage() {
                           <p className="text-xs text-gray-500 mt-0.5">{d.resolution}</p>
                         )}
                       </td>
+                      <td className="py-3 px-4 text-gray-500 text-xs">{formatDate(d.statementDate)}</td>
                       <td className="py-3 px-4 text-gray-500 text-xs">{formatDate(d.createdAt)}</td>
                       <td className="py-3 px-4">
                         {d.status !== "RESOLVED" && d.status !== "REJECTED" && (
                           <button
-                            onClick={() => setResolveForm({ id: d.id, resolution: "APPROVED", notes: "" })}
+                            onClick={() => setResolveForm({ id: d.id, status: "RESOLVED", resolution: "" })}
                             className="text-xs text-[#00254B] font-medium hover:underline"
                           >
                             Review
@@ -142,41 +152,36 @@ export default function AdminDisputesPage() {
                         <td colSpan={6} className="px-4 py-3">
                           <div className="flex items-end gap-3 flex-wrap">
                             <div>
-                              <label className="form-label text-xs">Resolution</label>
+                              <label className="form-label text-xs">Decision</label>
                               <select
                                 className="form-input text-sm"
-                                value={resolveForm.resolution}
-                                onChange={e => setResolveForm({ ...resolveForm, resolution: e.target.value })}
+                                value={resolveForm.status}
+                                onChange={e => setResolveForm({ ...resolveForm, status: e.target.value })}
                               >
-                                <option value="APPROVED">Approved — pay commission</option>
-                                <option value="PARTIAL">Partial — adjust amount</option>
-                                <option value="REJECTED">Rejected — no action</option>
+                                <option value="RESOLVED">Resolved — in member&apos;s favor</option>
+                                <option value="REJECTED">Rejected — no change</option>
                               </select>
                             </div>
                             <div className="flex-1 min-w-48">
-                              <label className="form-label text-xs">Admin Notes</label>
+                              <label className="form-label text-xs">Resolution notes (min 10 chars)</label>
                               <input
                                 className="form-input text-sm"
-                                placeholder="Resolution notes…"
-                                value={resolveForm.notes}
-                                onChange={e => setResolveForm({ ...resolveForm, notes: e.target.value })}
+                                placeholder="Explain the ruling…"
+                                value={resolveForm.resolution}
+                                onChange={e => setResolveForm({ ...resolveForm, resolution: e.target.value })}
                               />
                             </div>
-                            <button
-                              onClick={resolve}
-                              disabled={saving}
-                              className="btn-primary text-sm"
-                            >
+                            <button onClick={resolve} disabled={saving} className="btn-primary text-sm">
                               {saving ? "Saving…" : "Save"}
                             </button>
-                            <button onClick={() => setResolveForm(null)} className="btn-ghost text-sm">
+                            <button onClick={() => { setResolveForm(null); setError(null); }} className="btn-ghost text-sm">
                               Cancel
                             </button>
                           </div>
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>

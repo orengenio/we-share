@@ -28,12 +28,12 @@ export default function FraudResolveForm({ flagId }: Props) {
     setError(null);
 
     startTransition(async () => {
-      const res = await fetch(`/api/admin/fraud/${flagId}/resolve`, {
-        method: "POST",
+      const res = await fetch("/api/admin/fraud", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resolution, notes: notes || undefined }),
+        body: JSON.stringify({ flagId, resolution, notes: notes || undefined }),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json.error ?? "Failed to resolve flag");
         return;

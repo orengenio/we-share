@@ -80,7 +80,7 @@ function RunPayoutForm({ onSuccess }: { onSuccess: () => void }) {
       const res = await fetch("/api/admin/payouts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ period: month, notes: notes || undefined }),
+        body: JSON.stringify({ periodMonth: month }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -236,7 +236,7 @@ export default function AdminPayoutsPage() {
     try {
       const res = await fetch("/api/admin/payouts");
       const data = await res.json();
-      setPayouts(data.data?.payouts ?? []);
+      setPayouts(data.data?.items ?? []);
     } finally {
       setLoading(false);
     }

@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { AlertCircle } from "lucide-react";
 
 interface Dispute {
   id: string;
-  reason: string;
-  details: string | null;
+  subject: string;
+  description: string;
   status: string;
   resolution: string | null;
-  adminNotes: string | null;
+  statementDate: string;
+  commissionId: string | null;
   createdAt: string;
-  commission: { amount: number; type: string };
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -26,7 +26,7 @@ export default function PartnerDisputesPage() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ commissionId: "", reason: "", details: "" });
+  const [form, setForm] = useState({ subject: "", description: "", statementDate: "", commissionId: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +34,7 @@ export default function PartnerDisputesPage() {
     setLoading(true);
     fetch("/api/user/disputes")
       .then(r => r.json())
-      .then(d => { if (d.success) setDisputes(d.data.items); })
+      .then(d => { if (d.success) setDisputes(Array.isArray(d.data) ? d.data : d.data?.items ?? []); })
       .finally(() => setLoading(false));
   };
 
@@ -44,20 +44,28 @@ export default function PartnerDisputesPage() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const res = await fetch("/api/user/disputes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error ?? "Failed to submit dispute");
-    } else {
-      setShowForm(false);
-      setForm({ commissionId: "", reason: "", details: "" });
-      load();
+    try {
+      const res = await fetch("/api/user/disputes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: form.subject,
+          description: form.description,
+          statementDate: form.statementDate,
+          ...(form.commissionId ? { commissionId: form.commissionId } : {}),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Failed to submit dispute");
+      } else {
+        setShowForm(false);
+        setForm({ subject: "", description: "", statementDate: "", commissionId: "" });
+        load();
+      }
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   return (
@@ -65,12 +73,9 @@ export default function PartnerDisputesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Disputes</h1>
-          <p className="text-gray-500 text-sm">File and track commission disputes</p>
+          <p className="text-gray-500 text-sm">File and track commission disputes (within 30 days of a statement)</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="btn-primary text-sm"
-        >
+        <button onClick={() => setShowForm(!showForm)} className="btn-primary text-sm">
           + New Dispute
         </button>
       </div>
@@ -79,9 +84,30 @@ export default function PartnerDisputesPage() {
         <form onSubmit={submit} className="card p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">File a Dispute</h2>
           <div>
-            <label className="form-label">Commission ID</label>
+            <label className="form-label">Subject</label>
             <input
               required
+              minLength={5}
+              className="form-input"
+              placeholder="Brief subject (e.g. 'Missing residual for May')"
+              value={form.subject}
+              onChange={e => setForm({ ...form, subject: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="form-label">Statement date</label>
+            <input
+              required
+              type="date"
+              className="form-input"
+              value={form.statementDate}
+              onChange={e => setForm({ ...form, statementDate: e.target.value })}
+            />
+            <p className="text-xs text-gray-400 mt-1">The date of the statement you&apos;re disputing. Must be within the last 30 days.</p>
+          </div>
+          <div>
+            <label className="form-label">Commission ID <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input
               className="form-input"
               placeholder="Commission ID from your earnings history"
               value={form.commissionId}
@@ -89,22 +115,14 @@ export default function PartnerDisputesPage() {
             />
           </div>
           <div>
-            <label className="form-label">Reason</label>
-            <input
-              required
-              className="form-input"
-              placeholder="Brief reason for dispute"
-              value={form.reason}
-              onChange={e => setForm({ ...form, reason: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="form-label">Details <span className="text-gray-400 font-normal">(optional)</span></label>
+            <label className="form-label">Details</label>
             <textarea
-              className="form-input min-h-[80px]"
-              placeholder="Provide any additional context…"
-              value={form.details}
-              onChange={e => setForm({ ...form, details: e.target.value })}
+              required
+              minLength={20}
+              className="form-input min-h-[90px]"
+              placeholder="Describe the issue in detail (at least 20 characters)…"
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -132,10 +150,10 @@ export default function PartnerDisputesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
-                <th className="py-3 px-4 font-medium text-gray-600">Commission</th>
-                <th className="py-3 px-4 font-medium text-gray-600">Reason</th>
+                <th className="py-3 px-4 font-medium text-gray-600">Subject</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Status</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Resolution</th>
+                <th className="py-3 px-4 font-medium text-gray-600">Statement</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Filed</th>
               </tr>
             </thead>
@@ -143,19 +161,16 @@ export default function PartnerDisputesPage() {
               {disputes.map(d => (
                 <tr key={d.id} className="table-row-hover">
                   <td className="py-3 px-4">
-                    <p className="font-semibold" style={{ color: "#00254B" }}>{formatCurrency(d.commission.amount)}</p>
-                    <p className="text-xs font-mono text-gray-400">{d.commission.type}</p>
+                    <p className="font-semibold text-gray-900">{d.subject}</p>
+                    <p className="text-xs text-gray-400 line-clamp-1">{d.description}</p>
                   </td>
-                  <td className="py-3 px-4 text-gray-700">{d.reason}</td>
                   <td className="py-3 px-4">
                     <span className={`badge ${STATUS_COLORS[d.status] ?? "bg-gray-100 text-gray-600"}`}>
                       {d.status.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-gray-500 text-sm">
-                    {d.resolution ?? "—"}
-                    {d.adminNotes && <p className="text-xs text-gray-400 mt-0.5">{d.adminNotes}</p>}
-                  </td>
+                  <td className="py-3 px-4 text-gray-500 text-sm">{d.resolution ?? "—"}</td>
+                  <td className="py-3 px-4 text-gray-500 text-xs">{formatDate(d.statementDate)}</td>
                   <td className="py-3 px-4 text-gray-500 text-xs">{formatDate(d.createdAt)}</td>
                 </tr>
               ))}

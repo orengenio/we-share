@@ -10,7 +10,8 @@ import {
   formatCurrency,
   formatDate,
 } from "@/lib/utils";
-import { Users, Search, ChevronLeft, ChevronRight, ShieldOff } from "lucide-react";
+import { Users, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import AffiliateRowActions from "./row-actions";
 
 // ─── Page props ────────────────────────────────────────────────────────────────
 
@@ -236,29 +237,7 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <Link
-                            href={`/admin/affiliates/${aff.id}`}
-                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                          >
-                            View
-                          </Link>
-                          {aff.isActive ? (
-                            <Link
-                              href={`/admin/affiliates/${aff.id}/suspend`}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
-                            >
-                              <ShieldOff size={11} /> Suspend
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/admin/affiliates/${aff.id}/reinstate`}
-                              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
-                            >
-                              Reinstate
-                            </Link>
-                          )}
-                        </div>
+                        <AffiliateRowActions affiliateId={aff.id} isActive={aff.isActive} />
                       </td>
                     </tr>
                   ))}

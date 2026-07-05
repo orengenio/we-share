@@ -194,7 +194,7 @@ export default function AffiliateLinksPage() {
         return;
       }
       const json = await res.json();
-      setLinks(json.data?.links ?? []);
+      setLinks(Array.isArray(json.data) ? json.data : json.data?.links ?? []);
     } finally {
       setLoading(false);
     }

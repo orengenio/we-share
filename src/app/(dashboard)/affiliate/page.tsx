@@ -111,11 +111,20 @@ function buildMonthlyChartData(
 
 // ─── Fast-start check ─────────────────────────────────────────────────────────
 
-function isFastStartEligible(firstSaleAt: Date | null, earned: boolean): boolean {
-  if (earned || !firstSaleAt) return false;
-  const windowEnd = new Date(firstSaleAt);
+// The bonus pays for the FIRST sale within 14 days of JOINING. So the banner
+// should show while the affiliate has not yet made a first sale and is still
+// inside the 14-day window from their join date. Returns days remaining (0 if
+// not eligible) so the UI can count down.
+function fastStartDaysRemaining(
+  createdAt: Date,
+  firstSaleAt: Date | null,
+  earned: boolean
+): number {
+  if (earned || firstSaleAt) return 0;
+  const windowEnd = new Date(createdAt);
   windowEnd.setDate(windowEnd.getDate() + PRODUCT_PRICING.fastStartWindowDays);
-  return new Date() <= windowEnd;
+  const msLeft = windowEnd.getTime() - Date.now();
+  return msLeft <= 0 ? 0 : Math.ceil(msLeft / (24 * 60 * 60 * 1000));
 }
 
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
@@ -152,10 +161,12 @@ export default async function AffiliateDashboardPage() {
       ? ((affiliate.totalConversions / affiliate.totalLeads) * 100).toFixed(1)
       : "0.0";
   const chartData = buildMonthlyChartData(monthlyCommissions);
-  const showFastStart = isFastStartEligible(
+  const fastStartDaysLeft = fastStartDaysRemaining(
+    affiliate.createdAt,
     affiliate.firstSaleAt,
     affiliate.fastStartBonusEarned
   );
+  const showFastStart = fastStartDaysLeft > 0;
   const isBuilderPlus = ["BUILDER", "ARCHITECT", "SOVEREIGN"].includes(rank);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -171,9 +182,10 @@ export default async function AffiliateDashboardPage() {
                 Fast-Start Bonus Window is Open!
               </p>
               <p className="text-xs text-orange-700 mt-0.5">
-                Earn a ${PRODUCT_PRICING.fastStartBonus} Fast-Start Bonus by making your second
-                sale within {PRODUCT_PRICING.fastStartWindowDays} days of your first. You still
-                have time — close your next deal now.
+                Earn a ${PRODUCT_PRICING.fastStartBonus} Fast-Start Bonus by making your first
+                sale within {PRODUCT_PRICING.fastStartWindowDays} days of joining —{" "}
+                <strong>{fastStartDaysLeft} day{fastStartDaysLeft !== 1 ? "s" : ""} left</strong>.
+                Share your link and close your first deal now.
               </p>
             </div>
           </div>

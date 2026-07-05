@@ -40,7 +40,7 @@ export default function AdminLeadsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
-    if (search) params.set("q", search);
+    if (search) params.set("search", search);
     const res = await fetch(`/api/admin/leads?${params}`);
     const data = await res.json();
     if (data.success) {
