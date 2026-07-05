@@ -22,9 +22,31 @@ import {
   PARTNER_COMMISSION,
   LEADER_COMMISSION,
   PRODUCT_PRICING,
+  MILESTONE_BONUSES,
   RANK_THRESHOLDS,
+  WEBSITE_PACKAGES,
 } from "@/types";
 import db from "./db";
+
+// ─── Package fee resolution ───────────────────────────────────────────────────
+
+const SETUP_FEES = Object.values(WEBSITE_PACKAGES).map((p) => p.setupFee);
+const MONTHLY_FEES = Object.values(WEBSITE_PACKAGES).map((p) => p.monthlyFee);
+
+/**
+ * Map a paid dollar amount to the canonical package fee it corresponds to.
+ * Commissions must be computed on the real package price, not a hardcoded
+ * Standard-tier figure. The three tiers are far enough apart that closest-match
+ * is robust even when a checkout bundles the setup fee with the first month
+ * (e.g. Standard $997+$247=$1,244 is still closest to the $997 setup fee).
+ */
+export function resolvePackageFee(amountDollars: number, kind: "setup" | "monthly"): number {
+  const fees = kind === "setup" ? SETUP_FEES : MONTHLY_FEES;
+  return fees.reduce(
+    (best, f) => (Math.abs(f - amountDollars) < Math.abs(best - amountDollars) ? f : best),
+    fees[0]
+  );
+}
 
 // ─── Rank calculation ─────────────────────────────────────────────────────────
 
@@ -96,6 +118,7 @@ export function calculateResidualCommission(
 export function calculateOverrideSetup(
   earnerRank: AffiliateRank,
   grossRevenue: number,
+  enrollmentDate: Date,
   conversionDate: Date
 ): { eligible: boolean; rate: number; amount: number; expiresAt: Date | null } {
   const config = COMMISSION_CONFIGS[earnerRank];
@@ -104,10 +127,16 @@ export function calculateOverrideSetup(
     return { eligible: false, rate: 0, amount: 0, expiresAt: null };
   }
 
+  // The override window is anchored to when the downline enrolled, not to the
+  // sale date. Builder = 12 months, Architect = 24, Sovereign = unlimited.
   const expiresAt =
     config.overrideMonths !== null
-      ? addMonths(conversionDate, config.overrideMonths)
+      ? addMonths(enrollmentDate, config.overrideMonths)
       : null;
+
+  if (expiresAt && conversionDate > expiresAt) {
+    return { eligible: false, rate: 0, amount: 0, expiresAt };
+  }
 
   return {
     eligible: true,
@@ -236,7 +265,12 @@ export async function processSetupFeeConversion(conversionId: string) {
         where: { id: conversion.affiliate.uplineId },
       });
       if (upline) {
-        const override = calculateOverrideSetup(upline.rank, conversion.grossRevenue, conversion.createdAt);
+        const override = calculateOverrideSetup(
+          upline.rank,
+          conversion.grossRevenue,
+          conversion.affiliate.createdAt, // downline's enrollment date anchors the window
+          conversion.createdAt
+        );
         if (override.eligible) {
           await db.override.create({
             data: {
@@ -311,6 +345,22 @@ export async function processSetupFeeConversion(conversionId: string) {
       if (newRank === "SOVEREIGN") rankTimestamps.sovereignAt = new Date();
     }
 
+    // One-time milestone bonus, automatic on first promotion to each rank.
+    if (rankPromoted && MILESTONE_BONUSES[newRank] !== undefined) {
+      await db.commission.create({
+        data: {
+          conversionId,
+          affiliateId: conversion.affiliateId,
+          type: "MILESTONE_BONUS",
+          rankAtTime: newRank,
+          grossRevenue: 0,
+          commissionRate: 1,
+          amount: MILESTONE_BONUSES[newRank],
+          status: "PENDING",
+        },
+      });
+    }
+
     // Fast-start bonus — flat $50 on first sale within 14 days of joining
     let fastStartBonus = false;
     if (
@@ -352,6 +402,138 @@ export async function processSetupFeeConversion(conversionId: string) {
       where: { id: conversion.partnerId },
       data: { totalDealsWon: { increment: 1 } },
     });
+  }
+
+  return { commissionsCreated: commissionsToCreate.length };
+}
+
+// ─── Residual (monthly maintenance) conversion processing ─────────────────────
+
+/**
+ * Process a MONTHLY_MAINTENANCE conversion. Unlike setup, this pays residual
+ * rates (with the per-rank duration cap), creates residual overrides, and does
+ * NOT touch lifetimeSales / rank / fast-start / deal counts — a recurring
+ * payment is not a new "sale".
+ */
+export async function processResidualConversion(conversionId: string) {
+  const conversion = await db.conversion.findUniqueOrThrow({
+    where: { id: conversionId },
+    include: { affiliate: true, partner: true },
+  });
+
+  const monthlyFee = conversion.grossRevenue;
+
+  // Month number = how many maintenance payments this client has generated so
+  // far (this one included). Drives the Catalyst 12mo / Builder 24mo caps.
+  const monthNumber = await db.conversion.count({
+    where: {
+      leadId: conversion.leadId,
+      type: "MONTHLY_MAINTENANCE",
+      createdAt: { lte: conversion.createdAt },
+    },
+  });
+
+  const commissionsToCreate: {
+    conversionId: string;
+    affiliateId?: string;
+    partnerId?: string;
+    type: CommissionType;
+    rankAtTime?: AffiliateRank;
+    grossRevenue: number;
+    commissionRate: number;
+    amount: number;
+    status: "PENDING";
+  }[] = [];
+
+  // Affiliate residual — rate × monthly fee, capped by rank duration.
+  if (conversion.affiliateId && conversion.affiliate) {
+    const rank = conversion.affiliate.rank;
+    const residual = calculateResidualCommission(rank, monthlyFee, monthNumber);
+    if (residual.eligible) {
+      commissionsToCreate.push({
+        conversionId,
+        affiliateId: conversion.affiliateId,
+        type: "MONTHLY_MAINTENANCE",
+        rankAtTime: rank,
+        grossRevenue: monthlyFee,
+        commissionRate: residual.rate,
+        amount: residual.amount,
+        status: "PENDING",
+      });
+    }
+
+    // Army residual override (Sovereign only, 2.5%), window anchored to the
+    // downline's enrollment date.
+    if (conversion.affiliate.uplineId) {
+      const upline = await db.affiliateProfile.findUnique({
+        where: { id: conversion.affiliate.uplineId },
+      });
+      if (upline) {
+        const override = calculateOverrideResidual(
+          upline.rank,
+          monthlyFee,
+          conversion.affiliate.createdAt,
+          monthNumber
+        );
+        if (override.eligible) {
+          await db.override.create({
+            data: {
+              conversionId,
+              earnerId: upline.id,
+              sourceId: conversion.affiliateId,
+              overrideType: "MONTHLY_RESIDUAL",
+              rankAtTime: upline.rank,
+              overrideRate: override.rate,
+              amount: override.amount,
+              expiresAt: override.expiresAt,
+              status: "PENDING",
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Partner residual — flat 25% of monthly fee, for life.
+  if (conversion.partnerId) {
+    const partnerResidual = calculatePartnerResidualCommission(monthlyFee);
+    commissionsToCreate.push({
+      conversionId,
+      partnerId: conversion.partnerId,
+      type: partnerResidual.type,
+      grossRevenue: monthlyFee,
+      commissionRate: partnerResidual.rate,
+      amount: partnerResidual.amount,
+      status: "PENDING",
+    });
+
+    // Partner Leader residual override — 5% of monthly fee to the upline leader.
+    const partnerForLeader = await db.partnerProfile.findUnique({
+      where: { id: conversion.partnerId },
+      select: { uplineLeaderId: true },
+    });
+    if (partnerForLeader?.uplineLeaderId) {
+      const leader = await db.partnerProfile.findUnique({
+        where: { id: partnerForLeader.uplineLeaderId },
+        select: { id: true, isLeader: true, isActive: true },
+      });
+      if (leader?.isLeader && leader.isActive) {
+        const override = calculateLeaderResidualOverride(monthlyFee);
+        commissionsToCreate.push({
+          conversionId,
+          partnerId: leader.id,
+          type: override.type,
+          grossRevenue: monthlyFee,
+          commissionRate: override.rate,
+          amount: override.amount,
+          status: "PENDING",
+        });
+      }
+    }
+  }
+
+  if (commissionsToCreate.length > 0) {
+    await db.commission.createMany({ data: commissionsToCreate });
   }
 
   return { commissionsCreated: commissionsToCreate.length };

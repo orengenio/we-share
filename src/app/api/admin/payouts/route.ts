@@ -95,29 +95,18 @@ export async function POST(req: NextRequest) {
       _sum: { amount: true },
     });
 
-    // Build payout items (combine commissions + overrides per affiliate)
-    const affiliateMap = new Map<string, { gross: number; stripeId: string | null }>();
-
+    // Merge each affiliate's commission and override sums BEFORE applying the
+    // minimum, so an earner whose period earnings are mostly (or entirely)
+    // overrides isn't wrongly dropped.
+    const affiliateGross = new Map<string, number>();
     for (const c of affiliateCommissions) {
       if (!c.affiliateId) continue;
-      const profile = await db.affiliateProfile.findUnique({
-        where: { id: c.affiliateId },
-        select: { stripeConnectId: true, payoutMinimum: true },
-      });
-      const gross = c._sum.amount ?? 0;
-      if (gross < (profile?.payoutMinimum ?? 25)) continue; // below minimum rolls forward
-      affiliateMap.set(c.affiliateId, { gross, stripeId: profile?.stripeConnectId ?? null });
+      affiliateGross.set(c.affiliateId, (affiliateGross.get(c.affiliateId) ?? 0) + (c._sum.amount ?? 0));
     }
-
-    // Add overrides to affiliate gross
     for (const o of affiliateOverrides) {
-      const existing = affiliateMap.get(o.earnerId);
-      if (existing) {
-        existing.gross += o._sum.amount ?? 0;
-      }
+      affiliateGross.set(o.earnerId, (affiliateGross.get(o.earnerId) ?? 0) + (o._sum.amount ?? 0));
     }
 
-    // Payout total
     let totalAmount = 0;
     const payoutItems: {
       affiliateId?: string;
@@ -128,14 +117,26 @@ export async function POST(req: NextRequest) {
       stripeAccountId?: string;
     }[] = [];
 
-    for (const [affiliateId, { gross, stripeId }] of affiliateMap) {
+    // Track which recipients actually clear the minimum — only their ledger
+    // rows get linked to (and later marked PAID by) this batch. Everyone else's
+    // rows stay unlinked so they roll forward to a future batch.
+    const includedAffiliateIds: string[] = [];
+    const includedPartnerIds: string[] = [];
+
+    for (const [affiliateId, gross] of affiliateGross) {
+      const profile = await db.affiliateProfile.findUnique({
+        where: { id: affiliateId },
+        select: { stripeConnectId: true, payoutMinimum: true },
+      });
+      if (gross < (profile?.payoutMinimum ?? 25)) continue; // below minimum rolls forward
+      includedAffiliateIds.push(affiliateId);
       totalAmount += gross;
       payoutItems.push({
         affiliateId,
         grossAmount: gross,
         adjustments: 0,
         netAmount: gross,
-        stripeAccountId: stripeId ?? undefined,
+        stripeAccountId: profile?.stripeConnectId ?? undefined,
       });
     }
 
@@ -147,6 +148,7 @@ export async function POST(req: NextRequest) {
       });
       const gross = pc._sum.amount ?? 0;
       if (gross < 25) continue;
+      includedPartnerIds.push(pc.partnerId);
       totalAmount += gross;
       payoutItems.push({
         partnerId: pc.partnerId,
@@ -175,15 +177,32 @@ export async function POST(req: NextRequest) {
       include: { items: true },
     });
 
-    // Mark commissions as linked to this payout
-    await db.commission.updateMany({
-      where: {
-        status: "APPROVED",
-        createdAt: { gte: periodStart, lte: periodEnd },
-        payoutId: null,
-      },
-      data: { payoutId: payout.id },
-    });
+    // Link ONLY the ledger rows of recipients actually included in this batch.
+    // Rows belonging to below-minimum recipients stay unlinked (payoutId: null)
+    // so a future batch picks them up — they must never be marked PAID here.
+    if (includedAffiliateIds.length > 0 || includedPartnerIds.length > 0) {
+      await db.commission.updateMany({
+        where: {
+          status: "APPROVED",
+          createdAt: { gte: periodStart, lte: periodEnd },
+          payoutId: null,
+          OR: [
+            { affiliateId: { in: includedAffiliateIds } },
+            { partnerId: { in: includedPartnerIds } },
+          ],
+        },
+        data: { payoutId: payout.id },
+      });
+      await db.override.updateMany({
+        where: {
+          status: "APPROVED",
+          createdAt: { gte: periodStart, lte: periodEnd },
+          payoutId: null,
+          earnerId: { in: includedAffiliateIds },
+        },
+        data: { payoutId: payout.id },
+      });
+    }
 
     await db.auditLog.create({
       data: {

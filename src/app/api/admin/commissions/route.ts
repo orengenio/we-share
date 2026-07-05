@@ -61,21 +61,36 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { commissionIds } = approveSchema.parse(body);
 
-    const result = await db.commission.updateMany({
+    // The commissions being approved, so we can cascade to their conversions'
+    // Army overrides (which have no separate approval UI and would otherwise
+    // never become payable).
+    const toApprove = await db.commission.findMany({
       where: { id: { in: commissionIds }, status: "PENDING" },
-      data: { status: "APPROVED", approvedAt: new Date() },
+      select: { conversionId: true },
     });
+    const conversionIds = [...new Set(toApprove.map((c) => c.conversionId))];
+
+    const [result, overrideResult] = await db.$transaction([
+      db.commission.updateMany({
+        where: { id: { in: commissionIds }, status: "PENDING" },
+        data: { status: "APPROVED", approvedAt: new Date() },
+      }),
+      db.override.updateMany({
+        where: { conversionId: { in: conversionIds }, status: "PENDING" },
+        data: { status: "APPROVED" },
+      }),
+    ]);
 
     await db.auditLog.create({
       data: {
         userId: session.userId,
         action: "COMMISSIONS_APPROVED",
         resource: "Commission",
-        details: { count: result.count, commissionIds },
+        details: { count: result.count, overridesApproved: overrideResult.count, commissionIds },
       },
     });
 
-    return apiSuccess({ approved: result.count });
+    return apiSuccess({ approved: result.count, overridesApproved: overrideResult.count });
   } catch (err) {
     if (err instanceof z.ZodError) return apiError(err.errors[0].message, 400);
     console.error(err);
