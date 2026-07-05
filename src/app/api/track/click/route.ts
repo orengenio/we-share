@@ -19,12 +19,25 @@ const schema = z.object({
   destination: z.string().optional(),
 });
 
+/**
+ * Only allow same-origin/relative redirect destinations. Prevents the
+ * trusted weshare.orengen.io domain from being used as an open-redirect
+ * phishing hop via ?to=https://evil.example. Returns a safe relative path.
+ */
+function safeInternalPath(raw: string | null): string {
+  if (!raw) return "/";
+  // Reject anything that isn't a plain relative path rooted at "/".
+  // (protocol-relative "//host" and "https://host" are both blocked.)
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const affiliateCode = searchParams.get("ref") ?? searchParams.get("a");
   const linkCode = searchParams.get("l");
-  const destination = searchParams.get("to") ?? "/";
+  const destination = safeInternalPath(searchParams.get("to"));
 
   if (!affiliateCode) {
     return NextResponse.redirect(new URL(destination, req.url));
@@ -51,11 +64,7 @@ export async function GET(req: NextRequest) {
     landingPage: req.url,
   }).catch(console.error);
 
-  const response = NextResponse.redirect(
-    destination.startsWith("http")
-      ? destination
-      : `${process.env.NEXT_PUBLIC_APP_URL}${destination}`
-  );
+  const response = NextResponse.redirect(new URL(destination, req.url));
 
   // Set 90-day visitor token
   response.cookies.set(VISITOR_COOKIE, visitorToken, {

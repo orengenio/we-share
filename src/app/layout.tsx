@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import CookieConsent from "@/components/cookie-consent";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -22,13 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen">
         {children}
-        <Script
-          src="https://widgets.leadconnectorhq.com/loader.js"
-          data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
-          data-widget-id="6a44d91d686a90131ba0d5cb"
-          data-source="WEB_USER"
-          strategy="lazyOnload"
-        />
+        <CookieConsent />
       </body>
     </html>
   );

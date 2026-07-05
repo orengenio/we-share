@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email } = schema.parse(body);
 
-    const user = await db.user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await db.user.findUnique({ where: { email: normalizedEmail } });
 
     // Always return success to avoid user enumeration
     if (!user) {
@@ -29,7 +30,13 @@ export async function POST(req: NextRequest) {
       data: { passwordResetToken: token, passwordResetExpiry: expiry },
     });
 
-    await sendPasswordReset(email, token);
+    // Send the email but never let a mail-provider failure surface as a 500 —
+    // that would both break the UX and reveal that the account exists.
+    try {
+      await sendPasswordReset(normalizedEmail, token);
+    } catch (mailErr) {
+      console.error("[forgot-password] reset email failed to send", mailErr);
+    }
 
     return apiSuccess({ message: "If an account exists, a reset link has been sent." });
   } catch (err) {

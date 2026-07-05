@@ -433,9 +433,11 @@ export default async function Home() {
               unoptimized
             />
           </a>
-          <div className="flex items-center gap-5 text-sm" style={{ color: "rgba(148,163,184,0.6)" }}>
+          <div className="flex items-center gap-5 text-sm flex-wrap justify-center" style={{ color: "rgba(148,163,184,0.6)" }}>
             <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
             <Link href="/calculator"  className="hover:text-white transition-colors">Calculator</Link>
+            <a href="/docs/privacy-policy.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy</a>
+            <a href="/docs/program-terms.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms</a>
             <Link href="/login"       className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/register"    className="font-bold hover:text-white transition-colors" style={{ color: "#CC5500" }}>Join Free</Link>
           </div>
