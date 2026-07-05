@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import db from "@/lib/db";
-import { createSessionToken, setSessionCookie } from "@/lib/auth";
+import { createSessionToken, setSessionCookie, isAdminEmail } from "@/lib/auth";
 import { apiSuccess, apiError, getClientIP } from "@/lib/utils";
 
 const schema = z.object({
@@ -32,10 +32,18 @@ export async function POST(req: NextRequest) {
       return apiError("Invalid email or password", 401);
     }
 
+    // Admin bootstrap: elevate an existing account whose email is in
+    // ADMIN_EMAILS but whose stored role hasn't caught up yet.
+    let role = user.role;
+    if (isAdminEmail(user.email) && role !== "ADMIN") {
+      await db.user.update({ where: { id: user.id }, data: { role: "ADMIN" } });
+      role = "ADMIN";
+    }
+
     const token = await createSessionToken({
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role,
       name: user.name ?? undefined,
       affiliateId: user.affiliateProfile?.id,
       partnerId: user.partnerProfile?.id,
@@ -60,7 +68,7 @@ export async function POST(req: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role,
         affiliateCode: user.affiliateProfile?.affiliateCode,
         partnerCode: user.partnerProfile?.partnerCode,
       },

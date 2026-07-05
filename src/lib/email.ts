@@ -1,16 +1,31 @@
-import { Resend } from "resend";
+import nodemailer, { type Transporter } from "nodemailer";
 
-let resendClient: Resend | null = null;
+// The deployment is configured for SMTP (mail.orengen.io) via SMTP_* env vars.
+// Build the transporter lazily so a missing/incomplete mail config never
+// crashes at module load — routes that send mail catch failures individually.
+let transporter: Transporter | null = null;
 
-function getResend(): Resend {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    throw new Error("RESEND_API_KEY is not configured");
+function getTransport(): Transporter {
+  if (transporter) return transporter;
+
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || "587", 10);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  // SMTP_SECURE=true → implicit TLS (465); otherwise STARTTLS (587).
+  const secure = (process.env.SMTP_SECURE || "false").toLowerCase() === "true";
+
+  if (!host || !user || !pass) {
+    throw new Error("SMTP is not configured (SMTP_HOST/SMTP_USER/SMTP_PASS)");
   }
-  if (!resendClient) {
-    resendClient = new Resend(key);
-  }
-  return resendClient;
+
+  transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass },
+  });
+  return transporter;
 }
 
 const FROM = process.env.EMAIL_FROM || "noreply@orengen.io";
@@ -18,7 +33,7 @@ const REPLY_TO = process.env.EMAIL_REPLY_TO || "support@orengen.io";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://weshare.orengen.io";
 
 async function send(to: string, subject: string, html: string) {
-  return getResend().emails.send({
+  return getTransport().sendMail({
     from: FROM,
     replyTo: REPLY_TO,
     to,

@@ -19,17 +19,23 @@ const schema = z.object({
   destination: z.string().optional(),
 });
 
+const PUBLIC_BASE = process.env.NEXT_PUBLIC_APP_URL || "https://weshare.orengen.io";
+
 /**
- * Only allow same-origin/relative redirect destinations. Prevents the
- * trusted weshare.orengen.io domain from being used as an open-redirect
- * phishing hop via ?to=https://evil.example. Returns a safe relative path.
+ * Only allow same-origin/relative redirect destinations, resolved against the
+ * public app URL. Prevents the trusted weshare.orengen.io domain from being
+ * used as an open-redirect phishing hop via ?to=https://evil.example, and
+ * avoids leaking the internal container host (req.url is 0.0.0.0:PORT behind
+ * the Coolify proxy). Returns an absolute URL on the public origin.
  */
-function safeInternalPath(raw: string | null): string {
-  if (!raw) return "/";
-  // Reject anything that isn't a plain relative path rooted at "/".
-  // (protocol-relative "//host" and "https://host" are both blocked.)
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
-  return raw;
+function safeRedirectUrl(raw: string | null): string {
+  let path = "/";
+  // Accept only a plain relative path rooted at "/" (blocks "//host" and
+  // "https://host"); anything else falls back to the home page.
+  if (raw && raw.startsWith("/") && !raw.startsWith("//")) {
+    path = raw;
+  }
+  return new URL(path, PUBLIC_BASE).toString();
 }
 
 export async function GET(req: NextRequest) {
@@ -37,10 +43,10 @@ export async function GET(req: NextRequest) {
 
   const affiliateCode = searchParams.get("ref") ?? searchParams.get("a");
   const linkCode = searchParams.get("l");
-  const destination = safeInternalPath(searchParams.get("to"));
+  const destination = safeRedirectUrl(searchParams.get("to"));
 
   if (!affiliateCode) {
-    return NextResponse.redirect(new URL(destination, req.url));
+    return NextResponse.redirect(destination);
   }
 
   // Get or generate visitor token
@@ -64,7 +70,7 @@ export async function GET(req: NextRequest) {
     landingPage: req.url,
   }).catch(console.error);
 
-  const response = NextResponse.redirect(new URL(destination, req.url));
+  const response = NextResponse.redirect(destination);
 
   // Set 90-day visitor token
   response.cookies.set(VISITOR_COOKIE, visitorToken, {
