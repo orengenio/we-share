@@ -74,6 +74,15 @@ export default function LeaderboardPage() {
         >
           Join &amp; Compete
         </a>
+        <p className="max-w-2xl mx-auto text-xs pt-3" style={{ color: "rgba(148,163,184,0.6)" }}>
+          These are the program&apos;s top opted-in performers. Earnings shown are not typical —
+          most participants earn less, and results depend on individual effort and client retention.
+          See the{" "}
+          <a href="/docs/earnings-disclaimer.pdf" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "#CC5500" }}>
+            Earnings Disclaimer
+          </a>
+          .
+        </p>
       </div>
 
       {/* Tabs */}

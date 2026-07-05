@@ -149,14 +149,22 @@ export function verifyGHLWebhook(
   payload: string,
   signature: string | null
 ): boolean {
-  if (!process.env.GHL_WEBHOOK_SECRET) return true; // skip if not configured
+  const secret = process.env.GHL_WEBHOOK_SECRET;
+  // Fail closed: an unconfigured secret must reject, not accept, so a
+  // misconfiguration can't leave the endpoint open to forged events.
+  if (!secret) return false;
   if (!signature) return false;
   const crypto = require("crypto");
   const expected = crypto
-    .createHmac("sha256", process.env.GHL_WEBHOOK_SECRET)
+    .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expected);
+  // timingSafeEqual throws on length mismatch — guard first so an attacker
+  // controlled signature can't cause a 500 instead of a clean rejection.
+  if (sigBuf.length !== expBuf.length) return false;
+  return crypto.timingSafeEqual(sigBuf, expBuf);
 }
 
 // ─── Batch sync helpers ───────────────────────────────────────────────────────

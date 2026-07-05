@@ -23,6 +23,9 @@ const schema = z.object({
   company: z.string().optional(),
   message: z.string().optional(),
   source: z.string().optional(),
+  // TCPA consent captured from the marketing-site form when a phone is given.
+  smsConsent: z.boolean().optional(),
+  consentText: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -88,6 +91,9 @@ export async function POST(req: NextRequest) {
         source: data.source ?? "form",
         status: "NEW",
         firstTouchDeadline: addHours(new Date(), 4),
+        smsConsent: data.smsConsent ?? false,
+        consentText: data.consentText,
+        consentCapturedAt: data.smsConsent ? new Date() : null,
       },
     });
 

@@ -3,12 +3,22 @@ import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import type { JWTPayload, AuthSession } from "@/types";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "insecure-dev-secret-change-me"
-);
-
 const SESSION_COOKIE = "ws_session";
 const SESSION_DURATION_DAYS = 30;
+
+// Resolve the signing secret lazily (at request time, not module load) so the
+// production build — which runs with NODE_ENV=production but no JWT_SECRET —
+// isn't broken, while a real runtime request in production fails closed if the
+// secret is missing instead of silently using a public hardcoded fallback
+// (which would make ADMIN tokens forgeable).
+function getJwtSecret(): Uint8Array {
+  const s = process.env.JWT_SECRET;
+  if (s && s.length > 0) return new TextEncoder().encode(s);
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET is not configured");
+  }
+  return new TextEncoder().encode("insecure-dev-secret-change-me");
+}
 
 // ─── Token creation ───────────────────────────────────────────────────────────
 
@@ -17,12 +27,12 @@ export async function createSessionToken(payload: Omit<JWTPayload, "iat" | "exp"
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DURATION_DAYS}d`)
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 export async function verifySessionToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     return payload as unknown as JWTPayload;
   } catch {
     return null;
