@@ -40,6 +40,8 @@ async function getAdminStats() {
     openDisputes,
     rankDist,
     monthlyRevRaw,
+    activeAffiliates,
+    activePartners,
   ] = await Promise.all([
     db.affiliateProfile.aggregate({
       _count: { id: true },
@@ -74,9 +76,6 @@ async function getAdminStats() {
     // active partners
     db.partnerProfile.count({ where: { isActive: true } }),
   ]);
-
-  const activeAffiliates = await db.affiliateProfile.count({ where: { isActive: true } });
-  const activePartners = await db.partnerProfile.count({ where: { isActive: true } });
 
   // Build 12-month chart
   const months: { month: string; commissions: number }[] = [];
