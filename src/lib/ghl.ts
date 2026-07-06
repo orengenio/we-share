@@ -1,9 +1,16 @@
 /**
- * GoHighLevel v2 REST API client
- * Handles contact and opportunity management for the partner CRM integration.
+ * GoHighLevel v2 REST API client (LeadConnector).
+ * Handles contact + opportunity/pipeline management for the partner CRM.
+ *
+ * Auth: a Private Integration Token (pit-…) created in the sub-account under
+ * Settings → Private Integrations, with Contacts + Opportunities scopes.
+ * The v2 API host is services.leadconnectorhq.com regardless of white-label
+ * (white-label only rebrands the UI domain, not the API backend); it can be
+ * overridden with GHL_API_BASE if needed.
  */
 
-const GHL_BASE_URL = "https://rest.gohighlevel.com/v1";
+const GHL_BASE_URL = process.env.GHL_API_BASE || "https://services.leadconnectorhq.com";
+const GHL_API_VERSION = process.env.GHL_API_VERSION || "2021-07-28";
 const GHL_API_KEY = process.env.GHL_API_KEY!;
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID!;
 
@@ -16,7 +23,8 @@ async function ghlFetch<T>(
     headers: {
       Authorization: `Bearer ${GHL_API_KEY}`,
       "Content-Type": "application/json",
-      Version: "2021-04-15",
+      Version: GHL_API_VERSION,
+      Accept: "application/json",
       ...options.headers,
     },
   });
@@ -39,15 +47,22 @@ export interface GHLContactData {
   company?: string;
   source?: string;
   tags?: string[];
-  customField?: { key: string; field_value: string }[];
+  customFields?: { id?: string; key?: string; field_value: string }[];
 }
 
 export async function createContact(data: GHLContactData) {
   return ghlFetch<{ contact: { id: string } }>("/contacts/", {
     method: "POST",
     body: JSON.stringify({
-      ...data,
       locationId: GHL_LOCATION_ID,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      companyName: data.company,
+      source: data.source,
+      tags: data.tags,
+      customFields: data.customFields,
     }),
   });
 }
@@ -55,7 +70,14 @@ export async function createContact(data: GHLContactData) {
 export async function updateContact(contactId: string, data: Partial<GHLContactData>) {
   return ghlFetch<{ contact: { id: string } }>(`/contacts/${contactId}`, {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      companyName: data.company,
+      tags: data.tags,
+      customFields: data.customFields,
+    }),
   });
 }
 
@@ -65,7 +87,7 @@ export async function getContact(contactId: string) {
 
 export async function lookupContactByEmail(email: string) {
   return ghlFetch<{ contacts: { id: string }[] }>(
-    `/contacts/?locationId=${GHL_LOCATION_ID}&email=${encodeURIComponent(email)}`
+    `/contacts/?locationId=${GHL_LOCATION_ID}&query=${encodeURIComponent(email)}`
   );
 }
 
@@ -74,6 +96,28 @@ export async function addContactTag(contactId: string, tags: string[]) {
     method: "POST",
     body: JSON.stringify({ tags }),
   });
+}
+
+// Idempotent create-or-update by email (v2 upsert). Returns the contact id.
+export async function upsertContact(data: GHLContactData): Promise<string> {
+  const result = await ghlFetch<{ contact: { id: string }; new?: boolean }>(
+    "/contacts/upsert",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        locationId: GHL_LOCATION_ID,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        companyName: data.company,
+        source: data.source,
+        tags: data.tags,
+        customFields: data.customFields,
+      }),
+    }
+  );
+  return result.contact.id;
 }
 
 // ─── Opportunity (Pipeline) operations ───────────────────────────────────────
@@ -86,27 +130,44 @@ export interface GHLOpportunityData {
   contactId: string;
   monetaryValue?: number;
   assignedTo?: string;
-  customFields?: { key: string; field_value: string }[];
+  customFields?: { id?: string; key?: string; field_value: string }[];
 }
 
 export async function createOpportunity(data: GHLOpportunityData) {
-  return ghlFetch<{ opportunity: { id: string } }>(`/pipelines/${data.pipelineId}/opportunities`, {
+  // v2 posts to a flat /opportunities/ collection and uses `name` +
+  // `pipelineStageId` (v1 used a nested path with `title` + `stageId`).
+  return ghlFetch<{ opportunity: { id: string } }>("/opportunities/", {
     method: "POST",
     body: JSON.stringify({
-      ...data,
       locationId: GHL_LOCATION_ID,
+      pipelineId: data.pipelineId,
+      pipelineStageId: data.stageId,
+      contactId: data.contactId,
+      name: data.title,
+      status: data.status,
+      monetaryValue: data.monetaryValue,
+      assignedTo: data.assignedTo,
+      customFields: data.customFields,
     }),
   });
 }
 
+// pipelineId is retained in the signature for caller compatibility; v2 updates
+// an opportunity by its own id and does not need the pipeline in the path.
 export async function updateOpportunity(
-  pipelineId: string,
+  _pipelineId: string,
   opportunityId: string,
   data: Partial<GHLOpportunityData>
 ) {
-  return ghlFetch(`/pipelines/${pipelineId}/opportunities/${opportunityId}`, {
+  return ghlFetch(`/opportunities/${opportunityId}`, {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      ...(data.stageId ? { pipelineStageId: data.stageId } : {}),
+      ...(data.status ? { status: data.status } : {}),
+      ...(data.title ? { name: data.title } : {}),
+      ...(data.monetaryValue != null ? { monetaryValue: data.monetaryValue } : {}),
+      ...(data.assignedTo ? { assignedTo: data.assignedTo } : {}),
+    }),
   });
 }
 
@@ -120,6 +181,21 @@ export async function moveOpportunityStage(
     stageId,
     status: status as "open" | "won" | "lost" | "abandoned",
   });
+}
+
+export interface GHLPipeline {
+  id: string;
+  name: string;
+  stages: { id: string; name: string; position?: number }[];
+}
+
+// Lists the sub-account's pipelines and their stages — used to resolve the
+// pipeline/stage IDs the sync needs.
+export async function listPipelines(): Promise<GHLPipeline[]> {
+  const res = await ghlFetch<{ pipelines: GHLPipeline[] }>(
+    `/opportunities/pipelines?locationId=${GHL_LOCATION_ID}`
+  );
+  return res.pipelines ?? [];
 }
 
 // ─── GHL stage mapping ────────────────────────────────────────────────────────
@@ -178,17 +254,12 @@ export async function syncLeadToGHL(lead: {
   source?: string | null;
   affiliateCode?: string | null;
 }): Promise<string> {
-  // Check if contact already exists
-  const existing = await lookupContactByEmail(lead.email).catch(() => null);
-  if (existing?.contacts?.[0]) {
-    return existing.contacts[0].id;
-  }
-
   const tags = ["WeShare Lead"];
   if (lead.affiliateCode) tags.push(`Referral Partner: ${lead.affiliateCode}`);
   if (lead.source) tags.push(`Source: ${lead.source}`);
 
-  const result = await createContact({
+  // Upsert is idempotent on email — no separate lookup/create round-trip.
+  return upsertContact({
     firstName: lead.firstName,
     lastName: lead.lastName,
     email: lead.email,
@@ -197,6 +268,28 @@ export async function syncLeadToGHL(lead: {
     source: lead.source ?? "WeShare",
     tags,
   });
+}
 
-  return result.contact.id;
+// Upserts a partner/affiliate as a GHL contact, tagged by role, so the whole
+// roster lives in the CRM (not just inbound leads).
+export async function syncPartnerToGHL(person: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  role: "AFFILIATE" | "PARTNER";
+  code?: string | null;
+}): Promise<string> {
+  const roleTag = person.role === "PARTNER" ? "Sales Partner" : "Referral Partner";
+  const tags = ["WeShare Partner", roleTag];
+  if (person.code) tags.push(`${roleTag} Code: ${person.code}`);
+
+  return upsertContact({
+    firstName: person.firstName,
+    lastName: person.lastName,
+    email: person.email,
+    phone: person.phone ?? undefined,
+    source: "WeShare Signup",
+    tags,
+  });
 }

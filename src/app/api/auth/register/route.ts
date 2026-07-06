@@ -5,6 +5,7 @@ import db from "@/lib/db";
 import { createSessionToken, setSessionCookie, isAdminEmail } from "@/lib/auth";
 import { generateAffiliateCode } from "@/lib/utils";
 import { sendAffiliateWelcome, sendPartnerWelcome } from "@/lib/email";
+import { syncPartnerToGHL } from "@/lib/ghl";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 const schema = z.object({
@@ -110,6 +111,19 @@ export async function POST(req: NextRequest) {
       sendPartnerWelcome(normalizedEmail, name, user.partnerProfile.partnerCode).catch(
         console.error
       );
+    }
+
+    // Sync the new partner into GoHighLevel as a tagged contact (non-blocking;
+    // no-ops until GHL creds are configured). Admins are not synced.
+    if (!isAdmin && process.env.GHL_API_KEY && process.env.GHL_LOCATION_ID) {
+      const [firstName, ...rest] = name.trim().split(/\s+/);
+      syncPartnerToGHL({
+        firstName: firstName || name,
+        lastName: rest.join(" "),
+        email: normalizedEmail,
+        role: type,
+        code: user.affiliateProfile?.affiliateCode ?? user.partnerProfile?.partnerCode,
+      }).catch(console.error);
     }
 
     return apiSuccess(
