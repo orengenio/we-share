@@ -4,7 +4,7 @@ import { z } from "zod";
 import db from "@/lib/db";
 import { createSessionToken, setSessionCookie, isAdminEmail } from "@/lib/auth";
 import { generateAffiliateCode } from "@/lib/utils";
-import { sendAffiliateWelcome } from "@/lib/email";
+import { sendAffiliateWelcome, sendPartnerWelcome } from "@/lib/email";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 const schema = z.object({
@@ -101,9 +101,13 @@ export async function POST(req: NextRequest) {
 
     await setSessionCookie(token);
 
-    // Send welcome email (non-blocking)
+    // Send welcome email (non-blocking — a mail failure never blocks signup)
     if (type === "AFFILIATE" && user.affiliateProfile) {
       sendAffiliateWelcome(normalizedEmail, name, user.affiliateProfile.affiliateCode).catch(
+        console.error
+      );
+    } else if (type === "PARTNER" && user.partnerProfile) {
+      sendPartnerWelcome(normalizedEmail, name, user.partnerProfile.partnerCode).catch(
         console.error
       );
     }
