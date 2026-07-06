@@ -1,5 +1,6 @@
 import { getSessionFromCookies } from "@/lib/auth";
 import { FileText, Download, Scale, BookOpen, ClipboardList, ShieldCheck } from "lucide-react";
+import MaterialsLibrary from "@/components/dashboard/materials-library";
 
 const LEGAL_DOCS = [
   {
@@ -183,6 +184,16 @@ export default async function ResourcesPage() {
           </div>
         </section>
       )}
+
+      {/* Marketing materials — brand assets + swipe copy */}
+      <section>
+        <div className="flex items-center gap-2 mb-1">
+          <BookOpen className="w-4 h-4" style={{ color: "#CC5500" }} />
+          <h2 className="text-base font-bold text-gray-900">Marketing Materials</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">Brand assets and ready-to-use copy for promoting the program.</p>
+        <MaterialsLibrary role={role} />
+      </section>
     </div>
   );
 }

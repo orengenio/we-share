@@ -19,6 +19,7 @@
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "driver.js": "^1.6.0",
     "ioredis": "^5.4.1",
     "jose": "^5.9.6",
     "lucide-react": "^0.454.0",
