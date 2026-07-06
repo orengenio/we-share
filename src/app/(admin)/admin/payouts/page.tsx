@@ -171,6 +171,7 @@ function ExpandedItems({ payoutId }: { payoutId: string }) {
   return (
     <div className="px-4 pb-3">
       <div className="rounded-lg border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
@@ -217,6 +218,7 @@ function ExpandedItems({ payoutId }: { payoutId: string }) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

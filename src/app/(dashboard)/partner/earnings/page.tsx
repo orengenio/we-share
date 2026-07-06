@@ -96,6 +96,7 @@ export default function PartnerEarningsPage() {
             <p className="text-xs text-gray-400 mt-1">Commissions will appear once deals are converted.</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
@@ -133,6 +134,7 @@ export default function PartnerEarningsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

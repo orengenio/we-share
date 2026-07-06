@@ -340,7 +340,7 @@ export default function AffiliateLinksPage() {
 
       {/* Summary row */}
       {links.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             {
               label: "Total Clicks",

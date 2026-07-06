@@ -141,6 +141,7 @@ export default function AdminCommissionsPage() {
             <p className="text-gray-400 text-sm">No {status.toLowerCase()} commissions found.</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
@@ -199,6 +200,7 @@ export default function AdminCommissionsPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
 
         {total > PAGE_SIZE && (

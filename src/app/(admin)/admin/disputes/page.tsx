@@ -98,6 +98,7 @@ export default function AdminDisputesPage() {
             <p className="text-gray-400 text-sm">No commission disputes at this time.</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
@@ -186,6 +187,7 @@ export default function AdminDisputesPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

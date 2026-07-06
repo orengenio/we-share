@@ -5,12 +5,10 @@ import { Download, Copy, Check, ImageIcon, MessageSquareText } from "lucide-reac
 
 const LOGO_DARK = "https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png";
 const LOGO_LIGHT = "https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/bmeUUijIh8dkwmEIWUWDktHNGX2nMZ0HewKw9Q0e.png";
-const FAVICON = "https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/SndVQLK75HyjFd6o7gHWoy3GksWvISLfzVqmOBry.png";
 
 const BRAND_ASSETS = [
   { label: "OrenGen logo (for dark backgrounds)", url: LOGO_DARK },
   { label: "OrenGen logo (for light backgrounds)", url: LOGO_LIGHT },
-  { label: "OrenGen mark / favicon", url: FAVICON },
 ];
 
 // Swipe copy per track — real, ready-to-use snippets partners can copy & post.
@@ -77,7 +75,7 @@ export default function MaterialsLibrary({ role }: { role: string }) {
           <ImageIcon className="w-4 h-4" style={{ color: "#CC5500" }} />
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Brand Assets</h2>
         </div>
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className="grid sm:grid-cols-2 gap-3">
           {BRAND_ASSETS.map((a) => (
             <div key={a.url} className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3">
               <div className="h-16 rounded-lg flex items-center justify-center" style={{ background: "#00254B" }}>
