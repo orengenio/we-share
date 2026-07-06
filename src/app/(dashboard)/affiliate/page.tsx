@@ -5,6 +5,7 @@ import { getSessionFromCookies } from "@/lib/auth";
 import db from "@/lib/db";
 import StatsCard from "@/components/dashboard/stats-card";
 import EarningsChart from "@/components/dashboard/earnings-chart";
+import GettingStarted from "@/components/dashboard/getting-started";
 import {
   RANK_COLORS,
   RANK_LABELS,
@@ -173,6 +174,8 @@ export default async function AffiliateDashboardPage() {
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <div className="space-y-6">
+        <GettingStarted />
+
         {/* ── Fast-start bonus alert ── */}
         {showFastStart && (
           <div className="flex items-start gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">

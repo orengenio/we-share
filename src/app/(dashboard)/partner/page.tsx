@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { getSessionFromCookies } from "@/lib/auth";
 import db from "@/lib/db";
 import StatsCard from "@/components/dashboard/stats-card";
+import GettingStarted from "@/components/dashboard/getting-started";
 import { STATUS_COLORS, formatCurrency, formatDate } from "@/lib/utils";
 import {
   Users, DollarSign, TrendingUp, Wallet, AlertTriangle,
@@ -108,6 +109,8 @@ export default async function PartnerDashboardPage() {
   return (
     <Suspense fallback={<PartnerSkeleton />}>
       <div className="space-y-6">
+        <GettingStarted />
+
         {/* Certification / leads-unlocked banner */}
         {(!partner.isCertified || !partner.leadsUnlocked) && (
           <div className="flex items-start gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-4">
