@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
           strikeCount: true,
           fastStartBonusEarned: true,
           uplineId: true,
+          showOnLeaderboard: true,
         },
       },
       partnerProfile: {
@@ -47,12 +48,19 @@ export async function GET(req: NextRequest) {
           w9Submitted: true,
           isActive: true,
           ghlContactId: true,
+          showOnLeaderboard: true,
         },
       },
     },
   });
 
   if (!user) return apiUnauthorized();
+
+  // Leaderboard opt-out flag lives on whichever profile the user has.
+  const showOnLeaderboard =
+    (user.affiliateProfile as { showOnLeaderboard?: boolean } | null)?.showOnLeaderboard ??
+    (user.partnerProfile as { showOnLeaderboard?: boolean } | null)?.showOnLeaderboard ??
+    false;
 
   return apiSuccess({
     id: user.id,
@@ -61,6 +69,8 @@ export async function GET(req: NextRequest) {
     role: user.role,
     phone: user.phone,
     timezone: user.timezone,
+    avatarUrl: user.avatarUrl,
+    showOnLeaderboard,
     affiliateProfile: user.affiliateProfile,
     partnerProfile: user.partnerProfile,
   });

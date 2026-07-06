@@ -15,7 +15,7 @@ const ADMIN_PATHS = ["/admin"];
 const AFFILIATE_PATHS = ["/affiliate"];
 const PARTNER_PATHS = ["/partner"];
 // Any authenticated user (role-agnostic) may reach these.
-const AUTHENTICATED_PATHS = ["/resources"];
+const AUTHENTICATED_PATHS = ["/resources", "/settings"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
