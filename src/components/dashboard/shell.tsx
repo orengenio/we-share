@@ -18,6 +18,7 @@ import {
   ChevronRight,
   BarChart3,
   BookOpen,
+  Settings,
 } from "lucide-react";
 import type { AuthSession } from "@/types";
 
@@ -41,6 +42,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Payouts", href: "/admin/payouts", icon: <Wallet size={18} /> },
         { label: "Fraud", href: "/admin/fraud", icon: <ShieldAlert size={18} /> },
         { label: "Disputes", href: "/admin/disputes", icon: <AlertCircle size={18} /> },
+        { label: "Settings", href: "/settings", icon: <Settings size={18} /> },
       ];
     case "PARTNER":
       return [
@@ -49,6 +51,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Earnings", href: "/partner/earnings", icon: <DollarSign size={18} /> },
         { label: "Disputes", href: "/partner/disputes", icon: <AlertCircle size={18} /> },
         { label: "Resources", href: "/resources", icon: <BookOpen size={18} /> },
+        { label: "Settings", href: "/settings", icon: <Settings size={18} /> },
       ];
     default:
       // AFFILIATE
@@ -59,6 +62,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Army Builder", href: "/affiliate/army", icon: <Users size={18} /> },
         { label: "Disputes", href: "/affiliate/disputes", icon: <AlertCircle size={18} /> },
         { label: "Resources", href: "/resources", icon: <BookOpen size={18} /> },
+        { label: "Settings", href: "/settings", icon: <Settings size={18} /> },
       ];
   }
 }
@@ -106,10 +110,11 @@ function getInitials(name?: string, email?: string): string {
 
 interface DashboardShellProps {
   session: AuthSession;
+  avatarUrl?: string | null;
   children: React.ReactNode;
 }
 
-export default function DashboardShell({ session, children }: DashboardShellProps) {
+export default function DashboardShell({ session, avatarUrl, children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -217,12 +222,17 @@ export default function DashboardShell({ session, children }: DashboardShellProp
         <div className="px-3 py-4 border-t border-white/10 space-y-1">
           {/* User identity */}
           <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
-            <div
-              className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 text-sm font-bold text-white"
-              style={{ backgroundColor: "rgba(204,85,0,0.7)" }}
-            >
-              {initials}
-            </div>
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full shrink-0 object-cover" />
+            ) : (
+              <div
+                className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 text-sm font-bold text-white"
+                style={{ backgroundColor: "rgba(204,85,0,0.7)" }}
+              >
+                {initials}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate leading-tight">
                 {displayName}
@@ -270,12 +280,17 @@ export default function DashboardShell({ session, children }: DashboardShellProp
             </button>
 
             {/* Avatar (top bar repeat) */}
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
+            ) : (
             <div
               className="flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold text-white"
               style={{ backgroundColor: "#00254B" }}
             >
               {initials}
             </div>
+            )}
           </div>
         </header>
 

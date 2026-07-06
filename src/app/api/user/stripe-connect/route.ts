@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const returnUrl = `${APP_URL}/${session.role.toLowerCase()}/settings?stripe=complete`;
+  const returnUrl = `${APP_URL}/settings?stripe=complete`;
   const refreshUrl = `${APP_URL}/api/user/stripe-connect/refresh?id=${connectId}`;
 
   const link = await createConnectOnboardingLink(connectId, returnUrl, refreshUrl);
