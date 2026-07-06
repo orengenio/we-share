@@ -70,6 +70,8 @@ export async function GET(req: NextRequest) {
     phone: user.phone,
     timezone: user.timezone,
     avatarUrl: user.avatarUrl,
+    docsAcknowledgedAt: user.docsAcknowledgedAt,
+    onboardingTourDone: user.onboardingTourDone,
     showOnLeaderboard,
     affiliateProfile: user.affiliateProfile,
     partnerProfile: user.partnerProfile,

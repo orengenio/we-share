@@ -20,6 +20,9 @@ const updateSchema = z.object({
     .max(MAX_AVATAR_CHARS, "Image is too large — please use a smaller photo")
     .refine((v) => v === "" || v.startsWith("data:image/"), "Invalid image")
     .optional(),
+  // Onboarding flags.
+  docsAcknowledged: z.boolean().optional(),
+  onboardingTourDone: z.boolean().optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -28,11 +31,18 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { showOnLeaderboard, ...userData } = updateSchema.parse(body);
+    const { showOnLeaderboard, docsAcknowledged, onboardingTourDone, ...userData } =
+      updateSchema.parse(body);
 
     const user = await db.user.update({
       where: { id: session.userId },
-      data: userData,
+      data: {
+        ...userData,
+        ...(docsAcknowledged !== undefined
+          ? { docsAcknowledgedAt: docsAcknowledged ? new Date() : null }
+          : {}),
+        ...(onboardingTourDone !== undefined ? { onboardingTourDone } : {}),
+      },
       select: { id: true, email: true, name: true, phone: true, timezone: true, avatarUrl: true },
     });
 
