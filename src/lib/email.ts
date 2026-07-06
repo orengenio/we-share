@@ -177,3 +177,20 @@ export async function sendPasswordReset(email: string, token: string) {
 <p>If you didn't request this, ignore this email.</p>`
   );
 }
+
+// ─── Admin diagnostic: test email ─────────────────────────────────────────────
+
+// Sends a one-off test message so an admin can confirm SMTP is configured
+// correctly. Unlike the notification helpers above (which are fire-and-forget),
+// callers of this should await it and surface any error for diagnostics.
+export async function sendTestEmail(to: string) {
+  return send(
+    to,
+    "WeShare SMTP test ✅",
+    `<h2>Your email is working 🎉</h2>
+<p>This is a test message from your WeShare deployment. Because it arrived, outbound
+email is configured correctly — partners will receive their welcome emails, payout
+notifications, and password resets.</p>
+<p style="color:#6b7280;font-size:13px;margin-top:16px">Sent from ${APP_URL}</p>`
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Camera, Loader2, Check, CreditCard, ShieldCheck, ExternalLink } from "lucide-react";
+import { Camera, Loader2, Check, CreditCard, ShieldCheck, ExternalLink, Mail } from "lucide-react";
 
 interface Me {
   id: string;
@@ -61,6 +61,11 @@ export default function SettingsPage() {
 
   const [form, setForm] = useState({ name: "", phone: "", timezone: "America/Chicago", showOnLeaderboard: false });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Admin-only email deliverability test.
+  const [testTo, setTestTo] = useState("");
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/auth/me");
@@ -134,6 +139,29 @@ export default function SettingsPage() {
       }
     } finally {
       setConnecting(false);
+    }
+  }
+
+  async function sendTest() {
+    if (!me) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/admin/test-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: testTo || me.email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setTestResult({ ok: true, msg: `Sent to ${data.data.to}. SMTP is working — check the inbox (and spam).` });
+      } else {
+        setTestResult({ ok: false, msg: data.error ?? "Send failed" });
+      }
+    } catch {
+      setTestResult({ ok: false, msg: "Network error" });
+    } finally {
+      setTesting(false);
     }
   }
 
@@ -219,6 +247,50 @@ export default function SettingsPage() {
           {saving ? "Saving…" : "Save profile"}
         </button>
       </section>
+
+      {/* Email deliverability test (admins only) */}
+      {me.role === "ADMIN" && (
+        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <Mail size={16} style={{ color: "#00254B" }} />
+            <h2 className="text-sm font-semibold text-gray-900">Email Deliverability</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Send a test message to confirm outbound email works. If it fails, the exact SMTP error
+            (bad auth, unreachable host, or an unverified sender domain) is shown here so you can fix
+            the env vars and redeploy.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <input
+              type="email"
+              className="form-input flex-1"
+              placeholder={me.email}
+              value={testTo}
+              onChange={e => setTestTo(e.target.value)}
+              aria-label="Test email recipient"
+            />
+            <button
+              onClick={sendTest}
+              disabled={testing}
+              className="btn-primary text-sm inline-flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              {testing ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+              {testing ? "Sending…" : "Send test email"}
+            </button>
+          </div>
+          {testResult && (
+            <div
+              className={`mt-3 rounded-lg border px-4 py-2 text-sm ${
+                testResult.ok
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}
+            >
+              {testResult.msg}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Payouts & Tax (not for admins) */}
       {me.role !== "ADMIN" && (
