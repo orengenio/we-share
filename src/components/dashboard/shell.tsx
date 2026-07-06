@@ -19,8 +19,18 @@ import {
   BarChart3,
   BookOpen,
   Settings,
+  Compass,
 } from "lucide-react";
 import type { AuthSession } from "@/types";
+import DashboardTour from "@/components/dashboard/dashboard-tour";
+
+// Maps a nav href to the data-tour anchor the guided tour highlights.
+const TOUR_ATTR: Record<string, string> = {
+  "/affiliate/links": "nav-links",
+  "/partner/leads": "nav-links",
+  "/resources": "nav-resources",
+  "/settings": "nav-settings",
+};
 
 // ─── Nav link definitions ─────────────────────────────────────────────────────
 
@@ -179,7 +189,7 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-2 space-y-0.5">
+        <nav className="flex-1 px-3 py-2 space-y-0.5" data-tour="nav">
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
@@ -189,6 +199,7 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
               <Link
                 key={item.href}
                 href={item.href}
+                data-tour={TOUR_ATTR[item.href]}
                 className={[
                   "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                   isActive
@@ -266,6 +277,17 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
           </h1>
 
           <div className="flex items-center gap-3">
+            {/* Take a tour — replays the guided walkthrough */}
+            {session.role !== "ADMIN" && (
+              <button
+                onClick={() => window.dispatchEvent(new Event("weshare:start-tour"))}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              >
+                <Compass size={15} />
+                Take a tour
+              </button>
+            )}
+
             {/* Notification bell */}
             <button
               className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -295,10 +317,13 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
         </header>
 
         {/* Scrollable body */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50" data-tour="main">
           <div className="p-6">{children}</div>
         </main>
       </div>
+
+      {/* First-run guided tour (auto-runs once, replayable from the top bar) */}
+      <DashboardTour role={session.role} />
     </div>
   );
 }
