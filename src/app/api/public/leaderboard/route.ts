@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export async function GET(_req: NextRequest) {
   try {
     const [topAffiliates, topPartners, topLeaders] = await Promise.all([
-      // Top 25 affiliates by total earned — opt-in only.
+      // Top 25 referral partners by total earned.
       db.affiliateProfile.findMany({
-        where: { isActive: true, totalEarned: { gt: 0 }, showOnLeaderboard: true },
+        where: { isActive: true, totalEarned: { gt: 0 } },
         orderBy: { totalEarned: "desc" },
         take: 25,
         select: {
@@ -23,9 +23,9 @@ export async function GET(_req: NextRequest) {
         },
       }),
 
-      // Top 25 partners by total earned — opt-in only.
+      // Top 25 sales partners by total earned.
       db.partnerProfile.findMany({
-        where: { isActive: true, totalDealsWon: { gt: 0 }, showOnLeaderboard: true },
+        where: { isActive: true, totalDealsWon: { gt: 0 } },
         orderBy: { totalEarned: "desc" },
         take: 25,
         select: {
@@ -38,9 +38,9 @@ export async function GET(_req: NextRequest) {
         },
       }),
 
-      // Top 10 leaders by team override earnings — opt-in only.
+      // Top 10 leaders by team override earnings.
       db.partnerProfile.findMany({
-        where: { isLeader: true, isActive: true, showOnLeaderboard: true },
+        where: { isLeader: true, isActive: true },
         orderBy: { totalLeaderOverrides: "desc" },
         take: 10,
         select: {
