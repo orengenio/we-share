@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Link2,
@@ -20,6 +20,8 @@ import {
   BookOpen,
   Settings,
   Compass,
+  Menu,
+  X,
 } from "lucide-react";
 import type { AuthSession } from "@/types";
 import DashboardTour from "@/components/dashboard/dashboard-tour";
@@ -128,9 +130,23 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
   const router = useRouter();
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = getNavItems(session.role);
   const pageTitle = getPageTitle(pathname);
+
+  // Close the mobile drawer whenever the route changes (e.g. a nav tap).
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [sidebarOpen]);
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -146,9 +162,23 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* ── Mobile backdrop ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ── Sidebar ── */}
       <aside
-        className="flex flex-col shrink-0 w-60 h-full overflow-y-auto"
+        className={[
+          "flex flex-col shrink-0 w-64 h-full overflow-y-auto",
+          "fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:static lg:w-60 lg:translate-x-0 lg:transition-none",
+        ].join(" ")}
         style={{ backgroundColor: "#00254B" }}
       >
         {/* Logo */}
@@ -160,7 +190,7 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
             >
               WS
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-white font-bold text-base leading-tight tracking-tight">
                 WeShare
               </p>
@@ -168,6 +198,14 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
                 by OrenGen
               </p>
             </div>
+            {/* Close (mobile only) */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden text-white/60 hover:text-white -mr-1 p-1"
+              aria-label="Close menu"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
@@ -200,6 +238,7 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
                 key={item.href}
                 href={item.href}
                 data-tour={TOUR_ATTR[item.href]}
+                onClick={() => setSidebarOpen(false)}
                 className={[
                   "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                   isActive
@@ -271,10 +310,20 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
       {/* ── Main content ── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Top bar */}
-        <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 shrink-0">
-          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">
-            {pageTitle}
-          </h1>
+        <header className="flex items-center justify-between px-4 sm:px-6 py-4 bg-white border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Hamburger (mobile only) */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden -ml-1 p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              aria-label="Open menu"
+            >
+              <Menu size={20} />
+            </button>
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight truncate">
+              {pageTitle}
+            </h1>
+          </div>
 
           <div className="flex items-center gap-3">
             {/* Take a tour — replays the guided walkthrough */}
@@ -318,7 +367,7 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
 
         {/* Scrollable body */}
         <main className="flex-1 overflow-y-auto bg-gray-50" data-tour="main">
-          <div className="p-6">{children}</div>
+          <div className="p-4 sm:p-6">{children}</div>
         </main>
       </div>
 

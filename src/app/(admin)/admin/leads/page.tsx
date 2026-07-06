@@ -78,6 +78,7 @@ export default function AdminLeadsPage() {
             <h3 className="font-semibold text-gray-700">No leads found</h3>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-left">
@@ -133,6 +134,7 @@ export default function AdminLeadsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {total > PAGE_SIZE && (

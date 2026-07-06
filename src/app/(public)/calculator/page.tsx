@@ -129,7 +129,7 @@ function AffiliateCalculator({ pkg }: { pkg: PkgKey }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="rounded-xl p-4 text-center" style={{ background: SURF, border: `1px solid ${LINE}` }}>
           <p className="text-xs mb-1" style={{ color: MUTED }}>Total Setup</p>
           <p className="text-xl font-bold text-white">{formatCurrency(totalSetup)}</p>
@@ -215,7 +215,7 @@ function PartnerCalculator({ pkg }: { pkg: PkgKey }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-xl p-4 text-center" style={{ background: SURF, border: `1px solid ${LINE}` }}>
           <p className="text-xs mb-1" style={{ color: MUTED }}>Total Setup ({months} mo)</p>
           <p className="text-xl font-bold text-white">{formatCurrency(totalSetup)}</p>

@@ -271,7 +271,7 @@ export default async function PartnerDashboardPage() {
         </div>
 
         {/* Earnings summary */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {[
             { label: "Total Earned", value: formatCurrency(partner.totalEarned) },
             { label: "Total Paid", value: formatCurrency(partner.totalPaid) },
