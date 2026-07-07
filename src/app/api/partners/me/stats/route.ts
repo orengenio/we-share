@@ -3,6 +3,7 @@ import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
 import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { apiSuccess, apiUnauthorized, apiForbidden } from "@/lib/utils";
+import { PARTNER_COMMISSION } from "@/types";
 
 export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req);
@@ -35,15 +36,28 @@ export async function GET(req: NextRequest) {
     pipelineCounts.map((g) => [g.status, g._count.status])
   );
 
-  // Monthly residual run-rate (active clients paying maintenance)
-  const activeClients = await db.conversion.count({
-    where: {
-      partnerId: session.partnerId,
-      type: "MONTHLY_MAINTENANCE",
-      isRefunded: false,
-      lead: { conversions: { some: { type: "MONTHLY_MAINTENANCE" } } },
-    },
-  });
+  // Active clients paying maintenance + their real monthly revenue, so the
+  // residual run-rate reflects each client's actual package (Standard/Pro/
+  // Premium) rather than a flat Standard-tier figure.
+  const [activeClients, activeMaintenanceRevenue] = await Promise.all([
+    db.conversion.count({
+      where: {
+        partnerId: session.partnerId,
+        type: "MONTHLY_MAINTENANCE",
+        isRefunded: false,
+        lead: { conversions: { some: { type: "MONTHLY_MAINTENANCE" } } },
+      },
+    }),
+    db.conversion.aggregate({
+      where: {
+        partnerId: session.partnerId,
+        type: "MONTHLY_MAINTENANCE",
+        isRefunded: false,
+        lead: { conversions: { some: { type: "MONTHLY_MAINTENANCE" } } },
+      },
+      _sum: { grossRevenue: true },
+    }),
+  ]);
 
   // Monthly earnings — last 12 months
   const months = Array.from({ length: 12 }, (_, i) => {
@@ -101,7 +115,8 @@ export async function GET(req: NextRequest) {
     totalEarned: partner.totalEarned,
     totalPaid: partner.totalPaid,
     pendingBalance: pendingBalance._sum.amount ?? 0,
-    monthlyResidualRunRate: activeClients * 61.75,
+    monthlyResidualRunRate:
+      (activeMaintenanceRevenue._sum.grossRevenue ?? 0) * PARTNER_COMMISSION.residualRate,
     monthlyResidual: residualThisMonth._sum.amount ?? 0,
     commissions,
     activeClients,

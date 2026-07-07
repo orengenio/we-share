@@ -438,13 +438,17 @@ export default async function Home() {
             <Link href="/calculator"  className="hover:text-white transition-colors">Calculator</Link>
             <a href="/docs/privacy-policy.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy</a>
             <a href="/docs/program-terms.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms</a>
+            <a href="/docs/earnings-disclaimer.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Disclaimer</a>
             <Link href="/login"       className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/register"    className="font-bold hover:text-white transition-colors" style={{ color: "#CC5500" }}>Join Free</Link>
           </div>
         </div>
-        <p className="text-center text-xs mt-4" style={{ color: "rgba(148,163,184,0.4)" }}>
-          © {new Date().getFullYear()} OrenGen Worldwide LLC · WeShare Website Partner Program<br />
-          Earnings shown are illustrative projections — not guarantees. Individual results vary based on effort and client retention.
+        <p className="text-center text-xs mt-4 leading-relaxed max-w-3xl mx-auto" style={{ color: "rgba(148,163,184,0.45)" }}>
+          © {new Date().getFullYear()} OrenGen Worldwide LLC · WeShare Referral Partner &amp; Sales Partner Program<br />
+          Partners are independent contractors. Commissions are earned only on completed customer sales; any earnings,
+          ranks, or percentages shown are illustrative projections — <strong>not guarantees</strong> — and individual
+          results vary with effort, skill, and client retention. Partners must disclose their material connection
+          (e.g. #ad) when promoting, per the FTC Endorsement Guides.
         </p>
       </footer>
     </div>
