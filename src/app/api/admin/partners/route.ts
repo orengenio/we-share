@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
+import { sendPartnerCertified, sendPartnerLeadsUnlocked } from "@/lib/email";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const certifySchema = z.object({
@@ -45,7 +46,21 @@ export async function PATCH(req: NextRequest) {
       updates.promotedLeaderAt = null;
     }
 
+    const before = await db.partnerProfile.findUnique({
+      where: { id: partnerId },
+      select: { isCertified: true, leadsUnlocked: true, user: { select: { email: true, name: true } } },
+    });
+    if (!before) return apiError("Partner not found", 404);
+
     await db.partnerProfile.update({ where: { id: partnerId }, data: updates });
+
+    // Onboarding-sequence emails — only on the actual state flip, so repeat
+    // clicks never re-send. Non-blocking: a mail failure never fails the action.
+    if (action === "certify" && !before.isCertified) {
+      sendPartnerCertified(before.user.email, before.user.name ?? "there").catch(console.error);
+    } else if (action === "unlock_leads" && !before.leadsUnlocked) {
+      sendPartnerLeadsUnlocked(before.user.email, before.user.name ?? "there").catch(console.error);
+    }
 
     await db.auditLog.create({
       data: {

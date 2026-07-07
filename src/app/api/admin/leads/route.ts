@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
+import { sendLeadAssigned } from "@/lib/email";
 import { parsePagination, apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
@@ -57,7 +58,7 @@ export async function PATCH(req: NextRequest) {
 
     const { addHours } = await import("date-fns");
 
-    await db.lead.update({
+    const lead = await db.lead.update({
       where: { id: leadId },
       data: {
         partnerId,
@@ -67,10 +68,19 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    await db.partnerProfile.update({
+    const partner = await db.partnerProfile.update({
       where: { id: partnerId },
       data: { totalLeadsAssigned: { increment: 1 } },
+      include: { user: { select: { email: true, name: true } } },
     });
+
+    // Notify the rep — the 4-hour first-touch clock starts at assignment.
+    sendLeadAssigned(
+      partner.user.email,
+      partner.user.name ?? "there",
+      `${lead.firstName} ${lead.lastName}`.trim(),
+      lead.company
+    ).catch(console.error);
 
     return apiSuccess({ assigned: true });
   } catch (err) {

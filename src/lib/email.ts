@@ -94,6 +94,105 @@ export async function sendPartnerWelcome(
   );
 }
 
+// ─── Partner onboarding sequence (milestone-triggered) ───────────────────────
+// welcome (registration) → payouts ready (Stripe Connect enabled) → certified →
+// leads unlocked → first lead assigned. Each fires once, on the event itself.
+
+export async function sendPartnerStripeReady(email: string, name: string) {
+  return send(
+    email,
+    "Payouts are set up — one step left before leads",
+    `<h2>Payouts are live, ${name} ✅</h2>
+<p>Your Stripe account is connected and verified — every commission you earn now has
+somewhere to go.</p>
+<p><strong>One step left before leads unlock: certification.</strong></p>
+<ol>
+  <li>Open the <a href="${APP_URL}/resources">Partner Handbook</a> and study §6 — Sales Scripts &amp; Objection Battlecards. The certification role-play comes straight from it.</li>
+  <li>Reply to this email to schedule your certification role-play.</li>
+  <li>Pass it, and lead assignments begin.</li>
+</ol>
+<p>Your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
+<p>— OrenGen Team</p>`
+  );
+}
+
+export async function sendPartnerCertified(email: string, name: string) {
+  return send(
+    email,
+    "You're certified — leads are next",
+    `<h2>Certification passed, ${name} 🎓</h2>
+<p>You've completed the role-play and you're cleared to sell. Lead assignments are being
+switched on for your account — you'll get an email the moment you're in rotation.</p>
+<p>While you wait:</p>
+<ul>
+  <li>Keep the <a href="${APP_URL}/resources">Handbook</a> scripts close — §6 is your call companion.</li>
+  <li>Know someone who needs a site? Register your own prospects any time from
+      <a href="${APP_URL}/partner/leads">your Leads page</a> — first to register owns the account.</li>
+</ul>
+<p>— OrenGen Team</p>`
+  );
+}
+
+export async function sendPartnerLeadsUnlocked(email: string, name: string) {
+  return send(
+    email,
+    "Leads unlocked — you're in rotation",
+    `<h2>You're in rotation, ${name} 🚀</h2>
+<p>Lead assignments are now active on your account. When a lead lands, you'll be notified
+here and it will appear on <a href="${APP_URL}/partner/leads">your Leads page</a>.</p>
+<p>The two rules that protect your pipeline:</p>
+<ul>
+  <li><strong>First touch within 4 hours.</strong> Untouched leads get recycled to another rep.</li>
+  <li><strong>Log every touch in the CRM, same day.</strong> Your CRM record is the system of record for your commissions.</li>
+</ul>
+<p>— OrenGen Team</p>`
+  );
+}
+
+export async function sendLeadAssigned(
+  partnerEmail: string,
+  partnerName: string,
+  leadName: string,
+  company?: string | null
+) {
+  return send(
+    partnerEmail,
+    `New lead assigned: ${leadName} — first touch due in 4 hours`,
+    `<h2>New lead, ${partnerName}</h2>
+<p><strong>${leadName}</strong>${company ? ` (${company})` : ""} was just assigned to you.</p>
+<p>The 4-hour first-touch clock is running — open your Leads page for their contact
+details and log the touch when you've made it:</p>
+<p><a href="${APP_URL}/partner/leads">${APP_URL}/partner/leads</a></p>
+<p>— OrenGen Team</p>`
+  );
+}
+
+// ─── Customer order confirmation ─────────────────────────────────────────────
+// Sent to the customer on checkout.session.completed — receipt + what happens
+// next. Customer-facing: no upsell language, no earnings claims.
+
+export async function sendOrderConfirmation(
+  email: string,
+  name: string,
+  amountPaid: number
+) {
+  return send(
+    email,
+    "Order confirmed — your website build starts now",
+    `<h2>Thank you, ${name} — you're in. 🎉</h2>
+<p>Your payment of <strong>$${amountPaid.toFixed(2)}</strong> was received, and your
+website build is officially underway.</p>
+<p><strong>What happens next:</strong></p>
+<ol>
+  <li><strong>Quick intake.</strong> Watch your inbox — we'll ask a few short questions about your business (services, hours, photos if you have them).</li>
+  <li><strong>We build.</strong> Our team designs and builds your site. Most sites are live in five days or less.</li>
+  <li><strong>Launch &amp; ongoing care.</strong> Your $247/month plan covers hosting, maintenance, updates, and support — no surprise fees.</li>
+</ol>
+<p>Questions at any point? Just reply to this email — a real person reads it.</p>
+<p>— The OrenGen Team<br>OrenGen Worldwide LLC</p>`
+  );
+}
+
 // ─── Rank promotion ───────────────────────────────────────────────────────────
 
 export async function sendRankPromotion(
