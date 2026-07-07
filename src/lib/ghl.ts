@@ -198,6 +198,24 @@ export async function listPipelines(): Promise<GHLPipeline[]> {
   return res.pipelines ?? [];
 }
 
+// ─── Transactional email via GHL ──────────────────────────────────────────────
+
+export function isGHLConfigured(): boolean {
+  return !!(process.env.GHL_API_KEY && process.env.GHL_LOCATION_ID);
+}
+
+// Sends a transactional email through GHL's own email system (no external
+// SMTP). GHL requires a contact, so we upsert by email first (which also keeps
+// every recipient in the CRM), then post an Email message to the conversation.
+export async function sendEmailViaGHL(to: string, subject: string, html: string): Promise<void> {
+  const local = to.split("@")[0] || to;
+  const contactId = await upsertContact({ firstName: local, lastName: "", email: to });
+  await ghlFetch("/conversations/messages", {
+    method: "POST",
+    body: JSON.stringify({ type: "Email", contactId, subject, html }),
+  });
+}
+
 // ─── GHL stage mapping ────────────────────────────────────────────────────────
 
 export function getGHLStageId(status: string): string {

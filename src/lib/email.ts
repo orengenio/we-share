@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from "nodemailer";
+import { isGHLConfigured, sendEmailViaGHL } from "@/lib/ghl";
 
 // The deployment is configured for SMTP (mail.orengen.io) via SMTP_* env vars.
 // Build the transporter lazily so a missing/incomplete mail config never
@@ -33,6 +34,11 @@ const REPLY_TO = process.env.EMAIL_REPLY_TO || "support@orengen.io";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://weshare.orengen.io";
 
 async function send(to: string, subject: string, html: string) {
+  // Prefer GHL's email system when configured — no external SMTP dependency,
+  // and every recipient is kept in the CRM. Falls back to SMTP otherwise.
+  if (isGHLConfigured()) {
+    return sendEmailViaGHL(to, subject, html);
+  }
   return getTransport().sendMail({
     from: FROM,
     replyTo: REPLY_TO,
