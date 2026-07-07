@@ -26,19 +26,21 @@ export function getStripePrices() {
 // ─── Stripe Connect helpers ───────────────────────────────────────────────────
 
 export async function createConnectAccount(email: string, name: string) {
+  // Canonical Express recipient account. We don't pre-fill individual details —
+  // Stripe collects those in its hosted onboarding, and the partner may be an
+  // individual or an entity. Manual payout schedule so we control the weekly run.
   return getStripeClient().accounts.create({
     type: "express",
     email,
     capabilities: {
       transfers: { requested: true },
     },
-    business_type: "individual",
-    individual: { full_name_aliases: [name] },
     settings: {
       payouts: {
         schedule: { interval: "manual" },
       },
     },
+    metadata: { partner_name: name },
   });
 }
 
