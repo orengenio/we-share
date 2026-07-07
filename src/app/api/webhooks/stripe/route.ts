@@ -17,6 +17,7 @@ import {
   resolvePackageFee,
 } from "@/lib/commissions";
 import db from "@/lib/db";
+import { sendOrderConfirmation } from "@/lib/email";
 import { addDays } from "date-fns";
 import type Stripe from "stripe";
 
@@ -109,6 +110,17 @@ export async function POST(req: NextRequest) {
             },
           });
           await processSetupFeeConversion(conversion.id);
+
+          // Customer confirmation — receipt + "your build starts now". Sent only
+          // when the conversion is first recorded, so webhook retries never
+          // re-send. Non-blocking: mail failure never fails the webhook.
+          const customerName =
+            session.customer_details?.name?.split(" ")[0] ?? lead.firstName;
+          sendOrderConfirmation(
+            customerEmail,
+            customerName,
+            (session.amount_total ?? 0) / 100
+          ).catch(console.error);
         }
         break;
       }

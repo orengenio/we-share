@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useTransition } from "react";
 import { formatDate, STATUS_COLORS } from "@/lib/utils";
 import {
   ChevronDown, ChevronUp, AlertTriangle, Loader2,
-  ClipboardList, ChevronLeft, ChevronRight, CheckCircle2, Plus,
+  ClipboardList, ChevronLeft, ChevronRight, CheckCircle2, Plus, Upload,
 } from "lucide-react";
 
 // ─── Register-a-prospect modal (ownership-by-entry + claim protection) ─────────
@@ -60,6 +60,206 @@ function RegisterProspectModal({ onClose, onDone }: { onClose: () => void; onDon
             <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">{saving ? "Claiming…" : "Claim Prospect"}</button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── CSV import modal ──────────────────────────────────────────────────────────
+// Parses the file in the browser, maps columns by header name, and sends the
+// rows through the same claim/dedup path as single registration.
+
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else if (c === '"') {
+      inQuotes = true;
+    } else if (c === ",") {
+      row.push(field); field = "";
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); field = "";
+      if (row.some((f) => f.trim() !== "")) rows.push(row);
+      row = [];
+    } else field += c;
+  }
+  row.push(field);
+  if (row.some((f) => f.trim() !== "")) rows.push(row);
+  return rows;
+}
+
+const HEADER_ALIASES: Record<string, string[]> = {
+  company: ["company", "companyname", "business", "businessname", "nameofbusiness", "account", "organization"],
+  contactName: ["contactname", "contact", "fullname", "owner", "decisionmaker", "firstname", "name"],
+  email: ["email", "emailaddress", "email1", "workemail", "businessemail"],
+  phone: ["phone", "phonenumber", "mobile", "cell", "telephone", "number", "phone1"],
+  notes: ["notes", "note", "comments", "comment", "description"],
+};
+
+function mapHeaders(header: string[]): Record<string, number> {
+  const normalized = header.map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
+  const mapping: Record<string, number> = {};
+  for (const [field, aliases] of Object.entries(HEADER_ALIASES)) {
+    for (const alias of aliases) {
+      const idx = normalized.findIndex((h, i) => h === alias && !Object.values(mapping).includes(i));
+      if (idx !== -1) { mapping[field] = idx; break; }
+    }
+  }
+  return mapping;
+}
+
+interface ImportSummary {
+  total: number;
+  created: number;
+  alreadyYours: number;
+  claimed: number;
+  ownedByOther: number;
+  invalid: number;
+  results: Array<{ row: number; company: string; outcome: string; error?: string }>;
+}
+
+function ImportCsvModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [rows, setRows] = useState<Array<Record<string, string>>>([]);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [summary, setSummary] = useState<ImportSummary | null>(null);
+
+  async function handleFile(file: File) {
+    setError(null);
+    setSummary(null);
+    setFileName(file.name);
+    const parsed = parseCsv(await file.text());
+    if (parsed.length < 2) {
+      setError("The file needs a header row plus at least one prospect.");
+      setRows([]);
+      return;
+    }
+    const mapping = mapHeaders(parsed[0]);
+    if (mapping.company === undefined || mapping.email === undefined || mapping.phone === undefined) {
+      const missing = ["company", "email", "phone"].filter((f) => mapping[f] === undefined);
+      setError(`Couldn't find column(s): ${missing.join(", ")}. Include headers like Company, Email, Phone.`);
+      setRows([]);
+      return;
+    }
+    if (parsed.length - 1 > 500) {
+      setError("Max 500 prospects per import — split the file and run it in batches.");
+      setRows([]);
+      return;
+    }
+    setRows(
+      parsed.slice(1).map((r) => {
+        const pick = (f: string) => (mapping[f] !== undefined ? (r[mapping[f]] ?? "").trim() : "");
+        return {
+          company: pick("company"),
+          contactName: pick("contactName"),
+          email: pick("email"),
+          phone: pick("phone"),
+          notes: pick("notes"),
+        };
+      })
+    );
+  }
+
+  async function runImport() {
+    setImporting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/partners/me/leads/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rows: rows.map((r) => ({
+            company: r.company,
+            ...(r.contactName ? { contactName: r.contactName } : {}),
+            email: r.email,
+            phone: r.phone,
+            ...(r.notes ? { notes: r.notes } : {}),
+          })),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setSummary(data.data);
+      } else {
+        setError(data.error ?? "Import failed — try again");
+      }
+    } catch {
+      setError("Network error — try again");
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Import Prospects (CSV)</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Upload a spreadsheet export with <strong>Company, Email, Phone</strong> columns
+          (Contact&nbsp;Name and Notes optional). Every row goes through the same claim
+          protection as single registration — first to register owns the business.
+        </p>
+
+        {error && (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        )}
+
+        {summary ? (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 text-sm">
+              <div className="flex justify-between px-3 py-2"><span className="text-gray-600">Claimed as yours</span><span className="font-semibold text-emerald-600">{summary.created + summary.claimed}</span></div>
+              <div className="flex justify-between px-3 py-2"><span className="text-gray-600">Already yours</span><span className="font-semibold text-gray-700">{summary.alreadyYours}</span></div>
+              <div className="flex justify-between px-3 py-2"><span className="text-gray-600">Claimed by another partner</span><span className="font-semibold text-amber-600">{summary.ownedByOther}</span></div>
+              <div className="flex justify-between px-3 py-2"><span className="text-gray-600">Invalid rows (skipped)</span><span className="font-semibold text-red-600">{summary.invalid}</span></div>
+            </div>
+            {summary.invalid > 0 && (
+              <div className="max-h-28 overflow-y-auto rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 space-y-0.5">
+                {summary.results.filter((r) => r.outcome === "invalid").map((r) => (
+                  <p key={r.row}>Row {r.row} ({r.company}): {r.error ?? "invalid"}</p>
+                ))}
+              </div>
+            )}
+            <button onClick={onDone} className="btn-primary w-full text-sm">Done</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-4 py-8 text-sm text-gray-500 cursor-pointer hover:border-gray-400 hover:bg-gray-50">
+              <Upload size={20} className="text-gray-400" />
+              {fileName ? (
+                <span className="font-medium text-gray-700">{fileName} — {rows.length} prospect{rows.length !== 1 ? "s" : ""}</span>
+              ) : (
+                <span>Choose a .csv file</span>
+              )}
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+              />
+            </label>
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
+              <button
+                type="button"
+                onClick={runImport}
+                disabled={importing || rows.length === 0}
+                className="btn-primary flex-1 text-sm disabled:opacity-60"
+              >
+                {importing ? "Importing…" : `Import ${rows.length > 0 ? rows.length : ""}`.trim()}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -210,6 +410,7 @@ export default function PartnerLeadsPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [showRegister, setShowRegister] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [, startTransition] = useTransition();
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -259,6 +460,12 @@ export default function PartnerLeadsPage() {
           onDone={() => { setShowRegister(false); setStatusFilter(""); setPage(1); load(); }}
         />
       )}
+      {showImport && (
+        <ImportCsvModal
+          onClose={() => setShowImport(false)}
+          onDone={() => { setShowImport(false); setStatusFilter(""); setPage(1); load(); }}
+        />
+      )}
 
       {/* Header + filters */}
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -268,6 +475,12 @@ export default function PartnerLeadsPage() {
             className="btn-primary text-sm inline-flex items-center gap-2"
           >
             <Plus size={16} /> Register a Prospect
+          </button>
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Upload size={15} /> Import CSV
           </button>
           <p className="text-sm text-gray-500">
             {total.toLocaleString()} total lead{total !== 1 ? "s" : ""}
