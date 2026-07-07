@@ -4,8 +4,66 @@ import React, { useState, useEffect, useCallback, useTransition } from "react";
 import { formatDate, STATUS_COLORS } from "@/lib/utils";
 import {
   ChevronDown, ChevronUp, AlertTriangle, Loader2,
-  ClipboardList, ChevronLeft, ChevronRight, CheckCircle2,
+  ClipboardList, ChevronLeft, ChevronRight, CheckCircle2, Plus,
 } from "lucide-react";
+
+// ─── Register-a-prospect modal (ownership-by-entry + claim protection) ─────────
+
+function RegisterProspectModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [form, setForm] = useState({ company: "", contactName: "", email: "", phone: "", notes: "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/partners/me/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        onDone();
+      } else {
+        // 409 = already claimed by another partner — show it plainly.
+        setError(data.error ?? "Could not register prospect");
+      }
+    } catch {
+      setError("Network error — try again");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Register a Prospect</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Claims this business as <strong>yours</strong>. First to register owns it — if someone already
+          claimed it, you&apos;ll be told so no two reps work the same company.
+        </p>
+        {error && (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        )}
+        <form onSubmit={submit} className="space-y-3">
+          <input required placeholder="Business name *" className="form-input" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+          <input placeholder="Contact / decision-maker name" className="form-input" value={form.contactName} onChange={(e) => setForm({ ...form, contactName: e.target.value })} />
+          <input required type="email" placeholder="Business email *" className="form-input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input required placeholder="Phone *" className="form-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <textarea placeholder="Notes (optional)" rows={2} className="form-input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">{saving ? "Claiming…" : "Claim Prospect"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -151,6 +209,7 @@ export default function PartnerLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
+  const [showRegister, setShowRegister] = useState(false);
   const [, startTransition] = useTransition();
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -194,10 +253,23 @@ export default function PartnerLeadsPage() {
 
   return (
     <div className="space-y-6">
+      {showRegister && (
+        <RegisterProspectModal
+          onClose={() => setShowRegister(false)}
+          onDone={() => { setShowRegister(false); setStatusFilter(""); setPage(1); load(); }}
+        />
+      )}
+
       {/* Header + filters */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <p className="text-sm text-gray-500 mt-0.5">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowRegister(true)}
+            className="btn-primary text-sm inline-flex items-center gap-2"
+          >
+            <Plus size={16} /> Register a Prospect
+          </button>
+          <p className="text-sm text-gray-500">
             {total.toLocaleString()} total lead{total !== 1 ? "s" : ""}
           </p>
         </div>
