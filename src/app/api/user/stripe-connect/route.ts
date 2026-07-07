@@ -48,39 +48,47 @@ export async function POST(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return apiUnauthorized();
 
-  const user = await db.user.findUniqueOrThrow({ where: { id: session.userId } });
+  try {
+    const user = await db.user.findUniqueOrThrow({ where: { id: session.userId } });
 
-  const profile =
-    session.role === "AFFILIATE"
-      ? await db.affiliateProfile.findUnique({ where: { id: session.affiliateId } })
-      : await db.partnerProfile.findUnique({ where: { id: session.partnerId } });
+    const profile =
+      session.role === "AFFILIATE"
+        ? await db.affiliateProfile.findUnique({ where: { id: session.affiliateId } })
+        : await db.partnerProfile.findUnique({ where: { id: session.partnerId } });
 
-  if (!profile) return apiError("Profile not found", 404);
+    if (!profile) return apiError("Profile not found", 404);
 
-  let connectId = (profile as { stripeConnectId?: string | null }).stripeConnectId;
+    let connectId = (profile as { stripeConnectId?: string | null }).stripeConnectId;
 
-  // Create account if not exists
-  if (!connectId) {
-    const account = await createConnectAccount(user.email, user.name ?? user.email);
-    connectId = account.id;
+    // Create account if not exists
+    if (!connectId) {
+      const account = await createConnectAccount(user.email, user.name ?? user.email);
+      connectId = account.id;
 
-    if (session.role === "AFFILIATE") {
-      await db.affiliateProfile.update({
-        where: { id: session.affiliateId },
-        data: { stripeConnectId: connectId, stripeAccountStatus: "pending" },
-      });
-    } else {
-      await db.partnerProfile.update({
-        where: { id: session.partnerId },
-        data: { stripeConnectId: connectId, stripeAccountStatus: "pending" },
-      });
+      if (session.role === "AFFILIATE") {
+        await db.affiliateProfile.update({
+          where: { id: session.affiliateId },
+          data: { stripeConnectId: connectId, stripeAccountStatus: "pending" },
+        });
+      } else {
+        await db.partnerProfile.update({
+          where: { id: session.partnerId },
+          data: { stripeConnectId: connectId, stripeAccountStatus: "pending" },
+        });
+      }
     }
+
+    const returnUrl = `${APP_URL}/settings?stripe=complete`;
+    const refreshUrl = `${APP_URL}/api/user/stripe-connect/refresh?id=${connectId}`;
+
+    const link = await createConnectOnboardingLink(connectId, returnUrl, refreshUrl);
+
+    return apiSuccess({ url: link.url });
+  } catch (err) {
+    // Surface the real Stripe error instead of a bare 500 so payout setup
+    // failures are diagnosable and the partner sees a useful message.
+    console.error("stripe-connect POST failed:", err);
+    const message = err instanceof Error ? err.message : "Could not start payout setup";
+    return apiError(`Stripe: ${message}`, 502);
   }
-
-  const returnUrl = `${APP_URL}/settings?stripe=complete`;
-  const refreshUrl = `${APP_URL}/api/user/stripe-connect/refresh?id=${connectId}`;
-
-  const link = await createConnectOnboardingLink(connectId, returnUrl, refreshUrl);
-
-  return apiSuccess({ url: link.url });
 }
