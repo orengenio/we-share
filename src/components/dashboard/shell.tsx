@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import type { AuthSession } from "@/types";
 import DashboardTour from "@/components/dashboard/dashboard-tour";
+import ComplianceFooter from "@/components/legal-footer";
 
 // Maps a nav href to the data-tour anchor the guided tour highlights.
 const TOUR_ATTR: Record<string, string> = {
@@ -368,6 +369,8 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
         {/* Scrollable body */}
         <main className="flex-1 overflow-y-auto bg-gray-50" data-tour="main">
           <div className="p-4 sm:p-6">{children}</div>
+          {/* Site-wide compliance footer — FTC income disclaimer + legal links */}
+          <ComplianceFooter variant="light" />
         </main>
       </div>
 
