@@ -10,6 +10,8 @@ const LINE  = "rgba(148,163,184,0.18)";
 const MUTED = "rgba(203,213,225,0.85)";
 
 const NAV_LINKS = [
+  { href: "/get-started", label: "Get Your Website" },
+  { href: "/partners",    label: "Become a Partner" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/calculator",  label: "Calculator"  },
 ];

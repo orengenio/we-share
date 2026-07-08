@@ -404,6 +404,14 @@ model Lead {
   consentText       String?   // snapshot of the consent language shown
   consentCapturedAt DateTime?
 
+  // Separate opt-ins (never pre-checked, independently timestamped):
+  // marketing = promotional contact beyond the service itself;
+  // aiFollowup = AI voice/SMS follow-up agents may contact them.
+  marketingConsent    Boolean   @default(false)
+  marketingConsentAt  DateTime?
+  aiFollowupConsent   Boolean   @default(false)
+  aiFollowupConsentAt DateTime?
+
   // GoHighLevel sync
   ghlContactId String? @unique
 
