@@ -79,18 +79,19 @@ export async function sendPartnerWelcome(
 ) {
   return send(
     email,
-    "Welcome to the OrenGen Sales Partner Program",
-    `<h2>Welcome aboard, ${name}!</h2>
-<p>Your Sales Partner account is active. Your partner code is: <strong>${partnerCode}</strong></p>
-<p>Next steps:</p>
+    "You're in — here's exactly how your first week goes",
+    `<h2>Welcome to the book-of-business side, ${name}.</h2>
+<p>Most sales jobs make you re-earn your living every 30 days. Starting today, every client
+you close pays you on the way in <em>and</em> every month they stay. Your partner code —
+the one your closes get credited to — is <strong>${partnerCode}</strong>.</p>
+<p><strong>Your first week, in order:</strong></p>
 <ol>
-  <li>Complete your Stripe Connect setup to receive payouts</li>
-  <li>Submit your W-9</li>
-  <li>Complete the certification role-play to unlock leads</li>
+  <li><strong>Connect payouts.</strong> Stripe setup takes ~5 minutes on your dashboard. Money needs somewhere to land before you earn it.</li>
+  <li><strong>Study Handbook §6.</strong> The cold opener, the Mockup Close™, the battlecards. Your certification role-play comes straight from it.</li>
+  <li><strong>Pass certification.</strong> Then lead rotation switches on and the 4-Hour Rule starts working <em>for</em> you — every rep touches leads fast, or loses them to someone who will.</li>
 </ol>
-<p>Access your dashboard:<br>
-<a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
-<p>— OrenGen Team</p>`
+<p>Your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
+<p>— The OrenGen Team</p>`
   );
 }
 
@@ -101,51 +102,53 @@ export async function sendPartnerWelcome(
 export async function sendPartnerStripeReady(email: string, name: string) {
   return send(
     email,
-    "Payouts are set up — one step left before leads",
-    `<h2>Payouts are live, ${name} ✅</h2>
-<p>Your Stripe account is connected and verified — every commission you earn now has
-somewhere to go.</p>
-<p><strong>One step left before leads unlock: certification.</strong></p>
+    "Payouts are live. One door left: certification.",
+    `<h2>Money has somewhere to land now, ${name} ✅</h2>
+<p>Stripe is connected and verified. From here, every commission you earn — the upfront
+and the monthly residuals — flows to your own account, visible per-client on your dashboard.</p>
+<p><strong>One door left before leads: the certification role-play.</strong> It's us playing
+a skeptical plumber, you running Handbook §6. Nobody gets live leads without passing it —
+which is exactly why the leads you'll get are worth getting.</p>
 <ol>
-  <li>Open the <a href="${APP_URL}/resources">Partner Handbook</a> and study §6 — Sales Scripts &amp; Objection Battlecards. The certification role-play comes straight from it.</li>
-  <li>Reply to this email to schedule your certification role-play.</li>
-  <li>Pass it, and lead assignments begin.</li>
+  <li>Study §6 in the <a href="${APP_URL}/resources">Partner Handbook</a> — the cold opener, the Mockup Close™, the battlecards.</li>
+  <li>Reply to this email to book your role-play slot.</li>
+  <li>Pass it. Rotation switches on.</li>
 </ol>
 <p>Your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
-<p>— OrenGen Team</p>`
+<p>— The OrenGen Team</p>`
   );
 }
 
 export async function sendPartnerCertified(email: string, name: string) {
   return send(
     email,
-    "You're certified — leads are next",
-    `<h2>Certification passed, ${name} 🎓</h2>
-<p>You've completed the role-play and you're cleared to sell. Lead assignments are being
-switched on for your account — you'll get an email the moment you're in rotation.</p>
-<p>While you wait:</p>
+    "Certified. You're cleared to sell.",
+    `<h2>You passed, ${name} 🎓</h2>
+<p>You held the script under pressure — that's the whole test. Lead rotation is being
+switched on for your account; you'll get an email the moment you're live.</p>
+<p><strong>Don't wait on us to start earning:</strong></p>
 <ul>
-  <li>Keep the <a href="${APP_URL}/resources">Handbook</a> scripts close — §6 is your call companion.</li>
-  <li>Know someone who needs a site? Register your own prospects any time from
-      <a href="${APP_URL}/partner/leads">your Leads page</a> — first to register owns the account.</li>
+  <li>Every business you know that's invisible online is yours to claim — register it from
+      <a href="${APP_URL}/partner/leads">your Leads page</a>. First to register owns the account. Permanently.</li>
+  <li>Keep Handbook §6 open on every call — it's a call companion, not homework.</li>
 </ul>
-<p>— OrenGen Team</p>`
+<p>— The OrenGen Team</p>`
   );
 }
 
 export async function sendPartnerLeadsUnlocked(email: string, name: string) {
   return send(
     email,
-    "Leads unlocked — you're in rotation",
-    `<h2>You're in rotation, ${name} 🚀</h2>
-<p>Lead assignments are now active on your account. When a lead lands, you'll be notified
-here and it will appear on <a href="${APP_URL}/partner/leads">your Leads page</a>.</p>
-<p>The two rules that protect your pipeline:</p>
+    "You're in rotation — the 4-Hour Rule is now your friend",
+    `<h2>Rotation is on, ${name} 🚀</h2>
+<p>Live leads now land on <a href="${APP_URL}/partner/leads">your Leads page</a>, with an
+email the moment each one arrives. Two rules keep your book growing instead of leaking:</p>
 <ul>
-  <li><strong>First touch within 4 hours.</strong> Untouched leads get recycled to another rep.</li>
-  <li><strong>Log every touch in the CRM, same day.</strong> Your CRM record is the system of record for your commissions.</li>
+  <li><strong>The 4-Hour Rule.</strong> First touch inside 4 hours, every lead. Untouched leads recycle to another rep — the same rule that just started feeding you.</li>
+  <li><strong>Same-day logging.</strong> The CRM record is the commission record. If it isn't logged, it didn't happen.</li>
 </ul>
-<p>— OrenGen Team</p>`
+<p>Answer fast, run §6, ask for the mockup. That's the whole job.</p>
+<p>— The OrenGen Team</p>`
   );
 }
 
@@ -157,13 +160,14 @@ export async function sendLeadAssigned(
 ) {
   return send(
     partnerEmail,
-    `New lead assigned: ${leadName} — first touch due in 4 hours`,
-    `<h2>New lead, ${partnerName}</h2>
-<p><strong>${leadName}</strong>${company ? ` (${company})` : ""} was just assigned to you.</p>
-<p>The 4-hour first-touch clock is running — open your Leads page for their contact
-details and log the touch when you've made it:</p>
+    `New lead: ${leadName} — the 4-hour clock is running`,
+    `<h2>${leadName}${company ? ` (${company})` : ""} is yours, ${partnerName}.</h2>
+<p>Assigned just now — which means the 4-Hour Rule clock started just now. Speed-to-lead
+is the single highest-leverage move in this business: the rep who calls first usually
+closes.</p>
+<p>Contact details are on your Leads page. Make the touch, log the touch:</p>
 <p><a href="${APP_URL}/partner/leads">${APP_URL}/partner/leads</a></p>
-<p>— OrenGen Team</p>`
+<p>— The OrenGen Team</p>`
   );
 }
 
@@ -198,17 +202,17 @@ export async function sendOrderConfirmation(
 ) {
   return send(
     email,
-    "Order confirmed — your website build starts now",
-    `<h2>Thank you, ${name} — you're in. 🎉</h2>
-<p>Your payment of <strong>$${amountPaid.toFixed(2)}</strong> was received, and your
-website build is officially underway.</p>
-<p><strong>What happens next:</strong></p>
+    "Order confirmed — your build starts now",
+    `<h2>You're on the board, ${name}. 🎉</h2>
+<p>Payment of <strong>$${amountPaid.toFixed(2)}</strong> received — and as of this email,
+your business is done being invisible online. The build starts now.</p>
+<p><strong>Exactly what happens next:</strong></p>
 <ol>
-  <li><strong>Quick intake.</strong> Watch your inbox — we'll ask a few short questions about your business (services, hours, photos if you have them).</li>
-  <li><strong>We build.</strong> Our team designs and builds your site. Most sites are live in five days or less.</li>
-  <li><strong>Launch &amp; ongoing care.</strong> Your $247/month plan covers hosting, maintenance, updates, and support — no surprise fees.</li>
+  <li><strong>Quick intake.</strong> A few short questions land in this inbox — services, hours, photos if you have them. Ten minutes of your time, total.</li>
+  <li><strong>We build.</strong> Our team designs and builds the whole thing. Most sites are live in five days or less — you never touch code.</li>
+  <li><strong>Launch &amp; ongoing care.</strong> Your $247/month plan covers hosting, maintenance, updates, and support. No surprise fees — surprise billing is how the other guys lose customers, and we plan on keeping you.</li>
 </ol>
-<p>Questions at any point? Just reply to this email — a real person reads it.</p>
+<p>Questions at any point? Reply to this email — a real person reads it, usually the same day.</p>
 <p>— The OrenGen Team<br>OrenGen Worldwide LLC</p>`
   );
 }

@@ -1,0 +1,15 @@
+{
+  "meta": { "engagement_slug": "", "mode": "", "created": "", "updated": "", "status": "qualifying" },
+  "business": { "name": "", "for_whom": "", "market_type": "", "industry": "", "niche": "", "geography": "", "domain": "", "positioning_current": "", "positioning_desired": "", "credibility_assets": [], "never_claim": [] },
+  "revenue_targets": { "immediate": 0, "day30": 0, "day90": 0, "annual": 0, "avg_deal": 0, "min_deal": 0, "model": "", "processor": "", "wants": { "bump": true, "upsell": true, "downsell": true } },
+  "offers": { "ladder": [], "bump": {}, "upsell": {}, "downsell": {}, "charm_pricing": false, "annual_discount_display": false },
+  "icp": { "best_buyer": "", "worst_buyer": "", "pains": { "urgent": "", "expensive": "", "embarrassing": "", "legal_risk": "", "operational": "" }, "alternatives": [], "buy_now_triggers": [], "delay_triggers": [], "hard_nos": [] },
+  "funnel": { "type": "", "goal": "", "pages": [], "languages": ["en"] },
+  "ghl": { "location_id": "", "pipeline": { "name": "", "stages": [] }, "tags": [], "custom_fields": [], "forms": [], "surveys": [], "calendars": [], "workflow_triggers": [], "consent_language": { "sms": "", "voice": "", "email": "" } },
+  "lead_generation": { "channels": [] },
+  "social": { "platforms": [], "style": "", "competitors": [], "aspirational_creators": [], "forbidden_topics": [], "cta_target": "", "higgsfield": true, "ai_avatar": false, "ugc_ads": false },
+  "brand": { "colors": {}, "type": {}, "voice": "", "tagline": "", "forbidden_phrases": [], "proof_assets": [], "never_claim": [] },
+  "compliance": { "channels_active": { "sms": false, "voice_ai": false, "email": false, "dm": false, "paid_ads": false }, "regulated_vertical": "none", "disclaimers_required": [], "consent_source": "", "consent_storage": "ghl_custom_fields", "outbound_approver": "", "attorney_review": false },
+  "launch_plan": { "day30": [], "day90": [] },
+  "optimization": { "kpi_targets": {}, "scoring_weights_version": 1 }
+}

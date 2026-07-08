@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "mode": "O",
+  "engagement": "weshare-launch",
+  "business": {
+    "entity": "OrenGen Worldwide LLC",
+    "offer": "Professional business website: $997 setup + $247/mo maintenance, hosting, support. Fixed pricing. Payment only via OrenGen official checkout.",
+    "fulfillment": "OrenGen builds, delivers, supports. Most sites live in five days or less (approved claim, Handbook)."
+  },
+  "brand": {
+    "source": "references/brand-guard.md — OrenGen constants verbatim",
+    "colors": { "navy": "#00254B", "burntOrange": "#CC5500", "orangeHot": "#E66100" },
+    "type": "Public Sans 300-900, single-font system",
+    "founderPublicName": "Andre Mandel / Mandel",
+    "enemy": "dependency (rented visibility; one-and-done commission work)",
+    "voiceprint": "see STATE.md §Voiceprint"
+  },
+  "programs": {
+    "salesPartner": {
+      "comp": "25% of setup + 25% of monthly residual, for life. Standard close: $249.25 upfront + $61.75/mo. NOTHING else — no other comp mechanics exist.",
+      "guardrails": [
+        "Reps sell the website only ($997 + $247/mo) — never discuss commissions, upsells, or add-ons with prospects",
+        "No income/earnings claims to prospects; FTC income disclaimer on every partner-facing marketing surface",
+        "SMS-adjacent surfaces say 'Referral Partner', never 'Affiliate'",
+        "4-hour first-touch SLA; recycled at breach"
+      ]
+    },
+    "referralPartner": {
+      "comp": "Rank-based: Catalyst→Sovereign, setup % + residual % + army overrides per src/types/index.ts"
+    }
+  },
+  "stack": {
+    "app": "weshare.orengen.io (Next.js 14 + Prisma + Redis on Coolify)",
+    "crm": "GoHighLevel (Law 2: the only CRM). Pipeline 5kXJgKVijokWag4enbJ5, stage IDs in Coolify env",
+    "payments": "Stripe checkout + Stripe Connect Express payouts; NET-15 commission maturity",
+    "sendingDomain": "crm.orengen.com (Mailgun/LeadConnector, DKIM/SPF/DMARC verified 2026-07-07, warmup stage 1)"
+  },
+  "decisionsOpen": [
+    "W-9 separate doc vs Stripe-collected (blocks docs email)",
+    "Rep GHL access: shared seat vs per-rep seats (blocks CRM handoff step)",
+    "Customer funnel upsell pricing (company-side)",
+    "SaaS Configurator intent",
+    "GHL-Won mints conversion without payment: keep or env-gate"
+  ]
+}
