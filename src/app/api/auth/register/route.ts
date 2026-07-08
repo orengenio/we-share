@@ -113,6 +113,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!isAdmin) {
+      const { emitEvent } = await import("@/lib/events");
+      if (type === "AFFILIATE" && user.affiliateProfile) {
+        emitEvent("affiliate.registered", {
+          userId: user.id,
+          affiliateId: user.affiliateProfile.id,
+          affiliateCode: user.affiliateProfile.affiliateCode,
+          uplineId,
+        });
+      } else if (type === "PARTNER" && user.partnerProfile) {
+        emitEvent("partner.registered", {
+          userId: user.id,
+          partnerId: user.partnerProfile.id,
+          partnerCode: user.partnerProfile.partnerCode,
+          uplineLeaderId,
+        });
+      }
+    }
+
     // Sync the new partner into GoHighLevel as a tagged contact (non-blocking;
     // no-ops until GHL creds are configured). Admins are not synced.
     if (!isAdmin && process.env.GHL_API_KEY && process.env.GHL_LOCATION_ID) {

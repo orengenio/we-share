@@ -10,6 +10,7 @@
  */
 
 import db from "./db";
+import { emitEvent } from "./events";
 
 const DISPOSABLE_DOMAINS = new Set([
   "mailinator.com", "guerrillamail.com", "temp-mail.org", "throwam.com",
@@ -87,14 +88,13 @@ export async function flagAffiliate(
     },
   });
 
-  // Trigger n8n alert webhook if configured
-  if (process.env.N8N_FRAUD_ALERT_WEBHOOK_URL && severity === "HIGH") {
-    fetch(process.env.N8N_FRAUD_ALERT_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ affiliateId, type, severity, description }),
-    }).catch(() => null);
-  }
+  emitEvent("fraud.flagged", {
+    affiliateId,
+    type,
+    severity,
+    description,
+    evidence,
+  });
 }
 
 // ─── Lead submission fraud check ─────────────────────────────────────────────

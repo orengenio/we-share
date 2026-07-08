@@ -8,9 +8,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifyGHLWebhook, getGHLOpportunityStatus } from "@/lib/ghl";
+import { verifyGHLWebhook, extractAttributionFromGHL } from "@/lib/ghl";
 import db from "@/lib/db";
 import { LeadStatus } from "@prisma/client";
+import { processSetupFeeConversion, resolvePackageFee } from "@/lib/commissions";
+import { emitEvent } from "@/lib/events";
+import { addDays } from "date-fns";
+import { WEBSITE_PACKAGES } from "@/types";
 
 const GHL_STAGE_TO_STATUS: Record<string, LeadStatus> = {
   [process.env.GHL_STAGE_NEW ?? "new"]: "NEW",
@@ -21,6 +25,74 @@ const GHL_STAGE_TO_STATUS: Record<string, LeadStatus> = {
   [process.env.GHL_STAGE_LOST ?? "lost"]: "LOST",
   [process.env.GHL_STAGE_NURTURE ?? "nurture"]: "NURTURE",
 };
+
+async function attachAttributionFromCodes(
+  leadId: string,
+  codes: { affiliateCode?: string; partnerCode?: string }
+) {
+  const updates: { affiliateId?: string; partnerId?: string } = {};
+
+  if (codes.affiliateCode) {
+    const affiliate = await db.affiliateProfile.findUnique({
+      where: { affiliateCode: codes.affiliateCode, isActive: true },
+    });
+    if (affiliate) updates.affiliateId = affiliate.id;
+  }
+
+  if (codes.partnerCode) {
+    const partner = await db.partnerProfile.findUnique({
+      where: { partnerCode: codes.partnerCode, isActive: true },
+    });
+    if (partner) updates.partnerId = partner.id;
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await db.lead.update({ where: { id: leadId }, data: updates });
+  }
+
+  return updates;
+}
+
+async function maybeRecordGHLWonConversion(
+  leadId: string,
+  monetaryValue?: number
+) {
+  const lead = await db.lead.findUnique({ where: { id: leadId } });
+  if (!lead) return;
+
+  const existing = await db.conversion.findFirst({
+    where: { leadId, type: "SETUP_FEE" },
+  });
+  if (existing) return;
+
+  const grossRevenue =
+    monetaryValue && monetaryValue > 0
+      ? resolvePackageFee(monetaryValue, "setup")
+      : WEBSITE_PACKAGES.STANDARD.setupFee;
+
+  const conversion = await db.conversion.create({
+    data: {
+      leadId: lead.id,
+      affiliateId: lead.affiliateId,
+      partnerId: lead.partnerId,
+      type: "SETUP_FEE",
+      grossRevenue,
+      clawbackDeadline: addDays(new Date(), 30),
+    },
+  });
+
+  await processSetupFeeConversion(conversion.id);
+
+  emitEvent("conversion.created", {
+    conversionId: conversion.id,
+    leadId: lead.id,
+    affiliateId: lead.affiliateId,
+    partnerId: lead.partnerId,
+    amount: grossRevenue,
+    type: "SETUP_FEE",
+    source: "ghl_opportunity_won",
+  });
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -89,6 +161,10 @@ export async function POST(req: NextRequest) {
                 : {}),
             },
           });
+
+          if (newStatus === "WON") {
+            await maybeRecordGHLWonConversion(opp.leadId, data.monetaryValue);
+          }
         }
       }
       break;
@@ -110,6 +186,9 @@ export async function POST(req: NextRequest) {
         });
 
         if (lead) {
+          const codes = extractAttributionFromGHL(data as Record<string, unknown>);
+          await attachAttributionFromCodes(lead.id, codes);
+
           await db.lead.update({
             where: { id: lead.id },
             data: {

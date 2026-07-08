@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
 import { parsePagination, apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
+import { emitEvent } from "@/lib/events";
 
 export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req);
@@ -88,6 +89,12 @@ export async function PATCH(req: NextRequest) {
         resource: "Commission",
         details: { count: result.count, overridesApproved: overrideResult.count, commissionIds },
       },
+    });
+
+    emitEvent("commission.approved", {
+      commissionIds,
+      count: result.count,
+      approvedBy: session.userId,
     });
 
     return apiSuccess({ approved: result.count, overridesApproved: overrideResult.count });
