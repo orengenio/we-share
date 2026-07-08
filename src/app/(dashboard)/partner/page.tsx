@@ -4,6 +4,7 @@ import { getSessionFromCookies } from "@/lib/auth";
 import db from "@/lib/db";
 import StatsCard from "@/components/dashboard/stats-card";
 import GettingStarted from "@/components/dashboard/getting-started";
+import AgreementBanner from "@/components/dashboard/agreement-banner";
 import { STATUS_COLORS, formatCurrency, formatDate } from "@/lib/utils";
 import {
   Users, DollarSign, TrendingUp, Wallet, AlertTriangle,
@@ -110,6 +111,9 @@ export default async function PartnerDashboardPage() {
     <Suspense fallback={<PartnerSkeleton />}>
       <div className="space-y-6">
         <GettingStarted />
+
+        {/* Contractor agreement — until accepted */}
+        {!partner.w9Submitted && <AgreementBanner />}
 
         {/* Assigned company number */}
         {partner.assignedPhoneNumber && (

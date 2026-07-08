@@ -17,7 +17,7 @@ import {
   resolvePackageFee,
 } from "@/lib/commissions";
 import db from "@/lib/db";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendClientCancelledAlert } from "@/lib/email";
 import { addDays } from "date-fns";
 import { emitEvent } from "@/lib/events";
 import type Stripe from "stripe";
@@ -264,6 +264,36 @@ export async function POST(req: NextRequest) {
             voidMemo: "Subscription cancelled",
           },
         });
+
+        // Save-call alert: the rep who sold them is the highest-percentage
+        // retention play, and it's their residual on the line. Non-blocking.
+        const cancelledConversion = await db.conversion.findFirst({
+          where: { subscriptionId: sub.id },
+          include: {
+            lead: true,
+            partner: { include: { user: { select: { email: true, name: true } } } },
+          },
+        });
+        if (cancelledConversion?.lead) {
+          const clientName =
+            `${cancelledConversion.lead.firstName} ${cancelledConversion.lead.lastName}`.trim();
+          if (cancelledConversion.partner) {
+            sendClientCancelledAlert(
+              cancelledConversion.partner.user.email,
+              cancelledConversion.partner.user.name ?? "there",
+              clientName,
+              cancelledConversion.lead.email,
+              cancelledConversion.lead.phone
+            ).catch(console.error);
+          }
+          emitEvent("client.cancelled", {
+            leadId: cancelledConversion.lead.id,
+            subscriptionId: sub.id,
+            partnerId: cancelledConversion.partnerId,
+            affiliateId: cancelledConversion.affiliateId,
+            clientEmail: cancelledConversion.lead.email,
+          });
+        }
         break;
       }
     }
