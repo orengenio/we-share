@@ -167,6 +167,26 @@ details and log the touch when you've made it:</p>
   );
 }
 
+export async function sendNumberAssigned(
+  email: string,
+  name: string,
+  phoneNumber: string
+) {
+  return send(
+    email,
+    `Your company number is ready: ${phoneNumber}`,
+    `<h2>Your company number is live, ${name} 📞</h2>
+<p>All your prospect calls and texts now run through your assigned OrenGen number:</p>
+<p style="font-size:22px;font-weight:700">${phoneNumber}</p>
+<ul>
+  <li>Use this number for <strong>every</strong> prospect call and text — it keeps you carrier-compliant and your outreach logged.</li>
+  <li>Texting rules still apply: prior consent, 8 AM–9 PM local time, honor every opt-out instantly.</li>
+</ul>
+<p>It's also shown on your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
+<p>— OrenGen Team</p>`
+  );
+}
+
 // ─── Customer order confirmation ─────────────────────────────────────────────
 // Sent to the customer on checkout.session.completed — receipt + what happens
 // next. Customer-facing: no upsell language, no earnings claims.

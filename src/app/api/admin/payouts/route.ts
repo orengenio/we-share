@@ -59,6 +59,11 @@ export async function POST(req: NextRequest) {
     });
     if (existing) return apiError(`Payout for ${periodMonth} already exists`, 409);
 
+    // Promote matured PENDING commissions first, so a payout run never
+    // silently excludes earnings just because nobody ran the mature sweep.
+    const { matureEligibleCommissions } = await import("@/lib/commissions");
+    await matureEligibleCommissions(session.userId);
+
     // Aggregate approved commissions for the period
     const affiliateCommissions = await db.commission.groupBy({
       by: ["affiliateId"],

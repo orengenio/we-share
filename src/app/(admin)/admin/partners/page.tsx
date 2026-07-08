@@ -7,6 +7,7 @@ import { Search, CheckCircle, Crown } from "lucide-react";
 interface Partner {
   id: string;
   partnerCode: string;
+  assignedPhoneNumber: string | null;
   isCertified: boolean;
   leadsUnlocked: boolean;
   isActive: boolean;
@@ -40,15 +41,24 @@ export default function AdminPartnersPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function performAction(partnerId: string, action: string) {
+  async function performAction(partnerId: string, action: string, extra?: Record<string, string>) {
     setActionId(partnerId);
     await fetch("/api/admin/partners", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ partnerId, action }),
+      body: JSON.stringify({ partnerId, action, ...extra }),
     });
     await load();
     setActionId(null);
+  }
+
+  function assignNumber(p: Partner) {
+    const phoneNumber = window.prompt(
+      `A2P company number for ${p.user.name ?? p.partnerCode} (e.g. +1 555 012 3456):`,
+      p.assignedPhoneNumber ?? ""
+    );
+    if (!phoneNumber || phoneNumber.trim().length < 7) return;
+    performAction(p.id, "assign_number", { phoneNumber: phoneNumber.trim() });
   }
 
   return (
@@ -100,6 +110,9 @@ export default function AdminPartnersPage() {
                     </div>
                     <p className="text-gray-400 text-xs">{p.user.email}</p>
                     <p className="text-gray-400 text-xs font-mono">{p.partnerCode}</p>
+                    {p.assignedPhoneNumber && (
+                      <p className="text-gray-400 text-xs font-mono">☎ {p.assignedPhoneNumber}</p>
+                    )}
                   </td>
                   <td className="py-3 px-4 text-center">
                     {p.isCertified
@@ -135,6 +148,9 @@ export default function AdminPartnersPage() {
                       ) : (
                         <button onClick={() => performAction(p.id, "promote_leader")} disabled={actionId === p.id} className="text-xs text-amber-700 hover:underline text-left font-medium">★ Make Leader</button>
                       )}
+                      <button onClick={() => assignNumber(p)} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline text-left">
+                        {p.assignedPhoneNumber ? "Change #" : "Assign #"}
+                      </button>
                     </div>
                   </td>
                 </tr>

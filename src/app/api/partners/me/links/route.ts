@@ -41,9 +41,20 @@ export async function POST(req: NextRequest) {
     const data = createSchema.parse(body);
 
     if (data.slug) {
+      // A custom slug becomes a /s/ code — it must not collide with any other
+      // link code, NOR shadow another partner's bare partnerCode or an
+      // affiliate's code (the /s and /r routes fall back to profile codes, and
+      // a link row is looked up first, so a colliding slug would hijack their
+      // attribution URL).
       const taken =
         (await db.partnerLink.findFirst({ where: { code: data.slug } })) ||
-        (await db.affiliateLink.findFirst({ where: { code: data.slug } }));
+        (await db.affiliateLink.findFirst({ where: { code: data.slug } })) ||
+        (await db.partnerProfile.findFirst({
+          where: { partnerCode: { equals: data.slug, mode: "insensitive" } },
+        })) ||
+        (await db.affiliateProfile.findFirst({
+          where: { affiliateCode: { equals: data.slug, mode: "insensitive" } },
+        }));
       if (taken) return apiError("This custom URL is already taken", 409);
     }
 
