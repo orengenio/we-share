@@ -17,6 +17,7 @@ export const WEBHOOK_EVENTS = [
   "commission.approved",
   "commission.clawback",
   "payout.completed",
+  "client.cancelled",
   "fraud.flagged",
   "partner.registered",
   "affiliate.registered",

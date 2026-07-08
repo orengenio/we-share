@@ -18,7 +18,7 @@ Instantiated 2026-07-08 (Mode O). Replaces the ephemeral runbook lost with the p
 | Account + partner code created | `/register?type=PARTNER`; leader upline honored via code | ✅ live |
 | Welcome email (next-steps rail) | Fires on registration via GHL sending (crm.orengen.com — warmup stage 1, watch daily caps) | ✅ live |
 | Synced to GHL as tagged contact | `syncPartnerToGHL`, `partner.registered` webhook event | ✅ live |
-| Sign docs — Payment Authorization / Contractor Tax | **GAP — blocked on W-9-vs-Stripe decision.** Stripe Express collects tax info + issues 1099; decide if a separate signed doc is still wanted. Doc draft: §Appendix A | 🔶 decision open |
+| Sign docs — Payment Authorization / Contractor Agreement | **DECIDED + LIVE:** Stripe Connect collects certified W-9/TIN and issues 1099s — no separate W-9. The app collects the contractual acknowledgment: dashboard banner → agreement modal → accept (audited, versioned, reuses `w9Submitted`) | ✅ live |
 
 ## Stage 2 — Payouts (Day 0–1)
 
@@ -34,7 +34,7 @@ Instantiated 2026-07-08 (Mode O). Replaces the ephemeral runbook lost with the p
 | Certification role-play (if not done at interview) | Handbook §6 armory; pass = cleared to sell | 👤 manual (by design) |
 | Admin marks Certified | Admin → Partners → Certify (email fires once) | ✅ live |
 | Admin assigns A2P company number | Admin → Partners → Assign # (prompt) → "your number is ready" email + dashboard display | ✅ live (number itself provisioned manually in GHL Phone System; A2P campaign approval takes **days** — set expectation at interview, in writing) |
-| CRM access granted | **GAP — blocked on access-model decision** (shared limited seat vs. per-rep seat). Reps already see their own pipeline in WeShare, so not hard-blocked | 🔶 decision open |
+| CRM access granted | **DECIDED:** individual limited seat per rep at certification — role User, "Only Assigned Data" ON, permissions Contacts + Conversations + Calendars only. Provisioned manually in GHL (users UI); track via `crmSeatGrantedAt` | ✅ decided — 👤 manual provision per rep |
 
 ## Stage 4 — Leads on (Day 3–7)
 
@@ -49,12 +49,12 @@ Instantiated 2026-07-08 (Mode O). Replaces the ephemeral runbook lost with the p
 
 | Step | How | Status |
 |---|---|---|
-| Deal Won | Rep marks Won (GHL stage syncs) or payment event lands | ✅ live — ⚠️ policy open: GHL-Won mints a conversion without payment (dedupe-protected; commissions still gated by NET-15 maturity + admin approval) |
+| Deal Won | Rep marks Won (GHL stage syncs); **payment events create the money** — GHL-Won auto-conversion is env-gated OFF (`GHL_WON_CREATES_CONVERSION`) | ✅ live + decided |
 | Purchase attributed | Stripe webhook / GHL → `POST /api/v1/track/purchase` with `ws_partner_code` (needs `WESHARE_API_KEY` env) | ✅ code live; 🔶 GHL workflow + env pending |
 | Commission created | 25% setup ($249.25) + 25% residual ($61.75/mo), NET-15 maturity, clawback-protected (incl. paid-refund netting) | ✅ live |
 | Customer order confirmation | "Your build starts now" email on checkout | ✅ live |
 | Payout | Admin payout run (auto-matures first) → Stripe transfer → payout email | ✅ live |
-| Retention save call | Cancellation signal → rep notified (highest-percentage save is the closer who sold them) | 🔶 partial — wire `customer.subscription.deleted` to a rep alert (small code task) |
+| Retention save call | `customer.subscription.deleted` → save-call email to the owning rep (client contact info + the §10 save script) + `client.cancelled` webhook event | ✅ live |
 
 ## Operating rules (rep-facing, enforce always)
 

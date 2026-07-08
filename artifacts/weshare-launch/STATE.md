@@ -13,10 +13,19 @@
 | Rep Onboarding & Ops Runbook (`onboarding/`) | n/a (internal SOP) | ✅ | READY |
 | Purchase-loop e2e test (`scripts/test-purchase-loop.sh`) | n/a | n/a | READY — needs WESHARE_API_KEY + run from allowed network |
 
+## Decisions register (delegated to Claude 2026-07-08, executed)
+
+| Decision | Call | Basis |
+|---|---|---|
+| GHL-Won mints conversion without payment? | **No — env-gated `GHL_WON_CREATES_CONVERSION`, default off.** Commissions follow money; GHL payment workflows call `/api/v1/track/purchase`. Flip the env only if GHL payments can't reach that path. | Money-integrity: stage moves are process, payments are revenue. |
+| Rep GHL access model | **(B) Individual limited seats per rep**, provisioned at certification: role User, "Only Assigned Data" ON, permissions = Contacts + Conversations + Calendars only. Shared logins kill audit trails, per-user CRM hygiene, and A2P accountability, and expose the full pipeline on rep exit. `crmSeatGrantedAt` already exists to track it. | GHL supports assigned-data-only visibility; industry practice for commission reps. |
+| W-9: separate doc vs Stripe | **Stripe covers tax identity** — Connect Express collects certified W-9/TIN at payout onboarding and 1099s issue through Stripe. The app records the **contractual** acknowledgment instead: Payment Authorization & Contractor Agreement, in-app accept (banner + modal → `w9Submitted` + audited timestamp/version). No duplicate PII stored. | Stripe Connect W-8/W-9 + 1099 product; PII minimization. |
+| Customer upsell pricing | **Proposed, not locked** — full ladder with [PROPOSED] anchors in `funnel-architecture.md`; revenue pricing stays Andre's signature. | Pricing = business call; proposals ready to react to. |
+
 ## Pending approvals (approval queue)
 
 - Recruitment funnel copy → Andre sign-off before GHL build.
-- GHL-Won-creates-conversion policy (env-gate or keep) — decision open.
+- `funnel-architecture.md` [PROPOSED] prices + [CONFIRM] scopes → Andre, then full customer funnel copy packs get written.
 
 ## Known blockers
 

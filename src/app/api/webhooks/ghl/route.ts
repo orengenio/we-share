@@ -57,6 +57,13 @@ async function maybeRecordGHLWonConversion(
   leadId: string,
   monetaryValue?: number
 ) {
+  // DECISION (2026-07-08): commissions follow money, not pipeline stages. A
+  // Won stage move mints a conversion ONLY when explicitly enabled — the
+  // sanctioned payment signals are the Stripe webhook and /api/v1/track/
+  // purchase (which GHL payment workflows should call with ws_partner_code).
+  // Enable only if GHL payments can't reach either path.
+  if (process.env.GHL_WON_CREATES_CONVERSION !== "true") return;
+
   const lead = await db.lead.findUnique({ where: { id: leadId } });
   if (!lead) return;
 

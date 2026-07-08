@@ -191,6 +191,32 @@ export async function sendNumberAssigned(
   );
 }
 
+// ─── Client cancellation → save-call alert ────────────────────────────────────
+// The closer who sold them is the highest-percentage retention play — and it's
+// their residual on the line. Fires when a client's subscription is cancelled.
+
+export async function sendClientCancelledAlert(
+  partnerEmail: string,
+  partnerName: string,
+  clientName: string,
+  clientEmail: string,
+  clientPhone?: string | null
+) {
+  return send(
+    partnerEmail,
+    `Save call needed: ${clientName} just cancelled`,
+    `<h2>${clientName} cancelled, ${partnerName} — and you're the best shot at saving them.</h2>
+<p>Their subscription just ended, which means your <strong>$61.75/mo residual on this client
+stops</strong> unless someone brings them back. Nobody has a better win-back percentage than
+the person who sold them.</p>
+<p><strong>Client:</strong> ${clientName} · ${clientEmail}${clientPhone ? ` · ${clientPhone}` : ""}</p>
+<p>The save call, in one line: find out what broke ("What changed?"), fix what's fixable,
+and remind them what goes dark without the site. Log the touch either way:</p>
+<p><a href="${APP_URL}/partner/leads">${APP_URL}/partner/leads</a></p>
+<p>— The OrenGen Team</p>`
+  );
+}
+
 // ─── Customer order confirmation ─────────────────────────────────────────────
 // Sent to the customer on checkout.session.completed — receipt + what happens
 // next. Customer-facing: no upsell language, no earnings claims.
