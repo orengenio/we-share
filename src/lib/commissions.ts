@@ -555,6 +555,54 @@ export async function processResidualConversion(conversionId: string) {
   return { commissionsCreated: commissionsToCreate.length };
 }
 
+// ─── Commission maturation ────────────────────────────────────────────────────
+
+/**
+ * Promote PENDING commissions whose hold window has passed (and whose
+ * conversion wasn't refunded) to APPROVED — payout-eligible. Shared by the
+ * admin "mature" action and payout generation, so a payout run can never
+ * silently exclude commissions just because nobody clicked the button.
+ */
+export async function matureEligibleCommissions(actorUserId?: string) {
+  const now = new Date();
+
+  const pending = await db.commission.findMany({
+    where: {
+      status: "PENDING",
+      OR: [{ maturesAt: null }, { maturesAt: { lte: now } }],
+      conversion: { isRefunded: false },
+    },
+    select: { id: true, conversionId: true },
+  });
+
+  if (pending.length === 0) return { approved: 0, overridesApproved: 0 };
+
+  const ids = pending.map((c) => c.id);
+  const conversionIds = [...new Set(pending.map((c) => c.conversionId))];
+
+  const [result, overrideResult] = await db.$transaction([
+    db.commission.updateMany({
+      where: { id: { in: ids } },
+      data: { status: "APPROVED", approvedAt: now },
+    }),
+    db.override.updateMany({
+      where: { conversionId: { in: conversionIds }, status: "PENDING" },
+      data: { status: "APPROVED" },
+    }),
+  ]);
+
+  await db.auditLog.create({
+    data: {
+      ...(actorUserId ? { userId: actorUserId } : {}),
+      action: "COMMISSIONS_MATURED",
+      resource: "Commission",
+      details: { count: result.count, commissionIds: ids },
+    },
+  });
+
+  return { approved: result.count, overridesApproved: overrideResult.count };
+}
+
 // ─── Clawback processing ──────────────────────────────────────────────────────
 
 export async function processClawback(
@@ -567,6 +615,13 @@ export async function processClawback(
       conversionId,
       status: { in: ["PENDING", "APPROVED"] },
     },
+  });
+
+  // Already-paid commissions can't be voided — the money left. Net them
+  // instead: a negative APPROVED adjustment flows into the earner's next
+  // payout aggregation and settles the debt automatically.
+  const paidCommissions = await db.commission.findMany({
+    where: { conversionId, status: "PAID", isVoidEntry: false },
   });
 
   const overrides = await db.override.findMany({
@@ -614,6 +669,41 @@ export async function processClawback(
           },
         })
       ),
+    // Negative adjustments for paid-out commissions: APPROVED so the next
+    // payout run's period aggregation nets them against new earnings.
+    ...paidCommissions.map((c) =>
+      db.commission.create({
+        data: {
+          conversionId: c.conversionId,
+          affiliateId: c.affiliateId,
+          partnerId: c.partnerId,
+          type: c.type,
+          rankAtTime: c.rankAtTime,
+          grossRevenue: c.grossRevenue,
+          commissionRate: c.commissionRate,
+          amount: -Math.abs(c.amount),
+          status: "APPROVED",
+          approvedAt: now,
+          isVoidEntry: true,
+          originalCommId: c.id,
+          voidMemo: `Clawback (already paid — nets against next payout): ${reason}`,
+          clawbackAt: now,
+          clawbackExecutedBy: executedBy,
+        },
+      })
+    ),
+    ...(paidCommissions.length > 0
+      ? [
+          db.commission.updateMany({
+            where: { id: { in: paidCommissions.map((c) => c.id) } },
+            data: {
+              clawbackAt: now,
+              clawbackReason: reason,
+              clawbackExecutedBy: executedBy,
+            },
+          }),
+        ]
+      : []),
   ]);
 
   const { emitEvent } = await import("./events");
@@ -623,10 +713,12 @@ export async function processClawback(
     executedBy,
     commissionsVoided: commissions.length,
     overridesVoided: overrides.length,
+    paidNetted: paidCommissions.length,
   });
 
   return {
     commissionsVoided: commissions.length,
     overridesVoided: overrides.length,
+    paidNetted: paidCommissions.length,
   };
 }

@@ -31,9 +31,38 @@ const LEGACY_ENV_MAP: Partial<Record<WebhookEventType, string>> = {
 };
 
 const MAX_ATTEMPTS = 3;
+const DELIVERY_TIMEOUT_MS = 10_000;
 
 function signPayload(secret: string, body: string): string {
   return crypto.createHmac("sha256", secret).update(body).digest("hex");
+}
+
+/**
+ * Admin-configured webhook URLs must point at the outside world — never at
+ * loopback, link-local metadata, or private ranges, where a delivery could be
+ * used to poke internal services. Legacy env-configured URLs are exempt (they
+ * may legitimately target an internal n8n).
+ */
+export function isSafeWebhookUrl(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return false;
+    const host = url.hostname.toLowerCase();
+    if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal")) return false;
+    // IPv4 literal checks
+    const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (m) {
+      const [a, b] = [parseInt(m[1], 10), parseInt(m[2], 10)];
+      if (a === 127 || a === 10 || a === 0) return false;
+      if (a === 172 && b >= 16 && b <= 31) return false;
+      if (a === 192 && b === 168) return false;
+      if (a === 169 && b === 254) return false; // link-local / cloud metadata
+    }
+    if (host === "::1" || host.startsWith("fd") || host.startsWith("fe80")) return false;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function deliverOnce(
@@ -72,7 +101,12 @@ async function deliverOnce(
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      const res = await fetch(url, { method: "POST", headers, body });
+      const res = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+        signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),
+      });
       responseCode = res.status;
       if (res.ok) {
         await db.webhookDelivery.update({
@@ -117,7 +151,9 @@ export function emitEvent(eventType: WebhookEventType, payload: Record<string, u
       });
 
       await Promise.all(
-        hooks.map((h) => deliverOnce(h.url, eventType, payload, h.secret, h.id))
+        hooks
+          .filter((h) => isSafeWebhookUrl(h.url))
+          .map((h) => deliverOnce(h.url, eventType, payload, h.secret, h.id))
       );
 
       const legacyKey = LEGACY_ENV_MAP[eventType];
@@ -135,5 +171,9 @@ export function verifyApiKey(req: Request): boolean {
   const expected = process.env.WESHARE_API_KEY;
   if (!expected) return false;
   const key = req.headers.get("x-weshare-api-key");
-  return key === expected;
+  if (!key) return false;
+  // Compare digests so the check is constant-time even for wrong-length keys.
+  const a = crypto.createHash("sha256").update(key).digest();
+  const b = crypto.createHash("sha256").update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
 }

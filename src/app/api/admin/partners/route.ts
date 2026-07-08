@@ -2,13 +2,14 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
-import { sendPartnerCertified, sendPartnerLeadsUnlocked } from "@/lib/email";
+import { sendPartnerCertified, sendPartnerLeadsUnlocked, sendNumberAssigned } from "@/lib/email";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const certifySchema = z.object({
   partnerId: z.string(),
-  action: z.enum(["certify", "unlock_leads", "suspend", "reinstate", "promote_leader", "demote_leader"]),
+  action: z.enum(["certify", "unlock_leads", "suspend", "reinstate", "promote_leader", "demote_leader", "assign_number"]),
   reason: z.string().optional(),
+  phoneNumber: z.string().min(7).max(30).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -18,11 +19,15 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { partnerId, action, reason } = certifySchema.parse(body);
+    const { partnerId, action, reason, phoneNumber } = certifySchema.parse(body);
 
     const now = new Date();
 
     const updates: Record<string, unknown> = {};
+
+    if (action === "assign_number" && !phoneNumber) {
+      return apiError("phoneNumber is required for assign_number", 400);
+    }
 
     if (action === "certify") {
       updates.isCertified = true;
@@ -44,11 +49,18 @@ export async function PATCH(req: NextRequest) {
     } else if (action === "demote_leader") {
       updates.isLeader = false;
       updates.promotedLeaderAt = null;
+    } else if (action === "assign_number") {
+      updates.assignedPhoneNumber = phoneNumber;
     }
 
     const before = await db.partnerProfile.findUnique({
       where: { id: partnerId },
-      select: { isCertified: true, leadsUnlocked: true, user: { select: { email: true, name: true } } },
+      select: {
+        isCertified: true,
+        leadsUnlocked: true,
+        assignedPhoneNumber: true,
+        user: { select: { email: true, name: true } },
+      },
     });
     if (!before) return apiError("Partner not found", 404);
 
@@ -60,6 +72,8 @@ export async function PATCH(req: NextRequest) {
       sendPartnerCertified(before.user.email, before.user.name ?? "there").catch(console.error);
     } else if (action === "unlock_leads" && !before.leadsUnlocked) {
       sendPartnerLeadsUnlocked(before.user.email, before.user.name ?? "there").catch(console.error);
+    } else if (action === "assign_number" && phoneNumber && before.assignedPhoneNumber !== phoneNumber) {
+      sendNumberAssigned(before.user.email, before.user.name ?? "there", phoneNumber).catch(console.error);
     }
 
     await db.auditLog.create({

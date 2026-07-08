@@ -7,7 +7,7 @@ import GettingStarted from "@/components/dashboard/getting-started";
 import { STATUS_COLORS, formatCurrency, formatDate } from "@/lib/utils";
 import {
   Users, DollarSign, TrendingUp, Wallet, AlertTriangle,
-  ShieldCheck, Lock, ClipboardList, ChevronRight,
+  ShieldCheck, Lock, ClipboardList, ChevronRight, Phone,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -110,6 +110,19 @@ export default async function PartnerDashboardPage() {
     <Suspense fallback={<PartnerSkeleton />}>
       <div className="space-y-6">
         <GettingStarted />
+
+        {/* Assigned company number */}
+        {partner.assignedPhoneNumber && (
+          <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#00254B]">
+              <Phone size={16} className="text-white" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-gray-500">Your company number — use it for every prospect call &amp; text</p>
+              <p className="font-mono text-sm font-semibold text-gray-900">{partner.assignedPhoneNumber}</p>
+            </div>
+          </div>
+        )}
 
         {/* Certification / leads-unlocked banner */}
         {(!partner.isCertified || !partner.leadsUnlocked) && (

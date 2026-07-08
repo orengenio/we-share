@@ -102,14 +102,34 @@ export async function POST(req: NextRequest) {
 
         lead = await db.lead.findUniqueOrThrow({ where: { id: lead.id } });
 
-        // Record conversion
+        // Record conversion — idempotent across sources: skip if this payment
+        // was already tracked OR the client already has a SETUP_FEE conversion
+        // (e.g. recorded by a GHL Won event or the v1 track API first). One
+        // client must never produce two setup-fee commission runs.
         const existing = session.payment_intent
           ? await db.conversion.findUnique({
               where: { stripePaymentId: session.payment_intent as string },
             })
           : null;
+        const existingSetup = existing
+          ? existing
+          : await db.conversion.findFirst({
+              where: { leadId: lead.id, type: "SETUP_FEE" },
+            });
 
-        if (!existing) {
+        // A GHL-recorded conversion has no Stripe IDs — backfill them from the
+        // real payment so charge.refunded can still find it for clawback.
+        if (!existing && existingSetup && !existingSetup.stripePaymentId && session.payment_intent) {
+          await db.conversion.update({
+            where: { id: existingSetup.id },
+            data: {
+              stripePaymentId: session.payment_intent as string,
+              stripeCustomerId: session.customer as string,
+            },
+          });
+        }
+
+        if (!existing && !existingSetup) {
           // Resolve the real package setup fee from the amount paid (robust to
           // a checkout that bundles setup + first month — see resolvePackageFee).
           const setupFee = resolvePackageFee((session.amount_total ?? 0) / 100, "setup");

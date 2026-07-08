@@ -21,6 +21,8 @@ import {
   Settings,
   Compass,
   Plug,
+  Menu,
+  X,
 } from "lucide-react";
 import type { AuthSession } from "@/types";
 import DashboardTour from "@/components/dashboard/dashboard-tour";

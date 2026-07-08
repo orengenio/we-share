@@ -36,6 +36,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = createSchema.parse(await req.json());
+    const { isSafeWebhookUrl } = await import("@/lib/events");
+    if (!isSafeWebhookUrl(data.url)) {
+      return apiError("Webhook URL must be a public https/http endpoint (no localhost or private ranges)", 400);
+    }
     const hook = await db.outboundWebhook.create({ data });
     return apiSuccess(hook, 201);
   } catch (err) {
@@ -54,6 +58,12 @@ export async function PATCH(req: NextRequest) {
     const { id, ...data } = body as { id: string } & z.infer<typeof updateSchema>;
     if (!id) return apiError("id required", 400);
     const parsed = updateSchema.parse(data);
+    if (parsed.url) {
+      const { isSafeWebhookUrl } = await import("@/lib/events");
+      if (!isSafeWebhookUrl(parsed.url)) {
+        return apiError("Webhook URL must be a public https/http endpoint (no localhost or private ranges)", 400);
+      }
+    }
     const hook = await db.outboundWebhook.update({ where: { id }, data: parsed });
     return apiSuccess(hook);
   } catch (err) {
