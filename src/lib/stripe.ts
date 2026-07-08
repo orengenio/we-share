@@ -97,11 +97,13 @@ export function constructWebhookEvent(payload: string | Buffer, signature: strin
 export async function createCheckoutSession({
   email,
   affiliateCode,
+  partnerCode,
   successUrl,
   cancelUrl,
 }: {
   email?: string;
   affiliateCode?: string;
+  partnerCode?: string;
   successUrl: string;
   cancelUrl: string;
 }) {
@@ -119,8 +121,11 @@ export async function createCheckoutSession({
       },
     ],
     customer_email: email,
+    // The Stripe webhook reads both codes for attribution (affiliate first,
+    // else partner — one sale, one owner).
     metadata: {
       affiliateCode: affiliateCode ?? "",
+      partnerCode: partnerCode ?? "",
     },
     success_url: successUrl,
     cancel_url: cancelUrl,

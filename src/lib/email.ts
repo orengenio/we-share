@@ -191,6 +191,50 @@ export async function sendNumberAssigned(
   );
 }
 
+// ─── Rep application → admin notice ──────────────────────────────────────────
+// The durable copy of every application (GHL contact is the CRM record).
+
+const EXPERIENCE_LABELS: Record<string, string> = {
+  full_time: "Yes — full-time commission",
+  side_income: "Yes — side income",
+  none_but_ready: "No, but can hold a hard conversation",
+};
+const HOURS_LABELS: Record<string, string> = {
+  lt10: "<10", "10_20": "10–20", "20_40": "20–40", "40_plus": "40+",
+};
+const START_LABELS: Record<string, string> = {
+  this_week: "This week", two_weeks: "Within 2 weeks", exploring: "Just exploring",
+};
+
+export async function sendPartnerApplicationNotice(
+  adminEmail: string,
+  app: {
+    name: string; email: string; phone: string; cityState: string;
+    experience: string; soldWhat?: string; hours: string;
+    objectionAnswer: string; start: string; referrer?: string;
+    smsConsent?: boolean; submittedAt: string;
+  }
+) {
+  return send(
+    adminEmail,
+    `New rep application: ${app.name} (${app.cityState}) — ${START_LABELS[app.start] ?? app.start}`,
+    `<h2>Rep application — ${app.name}</h2>
+<p><strong>${app.email}</strong> · ${app.phone} · ${app.cityState}</p>
+<table cellpadding="4" style="font-size:14px">
+  <tr><td><strong>Commission experience</strong></td><td>${EXPERIENCE_LABELS[app.experience] ?? app.experience}</td></tr>
+  <tr><td><strong>What they've sold</strong></td><td>${app.soldWhat || "—"}</td></tr>
+  <tr><td><strong>Hours/week</strong></td><td>${HOURS_LABELS[app.hours] ?? app.hours}</td></tr>
+  <tr><td><strong>Can start</strong></td><td>${START_LABELS[app.start] ?? app.start}</td></tr>
+  <tr><td><strong>Referred by</strong></td><td>${app.referrer || "—"}</td></tr>
+  <tr><td><strong>SMS marketing consent</strong></td><td>${app.smsConsent ? "YES (timestamped)" : "no"}</td></tr>
+</table>
+<p><strong>The filter question — "I need to think about it," what do you say next?</strong></p>
+<blockquote style="border-left:3px solid #CC5500;padding-left:12px;color:#333">${app.objectionAnswer}</blockquote>
+<p>Contact is in GHL tagged <code>WS Rep Applicant</code>. Reply within one business day — the page promises it.</p>
+<p style="color:#6b7280;font-size:12px">Submitted ${app.submittedAt}</p>`
+  );
+}
+
 // ─── Client cancellation → save-call alert ────────────────────────────────────
 // The closer who sold them is the highest-percentage retention play — and it's
 // their residual on the line. Fires when a client's subscription is cancelled.

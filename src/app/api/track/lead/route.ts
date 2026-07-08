@@ -26,6 +26,9 @@ const schema = z.object({
   // TCPA consent captured from the marketing-site form when a phone is given.
   smsConsent: z.boolean().optional(),
   consentText: z.string().optional(),
+  // Separate opt-ins — never pre-checked on any form, independently stamped.
+  marketingConsent: z.boolean().optional(),
+  aiFollowupConsent: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -96,6 +99,10 @@ export async function POST(req: NextRequest) {
         smsConsent: data.smsConsent ?? false,
         consentText: data.consentText,
         consentCapturedAt: data.smsConsent ? new Date() : null,
+        marketingConsent: data.marketingConsent ?? false,
+        marketingConsentAt: data.marketingConsent ? new Date() : null,
+        aiFollowupConsent: data.aiFollowupConsent ?? false,
+        aiFollowupConsentAt: data.aiFollowupConsent ? new Date() : null,
       },
     });
 
