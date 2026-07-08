@@ -23,6 +23,7 @@ Grading uses the same 10-dimension rubric as leads (`references/lead-scoring-rub
 ## Rules
 
 - Every A-grade opportunity gets a one-paragraph research brief with at least two verifiable specifics before any outreach drafts.
+- **Handoffs:** A-grade RFPs/solicitations route to /og-capture for the full capture→write→negotiate loop; grant-shaped opportunities route to /og-grants for fit scoring and narrative build.
 - Outreach drafts go to the approval queue like everything else.
 - Board syncs to GHL as an `Opportunities` pipeline via /og-ghl-sync; grade changes move stages automatically once wired.
 

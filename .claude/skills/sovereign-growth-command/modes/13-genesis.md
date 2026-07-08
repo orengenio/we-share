@@ -35,6 +35,7 @@ kill criteria: <the evidence that would prove this offer wrong>
 ## Rules
 
 - **No me-too offers.** If the concept can't pass the Only Test ("Only [brand]…" said honestly), it either gets a named twist or it dies here — before copy is ever written.
+- **The Osterwalder gate:** every finalist completes the value chain (segment → pain → job → workaround → value prop → delivery → revenue → cost → channel → retention) per modes/25-systems.md. A card that can't complete it honestly returns to the matrix.
 - Every mechanism gets a proprietary name. Unnamed methods are rented language.
 - Speed-to-cash candidates get flagged for the cash-engine lane; moat candidates for the equity lane — never confuse the two in one card.
 - Kill criteria are mandatory. An offer you can't disprove is a belief, not a product.

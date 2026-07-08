@@ -8,7 +8,7 @@ Funnel visits · opt-ins · bookings · show rate · close rate · revenue · CP
 
 ## Statistical honesty
 
-No verdicts on noise. Minimums before judging: ~500 impressions or 20 clicks for a hook/creative, 30 leads for a source grade, 20 checkout sessions for bump/upsell rates. Below threshold → "insufficient data, keep running," not a coin-flip decision dressed as analysis.
+No verdicts on noise. Minimums before judging: ~500 impressions or 20 clicks for a hook/creative, 30 leads for a source grade, 20 checkout sessions for bump/upsell rates. Below threshold → "insufficient data, keep running," not a coin-flip decision dressed as analysis. And the Deming rule governs every verdict (modes/25-systems.md): root-cause the *system* before blaming the asset or the person — a "failed" hook on a broken landing page is a page problem wearing a hook's name.
 
 ## Verdict format (every reviewed element)
 

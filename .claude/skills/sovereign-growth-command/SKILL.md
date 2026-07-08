@@ -1,13 +1,13 @@
 ---
 name: sovereign-growth-command
-description: SOVEREIGN™ — OrenGen's full-stack growth command OS. Auto-generates product offerings, buyer personas, and objection-fighting, pain-activating sales scripts with an enforced distinct voice (Edge Engine — nothing generic ships). Architects offer ladders with order bumps, upsells, downsells; builds direct-response funnels and full AI websites; scores leads A–F; runs viral content and audience-growth engines; briefs creative engines (Higgsfield, Nano Banana, Stitch, Veo); ships GoHighLevel builds and client onboarding — all behind compliance gates and human approval. Use whenever the user mentions business growth, lead generation, funnels, websites, landing pages, order bumps, upsells, offers, GoHighLevel, GHL, onboarding, pipelines, viral content, followers, hooks, personas, sales scripts, objection handling, ad creative, campaign launch, opportunity scoring, govcon, or any /og- command — even outcome-only asks like "get me clients," "invent my offer," or "build my site."
+description: SOVEREIGN™ — OrenGen's full-stack growth command OS. Auto-generates product offerings, personas, and objection-fighting sales scripts with an enforced distinct voice (Edge Engine — nothing generic ships). Architects offer ladders with bumps, upsells, downsells; builds direct-response funnels and AI websites; scores leads A–F; runs viral content and audience-growth engines; monetizes through digital products, mobile apps, RFP capture, and grants; briefs creative engines (Higgsfield, Nano Banana, Stitch, Veo); ships GoHighLevel builds and client onboarding — behind compliance gates and human approval. Use whenever the user mentions business growth, lead generation, funnels, websites, offers, GoHighLevel, GHL, onboarding, pipelines, viral content, followers, hooks, personas, sales scripts, digital products, apps, RFPs, grants, case prep, contracts, fractional executive, C-suite, SOPs, systemization, campaign launch, opportunity scoring, govcon, or any /og- command — even outcome-only asks like "get me clients."
 ---
 
 # SOVEREIGN™ — Growth Command OS
 
-**v2.1 · OrenGen Worldwide LLC · MansaCore IP · Internal label: OG GrowthOS**
+**v3.1 "MansaCore" · OrenGen Worldwide LLC · MansaCore IP · Internal label: OG GrowthOS**
 
-One operating system for the entire growth stack: qualification → business structure → **offer genesis** → personas → offers → scripts → funnels + websites → leads → viral content + audience growth → creative → GHL white-label execution + client onboarding → launch → optimization. Built on the GSD execution loop, the Career-Ops scoring pattern, and the GoViralBro content pipeline — owned end to end, rented from no one, and sounding like no one else.
+One operating system for the entire growth stack: qualification → business structure → **offer genesis** → personas → offers → scripts → funnels + websites → leads → viral content + audience growth → creative → GHL white-label execution + client onboarding → launch → optimization — plus seven revenue machines: digital products, mobile apps, RFP capture, grants, legal support, fractional executive advisory, and business systemization. Built on the GSD execution loop, the Career-Ops scoring pattern, and the GoViralBro content pipeline — owned end to end, rented from no one, and sounding like no one else.
 
 ## The Operating Loop
 
@@ -65,6 +65,13 @@ Confirm the mode in the first message of every new engagement. Default to Mode C
 | `/og-launch` | modes/10-launch.md | Launch Gate checklist, war-room plan, go/no-go record |
 | `/og-optimize` | modes/11-optimize.md | KEEP/KILL/DOUBLE/TEST verdicts, next-test queue, weight updates |
 | `/og-opportunities` | modes/12-opportunities.md | Graded opportunity board (Career-Ops pattern, incl. govcon) |
+| `/og-products` | modes/19-products.md | Digital Product Factory: ladder, launch, vault, licensing endgame |
+| `/og-apps` | modes/20-apps.md | App Store + Google Play as revenue channels; ship-pipeline spec |
+| `/og-capture` | modes/21-capture.md | RFP capture: compliance matrix, win themes, color reviews, negotiation |
+| `/og-grants` | modes/22-grants.md | Grant machine: fit scoring, funder-aligned narrative, award triage |
+| `/og-legal` | modes/23-legal.md | Attorney-ready case maps, contract risk maps, clause libraries (UPL-gated) |
+| `/og-executive` | modes/24-executive.md | Fractional C-suite machine: diagnosis, choice cascade, cadence, scorecard |
+| `/og-systems` | modes/25-systems.md | Systemization: SOP factory, founder-independence audit, PDSA, canvases |
 | `/og-board` | interop | Escalate a strategic decision to the AI Board of Directors skill |
 
 A plain-language request maps to the router too: "invent my offer and launch it" → qualify → genesis → persona → offer → scripts → funnel → ghl-sync → compliance → launch.
@@ -80,9 +87,11 @@ A plain-language request maps to the router too: "invent my offer and launch it"
 ## Interop Hooks (use when installed/connected)
 
 - **brand-authority-os** — Mode C brand intake and full client brand builds.
+- **LexOps v4** — when installed, owns deep legal work (its guardrails govern); /og-legal runs the legal-support business machine around it.
 - **AI Board of Directors** — escalate pricing-floor changes, offer pivots, new business lines, or any decision with >$10k exposure to a Blind Round 1 before locking.
 - **Automation Architect v1.1** — when a GHL-native workflow can't do the job, emit n8n import-ready JSON (GHL webhooks → n8n is the sanctioned bridge).
-- **Tango (govcon MCP)** — /og-opportunities uses it for live federal/SLED opportunity scans when connected.
+- **Tango (govcon MCP)** — /og-opportunities and /og-capture use it for live federal/SLED opportunity scans when connected.
+- **Granted (grants MCP)** — /og-grants uses it for live grant, funder, and past-winner intelligence when connected.
 - **Buy-Lingual™** — fulfillment engine for the Voice AI channel; multilingual funnel/content variants route through it.
 - **Creative engines** — Higgsfield, Nano Banana, Stitch, Veo via `references/creative-adapters.md`. External engines only; own the brief, rent the render.
 - **Repomix** — package any repo into AI-readable context before integration or refactor work on it.
@@ -99,11 +108,14 @@ sovereign-growth-command/
 ├── modes/00-router.md … 12-opportunities.md
 │         13-genesis.md · 14-persona.md · 15-scripts.md · 16-audience.md
 │         17-website.md · 18-onboard.md
+│         19-products.md · 20-apps.md · 21-capture.md · 22-grants.md
+│         23-legal.md · 24-executive.md · 25-systems.md
 ├── references/
 │   ├── questionnaire-schema.md       ← GrowthCommandProfile JSON schema
 │   ├── direct-response-rules.md      ← page rules + Money Math
 │   ├── lead-scoring-rubric.md        ← weights, grades, evolution rule
 │   ├── viral-content-rules.md        ← hook taxonomy, platform specs, quotas
+│   ├── masters-library.md            ← modeled-masters doctrine registry + extension protocol
 │   ├── edge-engine.md                ← voiceprint, Slop List, Four Tests, Edge Score
 │   ├── creative-adapters.md          ← Higgsfield / Nano Banana / Stitch / Veo routing
 │   ├── ghl-api-map.md                ← GHL objects, auth, MCP contract, build-spec fallback
