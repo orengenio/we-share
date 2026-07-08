@@ -2,7 +2,41 @@
 
 **Engagement:** weshare-launch · OrenGen internal (Mode O — Brand Guard constants verbatim)
 **Phase:** BUILD → LAUNCH prep
-**Updated:** 2026-07-08
+**Updated:** 2026-07-08 (SOVEREIGN v3 absorbed — see registers below)
+
+## SOVEREIGN v3 capability register (absorbed 2026-07-08, PR #39)
+
+| Command | Does | OrenGen invokes when |
+|---|---|---|
+| `/og-products` | Digital Product Factory: price-laddered packaged products, GHL+Stripe-first, 7-day launch cadence | Template-stripping engagement artifacts into SKUs; pricing-band checks |
+| `/og-apps` | App Revenue Channel: 2-of-4 bid/no-bid gate before any native build | Whenever a native app is contemplated (default: web-on-Coolify wins) |
+| `/og-capture` | RFP Capture: Shipley compliance-matrix proposals, review gates, negotiation floors, >$10k → /og-board | Govcon/enterprise RFPs; rep negotiation-floor doctrine |
+| `/og-grants` | Grant Acquisition: eligibility-first bid/no-bid, pre-signature award inspection | Non-dilutive funding scans |
+| `/og-legal` | Legal Support Machine: contract risk maps, case prep — mandatory ATTORNEY REVIEW gate, hard UPL guardrail | Any contract/terms/consent artifact |
+| `/og-executive` | Fractional Executive Machine: execution diagnosis, choice cascade, cadence packs | Fractional C-suite offers; board-ready strategic framing |
+| `/og-systems` | Systemization Machine: owner/SOP/SLA per chain link, founder-independence scoring, **Osterwalder gate on all new offers** | SOP-ifying ops; pre-launch offer validation |
+| `masters-library.md` | Registry of modeled masters — patterns mandatory, voices banned, no implied endorsement | Standing constraint on all content |
+
+## v3 artifact-impact verdict
+
+- **GATE FAILURE → logged below:** Contractor Agreement live with Attorney Review pending (Mode 23 makes it mandatory). Risk map produced: `legal/contract-risk-map.md`.
+- **CONDITIONAL HOLD:** `funnel-architecture.md` [PROPOSED] pricing — Mode 25's Osterwalder gate requires a value-proposition canvas per service before pricing goes live; owner sign-off alone no longer suffices.
+- **CLEAN:** emails, both funnels, runbook, Call Armory, commission engine — no gate they passed has changed.
+
+## Attorney-review log (Mode 23 gate record)
+
+| Artifact | Status | Opened | Notes |
+|---|---|---|---|
+| Partner Payment Authorization & Contractor Agreement v1-2026-07-08 (live in-app) | **OPEN — awaiting counsel** | 2026-07-08 | Risk map at `legal/contract-risk-map.md` (3 HIGH findings: governing law/venue, indemnity/liability cap, undefined "cause"). Acceptance flow versioned — counsel's v2 triggers re-acceptance. Owner action: send map + modal text + Handbook §§5,9–12 to counsel. |
+
+## v3 unlocked queue (ranked)
+
+1. ✅ Contract risk map (done — above; counsel send = Andre)
+2. Osterwalder canvases ×7 services (blocked on [CONFIRM] scopes; OrenWeb canvas can lead)
+3. Pricing decision memo w/ Mode 19 band pressure-test
+4. Negotiation floors + battlecard addendum (post-pricing)
+5. SOP library for commission-engine human edge cases
+6. Template-strip artifacts into product SKUs (WeShare reps as distribution)
 
 ## Active deliverables & gate log
 
