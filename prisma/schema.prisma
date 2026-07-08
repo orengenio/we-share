@@ -238,6 +238,29 @@ model AffiliateLink {
   @@index([affiliateId])
 }
 
+model PartnerLink {
+  id              String   @id @default(cuid())
+  partnerId       String
+  code            String   @unique
+  slug            String?
+  destinationUrl  String   @default("/")
+  label           String?
+  campaignId      String?
+  isActive        Boolean  @default(true)
+  clickCount      Int      @default(0)
+  leadCount       Int      @default(0)
+  conversionCount Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  partner PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  clicks  Click[]
+
+  @@index([code])
+  @@index([partnerId])
+}
+
 // ─── Partner Program ─────────────────────────────────────────────────────────
 
 model PartnerProfile {
@@ -276,6 +299,7 @@ model PartnerProfile {
   terminatedAt   DateTime?
 
   // Running totals
+  totalClicks          Int   @default(0)
   totalLeadsAssigned   Int   @default(0)
   totalDealsWon        Int   @default(0)
   totalEarned          Float @default(0)
@@ -289,6 +313,8 @@ model PartnerProfile {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   uplineLeader     PartnerProfile?  @relation("PartnerLeaderTree", fields: [uplineLeaderId], references: [id])
   teamMembers      PartnerProfile[] @relation("PartnerLeaderTree")
+  links            PartnerLink[]
+  clicks           Click[]
   leads            Lead[]
   commissions      Commission[]
   conversions      Conversion[]
@@ -306,9 +332,11 @@ model PartnerProfile {
 // ─── Tracking Engine ─────────────────────────────────────────────────────────
 
 model Click {
-  id          String @id @default(cuid())
-  affiliateId String
-  linkId      String?
+  id            String  @id @default(cuid())
+  affiliateId   String?
+  partnerId     String?
+  linkId        String?
+  partnerLinkId String?
 
   // Attribution tokens
   visitorToken  String // persistent 90-day cookie token
@@ -337,11 +365,14 @@ model Click {
 
   createdAt DateTime @default(now())
 
-  affiliate AffiliateProfile  @relation(fields: [affiliateId], references: [id])
-  link      AffiliateLink?    @relation(fields: [linkId], references: [id])
-  lead      Lead?             @relation("ClickToLead")
+  affiliate   AffiliateProfile? @relation(fields: [affiliateId], references: [id])
+  partner     PartnerProfile?   @relation(fields: [partnerId], references: [id])
+  link        AffiliateLink?    @relation(fields: [linkId], references: [id])
+  partnerLink PartnerLink?      @relation(fields: [partnerLinkId], references: [id])
+  lead        Lead?             @relation("ClickToLead")
 
   @@index([affiliateId])
+  @@index([partnerId])
   @@index([visitorToken])
   @@index([ipHash])
   @@index([createdAt])
@@ -474,6 +505,8 @@ model Commission {
   status     CommissionStatus @default(PENDING)
   approvedAt DateTime?
   paidAt     DateTime?
+  // Eligible for payout after this timestamp (NET-15 hold + clawback alignment)
+  maturesAt  DateTime?
 
   // Clawback tracking
   clawbackAt         DateTime?
@@ -702,6 +735,47 @@ model WebhookEvent {
   @@index([source])
   @@index([eventType])
   @@index([processed])
+  @@index([createdAt])
+}
+
+// ─── Outbound integrations (n8n, Zapier, custom) ─────────────────────────────
+
+model OutboundWebhook {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  secret      String?
+  events      String[] // e.g. "commission.approved", "fraud.flagged"
+  isActive    Boolean  @default(true)
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([isActive])
+}
+
+model WebhookDelivery {
+  id           String   @id @default(cuid())
+  webhookId    String?
+  eventType    String
+  payload      Json
+  url          String
+  status       String   @default("pending") // pending | success | failed
+  attempts     Int      @default(0)
+  responseCode Int?
+  lastError    String?
+  deliveredAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  webhook OutboundWebhook? @relation(fields: [webhookId], references: [id], onDelete: SetNull)
+
+  @@index([webhookId])
+  @@index([eventType])
+  @@index([status])
   @@index([createdAt])
 }
 

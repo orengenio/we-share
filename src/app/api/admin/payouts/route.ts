@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
         affiliateId: { not: null },
         status: "APPROVED",
         createdAt: { gte: periodStart, lte: periodEnd },
+        OR: [{ maturesAt: null }, { maturesAt: { lte: new Date() } }],
       },
       _sum: { amount: true },
       having: {
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
         partnerId: { not: null },
         status: "APPROVED",
         createdAt: { gte: periodStart, lte: periodEnd },
+        OR: [{ maturesAt: null }, { maturesAt: { lte: new Date() } }],
       },
       _sum: { amount: true },
       having: {

@@ -1,11 +1,17 @@
 /**
- * Affiliate link redirect handler.
- * /r/:code → records click → redirects to destination.
- * Supports both affiliate codes and short link codes.
+ * Sales partner link redirect handler.
+ * /s/:code → records click → redirects to destination.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { recordClick, generateToken, safeDestination, VISITOR_COOKIE, SESSION_COOKIE, COOKIE_90_DAYS } from "@/lib/tracking";
+import {
+  recordPartnerClick,
+  generateToken,
+  safeDestination,
+  VISITOR_COOKIE,
+  SESSION_COOKIE,
+  COOKIE_90_DAYS,
+} from "@/lib/tracking";
 import db from "@/lib/db";
 import { getClientIP } from "@/lib/utils";
 
@@ -16,31 +22,29 @@ export async function GET(
   const { code } = params;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://weshare.orengen.io";
 
-  // Look up by link code first, then affiliate code
-  const link = await db.affiliateLink.findUnique({
+  const link = await db.partnerLink.findUnique({
     where: { code },
-    include: { affiliate: true },
+    include: { partner: true },
   });
 
-  let affiliateCode: string;
+  let partnerCode: string;
   let destination: string;
   let linkCode: string | undefined;
 
-  if (link && link.isActive && link.affiliate.isActive) {
-    affiliateCode = link.affiliate.affiliateCode;
+  if (link && link.isActive && link.partner.isActive) {
+    partnerCode = link.partner.partnerCode;
     destination = safeDestination(link.destinationUrl, appUrl);
     linkCode = code;
   } else {
-    // Try as affiliate code directly
-    const affiliate = await db.affiliateProfile.findUnique({
-      where: { affiliateCode: code, isActive: true },
+    const partner = await db.partnerProfile.findUnique({
+      where: { partnerCode: code, isActive: true },
     });
 
-    if (!affiliate) {
+    if (!partner) {
       return NextResponse.redirect(`${appUrl}/`);
     }
 
-    affiliateCode = code;
+    partnerCode = code;
     destination = appUrl;
   }
 
@@ -49,15 +53,12 @@ export async function GET(
     destination = safeDestination(destParam, appUrl);
   }
 
-  // Get or generate visitor token
   let visitorToken = req.cookies.get(VISITOR_COOKIE)?.value ?? generateToken();
   const sessionToken = generateToken();
-
   const ipAddress = getClientIP(req.headers);
 
-  // Record click (non-blocking)
-  recordClick({
-    affiliateCode,
+  recordPartnerClick({
+    partnerCode,
     linkCode,
     visitorToken,
     sessionToken,

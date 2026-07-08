@@ -38,10 +38,12 @@ export async function POST(req: NextRequest) {
 
     // Resolve attribution before any fraud check
     let affiliateId: string | null = null;
+    let partnerId: string | null = null;
     if (visitorToken) {
       const { resolveAttribution } = await import("@/lib/tracking");
       const attr = await resolveAttribution(visitorToken);
       affiliateId = attr.affiliateId;
+      partnerId = attr.partnerId;
     }
 
     // Self-referral check
@@ -102,6 +104,35 @@ export async function POST(req: NextRequest) {
       await lockAttribution(lead.id, visitorToken);
     }
 
+    const lockedLead = await db.lead.findUnique({
+      where: { id: lead.id },
+      select: { affiliateId: true, partnerId: true },
+    });
+
+    const [affiliateProfile, partnerProfile] = await Promise.all([
+      lockedLead?.affiliateId
+        ? db.affiliateProfile.findUnique({
+            where: { id: lockedLead.affiliateId },
+            select: { affiliateCode: true },
+          })
+        : null,
+      lockedLead?.partnerId
+        ? db.partnerProfile.findUnique({
+            where: { id: lockedLead.partnerId },
+            select: { partnerCode: true },
+          })
+        : null,
+    ]);
+
+    const { emitEvent } = await import("@/lib/events");
+    emitEvent("lead.registered", {
+      leadId: lead.id,
+      email,
+      affiliateId: lockedLead?.affiliateId ?? affiliateId,
+      partnerId: lockedLead?.partnerId ?? partnerId,
+      source: data.source ?? "form",
+    });
+
     // Sync to GoHighLevel (non-blocking)
     if (process.env.GHL_API_KEY && process.env.GHL_LOCATION_ID) {
       syncLeadToGHL({
@@ -111,7 +142,8 @@ export async function POST(req: NextRequest) {
         phone: data.phone,
         company: data.company,
         source: data.source,
-        affiliateCode: affiliateId ?? undefined,
+        affiliateCode: affiliateProfile?.affiliateCode,
+        partnerCode: partnerProfile?.partnerCode,
       })
         .then(async (ghlContactId) => {
           await db.lead.update({

@@ -237,6 +237,38 @@ export function getGHLOpportunityStatus(leadStatus: string): "open" | "won" | "l
   return "open";
 }
 
+/** Extract WeShare attribution codes from GHL webhook contact payloads. */
+export function extractAttributionFromGHL(
+  data: Record<string, unknown>
+): { affiliateCode?: string; partnerCode?: string } {
+  const out: { affiliateCode?: string; partnerCode?: string } = {};
+
+  const customFields = data.customFields as
+    | { key?: string; id?: string; field_value?: string; value?: string }[]
+    | undefined;
+
+  if (Array.isArray(customFields)) {
+    for (const field of customFields) {
+      const key = (field.key ?? field.id ?? "").toLowerCase();
+      const value = field.field_value ?? field.value;
+      if (!value) continue;
+      if (key === "ws_affiliate_code" || key === "affiliate_code") {
+        out.affiliateCode = String(value);
+      }
+      if (key === "ws_partner_code" || key === "partner_code") {
+        out.partnerCode = String(value);
+      }
+    }
+  }
+
+  const flatAffiliate = data.ws_affiliate_code ?? data.affiliateCode;
+  const flatPartner = data.ws_partner_code ?? data.partnerCode;
+  if (flatAffiliate) out.affiliateCode = String(flatAffiliate);
+  if (flatPartner) out.partnerCode = String(flatPartner);
+
+  return out;
+}
+
 // ─── Webhook signature verification ──────────────────────────────────────────
 
 export function verifyGHLWebhook(
@@ -271,10 +303,20 @@ export async function syncLeadToGHL(lead: {
   company?: string | null;
   source?: string | null;
   affiliateCode?: string | null;
+  partnerCode?: string | null;
 }): Promise<string> {
   const tags = ["WeShare Lead"];
   if (lead.affiliateCode) tags.push(`Referral Partner: ${lead.affiliateCode}`);
+  if (lead.partnerCode) tags.push(`Sales Partner: ${lead.partnerCode}`);
   if (lead.source) tags.push(`Source: ${lead.source}`);
+
+  const customFields: { key: string; field_value: string }[] = [];
+  if (lead.affiliateCode) {
+    customFields.push({ key: "ws_affiliate_code", field_value: lead.affiliateCode });
+  }
+  if (lead.partnerCode) {
+    customFields.push({ key: "ws_partner_code", field_value: lead.partnerCode });
+  }
 
   // Upsert is idempotent on email — no separate lookup/create round-trip.
   return upsertContact({
@@ -285,6 +327,7 @@ export async function syncLeadToGHL(lead: {
     company: lead.company ?? undefined,
     source: lead.source ?? "WeShare",
     tags,
+    customFields: customFields.length > 0 ? customFields : undefined,
   });
 }
 

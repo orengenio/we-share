@@ -19,6 +19,7 @@ import {
 import db from "@/lib/db";
 import { sendOrderConfirmation } from "@/lib/email";
 import { addDays } from "date-fns";
+import { emitEvent } from "@/lib/events";
 import type Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const affiliateCode = session.metadata?.affiliateCode;
+        const partnerCode = session.metadata?.partnerCode ?? session.metadata?.ws_partner_code;
         const customerEmail = session.customer_email ?? session.customer_details?.email;
 
         if (!customerEmail) break;
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // Attach affiliate if code present
+        // Attach affiliate or partner if code present
         if (affiliateCode && !lead.affiliateId) {
           const affiliate = await db.affiliateProfile.findUnique({
             where: { affiliateCode },
@@ -81,10 +83,24 @@ export async function POST(req: NextRequest) {
               where: { id: lead.id },
               data: { affiliateId: affiliate.id, status: "WON" },
             });
+            lead = { ...lead, affiliateId: affiliate.id };
+          }
+        } else if (partnerCode && !lead.partnerId) {
+          const partner = await db.partnerProfile.findUnique({
+            where: { partnerCode },
+          });
+          if (partner) {
+            await db.lead.update({
+              where: { id: lead.id },
+              data: { partnerId: partner.id, status: "WON" },
+            });
+            lead = { ...lead, partnerId: partner.id };
           }
         } else {
           await db.lead.update({ where: { id: lead.id }, data: { status: "WON" } });
         }
+
+        lead = await db.lead.findUniqueOrThrow({ where: { id: lead.id } });
 
         // Record conversion
         const existing = session.payment_intent
@@ -110,6 +126,16 @@ export async function POST(req: NextRequest) {
             },
           });
           await processSetupFeeConversion(conversion.id);
+
+          emitEvent("conversion.created", {
+            conversionId: conversion.id,
+            leadId: lead.id,
+            affiliateId: lead.affiliateId,
+            partnerId: lead.partnerId,
+            amount: setupFee,
+            type: "SETUP_FEE",
+            source: "stripe_checkout",
+          });
 
           // Customer confirmation — receipt + "your build starts now". Sent only
           // when the conversion is first recorded, so webhook retries never
@@ -201,18 +227,7 @@ export async function POST(req: NextRequest) {
           await processClawback(conversion.id, "Customer refund within 30-day window", "STRIPE_WEBHOOK");
         }
 
-        // Trigger n8n clawback workflow
-        if (process.env.N8N_CLAWBACK_WEBHOOK_URL) {
-          fetch(process.env.N8N_CLAWBACK_WEBHOOK_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              conversionId: conversion.id,
-              withinClawback,
-              stripeChargeId: charge.id,
-            }),
-          }).catch(console.error);
-        }
+        // Clawback event emitted from processClawback
         break;
       }
 

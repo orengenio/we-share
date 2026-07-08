@@ -8,6 +8,7 @@ import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
 import { createTransfer } from "@/lib/stripe";
 import { sendPayoutNotification } from "@/lib/email";
+import { emitEvent } from "@/lib/events";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const schema = z.object({ payoutId: z.string() });
@@ -168,6 +169,16 @@ export async function POST(req: NextRequest) {
         details: { successCount, failCount, finalStatus },
       },
     });
+
+    if (successCount > 0) {
+      emitEvent("payout.completed", {
+        payoutId,
+        successCount,
+        failCount,
+        batchLabel: payout.batchLabel,
+        totalAmount: payout.totalAmount,
+      });
+    }
 
     return apiSuccess({ payoutId, successCount, failCount, status: finalStatus });
   } catch (err) {

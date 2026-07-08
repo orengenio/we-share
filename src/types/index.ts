@@ -272,7 +272,10 @@ export interface TrackingParams {
 export interface AttributionResult {
   affiliateId: string | null;
   affiliateCode: string | null;
+  partnerId: string | null;
+  partnerCode: string | null;
   linkId: string | null;
+  partnerLinkId: string | null;
   clickId: string | null;
   isExpired: boolean;
 }

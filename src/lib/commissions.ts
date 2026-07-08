@@ -16,7 +16,7 @@
  */
 
 import { AffiliateRank, CommissionType } from "@prisma/client";
-import { addMonths } from "date-fns";
+import { addMonths, addDays } from "date-fns";
 import {
   COMMISSION_CONFIGS,
   PARTNER_COMMISSION,
@@ -27,6 +27,12 @@ import {
   WEBSITE_PACKAGES,
 } from "@/types";
 import db from "./db";
+
+/** Days before a commission becomes payout-eligible (NET-15 default). */
+export function commissionMaturityDate(from: Date = new Date()): Date {
+  const days = parseInt(process.env.COMMISSION_MATURITY_DAYS ?? "15", 10);
+  return addDays(from, days);
+}
 
 // ─── Package fee resolution ───────────────────────────────────────────────────
 
@@ -329,7 +335,12 @@ export async function processSetupFeeConversion(conversionId: string) {
   }
 
   if (commissionsToCreate.length > 0) {
-    await db.commission.createMany({ data: commissionsToCreate });
+    const maturesAt = commissionMaturityDate();
+    await db.commission.createMany({
+      data: commissionsToCreate.map((c) => ({ ...c, maturesAt })),
+    });
+    const { emitEvent } = await import("./events");
+    emitEvent("commission.created", { conversionId, count: commissionsToCreate.length });
   }
 
   // Update affiliate stats and check rank promotion
@@ -357,6 +368,7 @@ export async function processSetupFeeConversion(conversionId: string) {
           commissionRate: 1,
           amount: MILESTONE_BONUSES[newRank],
           status: "PENDING",
+          maturesAt: commissionMaturityDate(),
         },
       });
     }
@@ -379,6 +391,7 @@ export async function processSetupFeeConversion(conversionId: string) {
           commissionRate: 1,
           amount: PRODUCT_PRICING.fastStartBonus,
           status: "PENDING",
+          maturesAt: commissionMaturityDate(),
         },
       });
     }
@@ -533,7 +546,10 @@ export async function processResidualConversion(conversionId: string) {
   }
 
   if (commissionsToCreate.length > 0) {
-    await db.commission.createMany({ data: commissionsToCreate });
+    const maturesAt = commissionMaturityDate();
+    await db.commission.createMany({
+      data: commissionsToCreate.map((c) => ({ ...c, maturesAt })),
+    });
   }
 
   return { commissionsCreated: commissionsToCreate.length };
@@ -599,6 +615,15 @@ export async function processClawback(
         })
       ),
   ]);
+
+  const { emitEvent } = await import("./events");
+  emitEvent("commission.clawback", {
+    conversionId,
+    reason,
+    executedBy,
+    commissionsVoided: commissions.length,
+    overridesVoided: overrides.length,
+  });
 
   return {
     commissionsVoided: commissions.length,

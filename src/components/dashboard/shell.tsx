@@ -20,8 +20,7 @@ import {
   BookOpen,
   Settings,
   Compass,
-  Menu,
-  X,
+  Plug,
 } from "lucide-react";
 import type { AuthSession } from "@/types";
 import DashboardTour from "@/components/dashboard/dashboard-tour";
@@ -31,6 +30,7 @@ import ComplianceFooter from "@/components/legal-footer";
 const TOUR_ATTR: Record<string, string> = {
   "/affiliate/links": "nav-links",
   "/partner/leads": "nav-links",
+  "/partner/links": "nav-links",
   "/resources": "nav-resources",
   "/settings": "nav-settings",
 };
@@ -54,6 +54,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Commissions", href: "/admin/commissions", icon: <DollarSign size={18} /> },
         { label: "Payouts", href: "/admin/payouts", icon: <Wallet size={18} /> },
         { label: "Fraud", href: "/admin/fraud", icon: <ShieldAlert size={18} /> },
+        { label: "Integrations", href: "/admin/integrations", icon: <Plug size={18} /> },
         { label: "Disputes", href: "/admin/disputes", icon: <AlertCircle size={18} /> },
         { label: "Settings", href: "/settings", icon: <Settings size={18} /> },
       ];
@@ -61,6 +62,7 @@ function getNavItems(role: string): NavItem[] {
       return [
         { label: "Dashboard", href: "/partner", icon: <LayoutDashboard size={18} /> },
         { label: "My Leads", href: "/partner/leads", icon: <UserCheck size={18} /> },
+        { label: "My Links", href: "/partner/links", icon: <Link2 size={18} /> },
         { label: "Earnings", href: "/partner/earnings", icon: <DollarSign size={18} /> },
         { label: "Disputes", href: "/partner/disputes", icon: <AlertCircle size={18} /> },
         { label: "Resources", href: "/resources", icon: <BookOpen size={18} /> },
