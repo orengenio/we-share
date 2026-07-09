@@ -27,6 +27,7 @@ import {
 import type { AuthSession } from "@/types";
 import DashboardTour from "@/components/dashboard/dashboard-tour";
 import ComplianceFooter from "@/components/legal-footer";
+import FloatingCalculator from "@/components/public/floating-calculator";
 
 // Maps a nav href to the data-tour anchor the guided tour highlights.
 const TOUR_ATTR: Record<string, string> = {
@@ -380,6 +381,9 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
 
       {/* First-run guided tour (auto-runs once, replayable from the top bar) */}
       <DashboardTour role={session.role} />
+
+      {/* Site-wide earnings calculator */}
+      <FloatingCalculator />
     </div>
   );
 }

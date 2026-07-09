@@ -1,5 +1,6 @@
 import Image from "next/image";
 import ComplianceFooter from "@/components/legal-footer";
+import FloatingCalculator from "@/components/public/floating-calculator";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -46,6 +47,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       <ComplianceFooter variant="dark" compact />
+
+      {/* Site-wide earnings calculator */}
+      <FloatingCalculator />
     </div>
   );
 }
