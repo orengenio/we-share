@@ -10,9 +10,9 @@
  * tight spots (e.g. the auth card).
  */
 const LINKS = [
-  { href: "/docs/earnings-disclaimer.pdf", label: "Earnings Disclaimer" },
-  { href: "/docs/privacy-policy.pdf", label: "Privacy Policy" },
-  { href: "/docs/program-terms.pdf", label: "Terms of Service" },
+  { href: "/earnings-disclaimer", label: "Earnings Disclaimer" },
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
   { href: "mailto:partners@orengen.io", label: "Contact" },
 ];
 

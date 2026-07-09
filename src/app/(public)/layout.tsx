@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import PublicHeader from "@/components/public/header";
 import ComplianceFooter from "@/components/legal-footer";
+import FloatingCalculator from "@/components/public/floating-calculator";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
@@ -17,6 +18,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       <div className="mt-20">
         <ComplianceFooter variant="dark" />
       </div>
+
+      {/* Site-wide earnings calculator (hidden on /calculator itself) */}
+      <FloatingCalculator />
     </div>
   );
 }
