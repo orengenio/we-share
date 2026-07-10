@@ -1,18 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileSignature, Loader2 } from "lucide-react";
 
 /**
- * Shown on the partner dashboard until the Payment Authorization & Contractor
- * Agreement is accepted. Tax identity itself is handled by Stripe Connect —
- * this records the contractual acknowledgment.
+ * Shown on the partner dashboard until the CURRENT VERSION of the Sales
+ * Representative Agreement is accepted (version-aware: a new agreement
+ * version re-surfaces the banner for existing reps). Tax identity itself is
+ * handled by Stripe Connect — this records the contractual acceptance.
  */
 export default function AgreementBanner() {
+  const [needed, setNeeded] = useState(false);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/partners/me/agreement")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.success && d.data?.accepted === false) setNeeded(true);
+      })
+      .catch(() => null);
+  }, []);
 
   async function accept() {
     setSaving(true);
@@ -33,7 +44,7 @@ export default function AgreementBanner() {
     }
   }
 
-  if (done) return null;
+  if (!needed || done) return null;
 
   return (
     <>
@@ -58,37 +69,54 @@ export default function AgreementBanner() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setOpen(false)}>
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-900 mb-3">
-              Payment Authorization &amp; Contractor Agreement
+              Sales Representative Agreement
             </h2>
             <div className="space-y-3 text-sm text-gray-700">
-              <p>As an OrenGen Sales Partner, I acknowledge and agree:</p>
+              <p>
+                By clicking <strong>I Agree</strong> you accept the full{" "}
+                <a
+                  href="/partner-agreement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                  style={{ color: "#CC5500" }}
+                >
+                  Sales Representative Agreement (v2-2026-07-09)
+                </a>
+                . The short version:
+              </p>
               <ol className="list-decimal pl-5 space-y-2">
                 <li>
-                  I am an <strong>independent contractor</strong>, not an employee of OrenGen
-                  Worldwide LLC. I am responsible for my own taxes.
+                  You are an <strong>independent contractor</strong>, responsible for your own
+                  taxes — W-9/TIN and 1099s are handled through the <strong>Stripe account you
+                  connect</strong>.
                 </li>
                 <li>
-                  Commission payments are remitted to the <strong>Stripe account I connect</strong>.
-                  My tax information (W-9/TIN) is collected and certified through Stripe Connect,
-                  and tax forms (e.g. 1099) are issued through Stripe where thresholds are met.
+                  You earn <strong>25% of the setup fee + 25% of the monthly, for the life of
+                  each client you close</strong>. Commissions mature on a{" "}
+                  <strong>NET-15 hold</strong> and are subject to <strong>clawback</strong> on
+                  customer refunds within 30 days — including netting against future payouts.
                 </li>
                 <li>
-                  Commissions mature on a <strong>NET-15 hold</strong> and are subject to
-                  <strong> clawback</strong> if the customer refunds within 30 days — including
-                  netting against future payouts where a commission was already paid.
+                  You sell at the fixed price ($997 + $247/mo) through the official checkout,
+                  log every touch same-day, and make first contact with assigned leads within
+                  4 hours.
                 </li>
                 <li>
                   Client relationships, lead data, scripts, and pricing strategy are OrenGen
-                  property. I will not divert clients or leads off-platform.
+                  property — no diverting clients or leads off-platform, no representing
+                  competing product lines.
                 </li>
                 <li>
-                  On exit in good standing, my <strong>residual commissions continue</strong> on
-                  clients I closed, per the Partner Handbook. Termination for cause forfeits
-                  unpaid and future commissions.
+                  Exit in good standing and your <strong>residuals continue for the life of
+                  your client accounts</strong>. Termination for cause (fraud, circumvention,
+                  material breach) forfeits unpaid and future commissions. Either side gives
+                  14 days&apos; notice.
                 </li>
               </ol>
               <p className="text-xs text-gray-500">
-                Version v1-2026-07-08. Your acceptance is recorded with a timestamp and your
+                Version v2-2026-07-09 · incorporates the Program Terms of Service and Partner
+                Handbook by reference. Your acceptance is recorded with a timestamp and your
                 account identity.
               </p>
             </div>

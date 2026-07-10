@@ -112,8 +112,9 @@ export default async function PartnerDashboardPage() {
       <div className="space-y-6">
         <GettingStarted />
 
-        {/* Contractor agreement — until accepted */}
-        {!partner.w9Submitted && <AgreementBanner />}
+        {/* Sales Representative Agreement — banner self-hides once the
+            CURRENT version is accepted (version-aware via the audit log) */}
+        <AgreementBanner />
 
         {/* Assigned company number */}
         {partner.assignedPhoneNumber && (
