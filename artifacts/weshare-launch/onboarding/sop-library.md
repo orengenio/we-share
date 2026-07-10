@@ -30,8 +30,8 @@ and the single change that raises it. Machine does the math; these SOPs cover th
   1. Verify the webhook did the work: find the conversion in **Admin → Commissions** and confirm `charge.refunded` was processed — conversion shows `refundedAt`, `stripeRefundId`, and reason, and `processClawback` ran with reason "Customer refund within 30-day window", executor `STRIPE_WEBHOOK`.
   2. If the webhook did NOT fire (check **Admin → Integrations → Webhook Deliveries**), run the clawback manually from the commission detail view — never edit ledger rows by hand.
   3. Confirm the ledger picture: PENDING/APPROVED rows for that conversion → CLAWBACK; previously-APPROVED rows have negative VOID mirror entries; associated overrides → CLAWBACK.
-  4. **Paid-netting check** — the edge case this SOP exists for: if any row was already PAID, the engine creates a negative APPROVED entry (`voidMemo: "Clawback (already paid — nets against next payout)"`). Verify it exists and that the rep's next-payout balance reflects the deduction. The debt settles automatically in the next batch aggregation; no manual invoice, no demand letter.
-  5. Rep communication within 1 business day, Trusted Counselor voice: what happened (client refunded within the 30-day window), what it means (commission reversed per the agreement's NET-15/clawback terms, Handbook §10), and — if paid-netting applies — that the amount nets quietly against their next payout. No surprises on payday is the whole point of this step.
+  4. **Paid-netting check** — the edge case this SOP exists for: if any row was already PAID, the engine creates a negative APPROVED entry (`voidMemo` starting "Clawback (already paid — nets against next payout):" followed by the reason). Verify it exists and that the rep's next-payout balance reflects the deduction. The debt settles automatically in the next batch aggregation; no manual invoice, no demand letter.
+  5. Rep communication within 1 business day, Trusted Counselor voice: what happened (client refunded within the 30-day window), what it means (commission reversed per the agreement's NET-15/clawback terms, Handbook §2), and — if paid-netting applies — that the amount nets quietly against their next payout. No surprises on payday is the whole point of this step.
 - **SLA:** verification + rep notice within 1 business day of refund.
 - **QA check:** `commission.clawback` event shows `paidNetted` count matching the negative APPROVED entries; sum of original + netting entries for the conversion = 0.
 - **Escalation:** clawback on a conversion inside an open dispute → freeze rep comms, route to SOP-3. Netting that would push a rep's next payout below zero for 2+ consecutive months → founder decision on a payment plan.
@@ -42,7 +42,7 @@ and the single change that raises it. Machine does the math; these SOPs cover th
 
 - **Owner:** Dispute Referee (today: founder — by design, until volume forces delegation). **Trigger:** a rep files a commission dispute.
 - **Steps:**
-  1. Acknowledge receipt to the rep within 1 business day; state the 5-business-day ruling clock and mark the dispute UNDER_REVIEW in **Admin → Disputes**.
+  1. Acknowledge receipt to the rep within 1 business day and state the 5-business-day ruling clock. The dispute shows OPEN in **Admin → Disputes** until resolved — there is no separate "under review" admin action today, so the acknowledgment email is the clock-start record.
   2. Ledger trace, in order: (a) the conversion record — type, `grossRevenue`, attribution (`ws_partner_code` on the `/api/v1/track/purchase` call or Stripe webhook); (b) every commission row on that conversion — status, `rankAtTime`, rate, `maturesAt`; (c) any override rows; (d) any VOID / netting entries and their `voidMemo`; (e) the audit log (`COMMISSIONS_MATURED`, `PAYOUT_CREATED`, `PAYOUT_EXECUTED`) for the period in question.
   3. Rule against the written terms, not memory: 25% setup + 25% lifetime residual, NET-15 maturity, 30-day refund clawback, $25 payout minimum roll-forward. Most "missing commission" disputes are a roll-forward or a maturity hold — show the rep the exact row and date.
   4. Record the ruling via **Admin → Disputes → Resolve** (`PATCH /api/admin/disputes` with `disputeId`, written `resolution`, status RESOLVED or REJECTED). The resolution text is the record — write it so a stranger could reconstruct the reasoning.
@@ -86,7 +86,7 @@ and the single change that raises it. Machine does the math; these SOPs cover th
 
 ## SOP-6 · Save-Call Follow-Through
 
-- **Owner:** Client Success (today: founder). **Trigger:** `customer.subscription.deleted` fires — the save-call email goes to the owning rep automatically (client contact info + the Handbook §10 save script: find out what changed, fix what's fixable, and only then talk price), and the `client.cancelled` event is emitted.
+- **Owner:** Client Success (today: founder). **Trigger:** `customer.subscription.deleted` fires — the save-call email goes to the owning rep automatically (client contact info + the save script in the alert itself: find out what broke — "What changed?" — fix what's fixable, and remind them what goes dark without the site; Handbook §10 is the why), and the `client.cancelled` event is emitted.
 - **Steps:**
   1. Rep has a 48-hour window from the alert to make the save call and log the outcome in the CRM (same-day logging rule — the CRM record is the commission record).
   2. Admin check at hour 48: open the CRM record for the cancelled client. Look for a logged call with an outcome.
@@ -96,7 +96,7 @@ and the single change that raises it. Machine does the math; these SOPs cover th
   6. Residual note: cancellation ends the client's monthly billing, so the rep's $61.75/mo residual on that client stops with it — a saved client is the rep keeping their own annuity. Say it that plainly in coaching; never in client-facing words.
 - **SLA:** rep first attempt ≤48h; admin check at exactly 48h; outcome logged ≤72h from alert.
 - **QA check:** every `client.cancelled` event has a matching CRM outcome entry within 72h — zero orphaned cancellations.
-- **Escalation:** 3+ cancellations from one rep's book in a month → founder reviews that rep's client list and delivery record together; save rate below 20% for a quarter → revisit the §10 script itself.
+- **Escalation:** 3+ cancellations from one rep's book in a month → founder reviews that rep's client list and delivery record together; save rate below 20% for a quarter → revisit the save script in the alert email itself.
 - **Metric moved:** save rate; cancellation-to-outcome-logged lag.
 - **Founder-independence: 3.** *One change:* a 48-hour follow-up task auto-created (GHL or n8n bridge off the `client.cancelled` webhook) assigned to the admin queue, so the hour-48 check cannot be forgotten.
 
