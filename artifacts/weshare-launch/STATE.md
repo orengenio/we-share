@@ -27,7 +27,8 @@
 
 | Artifact | Status | Opened | Notes |
 |---|---|---|---|
-| Partner Payment Authorization & Contractor Agreement v1-2026-07-08 (live in-app) | **OPEN — awaiting counsel** | 2026-07-08 | Risk map at `legal/contract-risk-map.md` (3 HIGH findings: governing law/venue, indemnity/liability cap, undefined "cause"). Acceptance flow versioned — counsel's v2 triggers re-acceptance. Owner action: send map + modal text + Handbook §§5,9–12 to counsel. |
+| Partner Payment Authorization & Contractor Agreement v1-2026-07-08 | **SUPERSEDED by v2** | 2026-07-08 | Risk map at `legal/contract-risk-map.md` drove the v2 fills. |
+| Sales Representative Agreement v2-2026-07-09 (live in-app + `/partner-agreement`) | **SUBSTANTIALLY CLOSED — attorney-reviewed template adopted; fills flagged** | 2026-07-09 | Owner supplied an attorney-reviewed template; filled per `legal/sales-representative-agreement.md` (Appendix A lists every fill/addition). v2 closes risk-map V1 (cause defined), G1–G3 (via ToS incorporation). Remaining counsel confirm: lifetime-residual clause as written + incorporation-by-reference sufficiency (Appendix A #9–10). Re-acceptance is version-aware — v1 acceptors get the banner again. |
 
 ## v3 unlocked queue (ranked)
 

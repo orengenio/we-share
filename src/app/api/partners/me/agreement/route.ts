@@ -1,12 +1,12 @@
 /**
- * Partner Payment Authorization & Contractor Agreement acceptance.
+ * Sales Representative Agreement acceptance (full text at /partner-agreement).
  *
- * DECISION (2026-07-08): tax identity (W-9/TIN) is collected and certified by
- * Stripe Connect Express during payout onboarding, and 1099s are issued
- * through Stripe — no separate W-9 is collected here. What the app records is
- * the CONTRACTUAL acknowledgment (contractor status, clawback consent,
- * residual terms). The legacy `w9Submitted` column stores that acceptance;
- * the acceptance timestamp + agreement version live in the audit log.
+ * Tax identity (W-9/TIN) is collected and certified by Stripe Connect during
+ * payout onboarding and 1099s issue through Stripe — the app records the
+ * CONTRACTUAL acceptance. The legacy `w9Submitted` column stores "has accepted
+ * some version"; the authoritative version/timestamp/IP record lives in the
+ * audit log, so a new agreement version triggers re-acceptance without a
+ * migration.
  */
 
 import { NextRequest } from "next/server";
@@ -14,19 +14,30 @@ import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
 import { apiSuccess, apiUnauthorized, apiForbidden, getClientIP } from "@/lib/utils";
 
-const AGREEMENT_VERSION = "v1-2026-07-08";
+const AGREEMENT_VERSION = "v2-2026-07-09";
+
+async function acceptedVersion(partnerId: string): Promise<string | null> {
+  const entry = await db.auditLog.findFirst({
+    where: { action: "PARTNER_AGREEMENT_ACCEPTED", resourceId: partnerId },
+    orderBy: { createdAt: "desc" },
+    select: { details: true },
+  });
+  const details = entry?.details as { version?: string } | null;
+  return details?.version ?? null;
+}
 
 export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return apiUnauthorized();
   if (!session.partnerId) return apiForbidden();
 
-  const partner = await db.partnerProfile.findUnique({
-    where: { id: session.partnerId },
-    select: { w9Submitted: true },
-  });
+  const version = await acceptedVersion(session.partnerId);
 
-  return apiSuccess({ accepted: partner?.w9Submitted ?? false, version: AGREEMENT_VERSION });
+  return apiSuccess({
+    accepted: version === AGREEMENT_VERSION,
+    acceptedVersion: version,
+    currentVersion: AGREEMENT_VERSION,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -34,12 +45,9 @@ export async function POST(req: NextRequest) {
   if (!session) return apiUnauthorized();
   if (!session.partnerId) return apiForbidden();
 
-  const partner = await db.partnerProfile.findUnique({
-    where: { id: session.partnerId },
-    select: { w9Submitted: true },
-  });
-  if (partner?.w9Submitted) {
-    return apiSuccess({ accepted: true, alreadyAccepted: true });
+  const version = await acceptedVersion(session.partnerId);
+  if (version === AGREEMENT_VERSION) {
+    return apiSuccess({ accepted: true, alreadyAccepted: true, version: AGREEMENT_VERSION });
   }
 
   await db.partnerProfile.update({
@@ -53,7 +61,7 @@ export async function POST(req: NextRequest) {
       action: "PARTNER_AGREEMENT_ACCEPTED",
       resource: "PartnerProfile",
       resourceId: session.partnerId,
-      details: { version: AGREEMENT_VERSION },
+      details: { version: AGREEMENT_VERSION, previousVersion: version },
       ipAddress: getClientIP(req.headers),
     },
   });
