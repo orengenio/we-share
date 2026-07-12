@@ -12,6 +12,7 @@ export const WEBHOOK_EVENTS = [
   "click.recorded",
   "lead.attributed",
   "lead.registered",
+  "lead.sla_breached",
   "conversion.created",
   "commission.created",
   "commission.approved",
@@ -20,6 +21,9 @@ export const WEBHOOK_EVENTS = [
   "client.cancelled",
   "fraud.flagged",
   "partner.registered",
+  "partner.payouts_connected",
+  "partner.certified",
+  "partner.leads_unlocked",
   "affiliate.registered",
 ] as const;
 

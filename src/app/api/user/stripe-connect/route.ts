@@ -13,6 +13,8 @@ import {
   getConnectAccountStatus,
 } from "@/lib/stripe";
 import { sendPartnerStripeReady } from "@/lib/email";
+import { syncPartnerMilestoneToGHL } from "@/lib/ghl-milestones";
+import { emitEvent } from "@/lib/events";
 import { apiSuccess, apiError, apiUnauthorized } from "@/lib/utils";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://weshare.orengen.io";
@@ -54,6 +56,15 @@ export async function GET(req: NextRequest) {
       const user = await db.user.findUnique({ where: { id: session.userId } });
       if (user) {
         sendPartnerStripeReady(user.email, user.name ?? "there").catch(console.error);
+        syncPartnerMilestoneToGHL(user.email, "payouts_connected", {
+          firstName: user.name?.split(" ")[0],
+          lastName: user.name?.split(" ").slice(1).join(" "),
+        }).catch(console.error);
+        emitEvent("partner.payouts_connected", {
+          userId: user.id,
+          partnerId: session.partnerId,
+          email: user.email,
+        });
       }
     }
   }

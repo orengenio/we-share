@@ -1,6 +1,8 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { isGHLConfigured, sendEmailViaGHL } from "@/lib/ghl";
 import { isMailwizzConfigured, sendEmailViaMailwizz } from "@/lib/mailwizz";
+import { buildBrandedEmail } from "@/lib/email-ai";
+import { p, ol, ul, highlightBox, type EmailLayoutOptions } from "@/lib/email-layout";
 
 export type EmailProvider = "mailwizz" | "ghl" | "smtp";
 
@@ -81,6 +83,16 @@ export function getActiveEmailProvider(): EmailProvider {
   return resolveEmailProvider();
 }
 
+async function sendBranded(
+  to: string,
+  subject: string,
+  templateKey: string,
+  layout: EmailLayoutOptions
+) {
+  const html = await buildBrandedEmail(templateKey, layout);
+  return send(to, subject, html);
+}
+
 // ─── Affiliate welcome ────────────────────────────────────────────────────────
 
 export async function sendAffiliateWelcome(
@@ -89,18 +101,17 @@ export async function sendAffiliateWelcome(
   affiliateCode: string
 ) {
   const link = `${APP_URL}/r/${affiliateCode}`;
-  return send(
-    email,
-    "Welcome to WeShare — your referral link is ready",
-    `<h2>Welcome, ${name}!</h2>
-<p>You're officially a WeShare Referral Partner. Your unique tracking link is:</p>
-<p><strong><a href="${link}">${link}</a></strong></p>
-<p>Share this link. Every sale you refer earns you a commission — and monthly residuals that grow with your rank.</p>
-<p>Log in to your dashboard to track clicks, leads, and earnings:<br>
-<a href="${APP_URL}/affiliate">${APP_URL}/affiliate</a></p>
-<p>Questions? Reply to this email.</p>
-<p>— OrenGen Team</p>`
-  );
+  return sendBranded(email, "Welcome to WeShare — your referral link is ready", "affiliate_welcome", {
+    preheader: "Your unique tracking link is live — start sharing today.",
+    headline: `Welcome, ${name}!`,
+    bodyHtml: [
+      p("You're officially a WeShare <strong>Referral Partner</strong>. Your unique tracking link:"),
+      highlightBox(`<a href="${link}" style="color:#00254B;text-decoration:none;">${link}</a>`),
+      p("Share this link. Every sale you refer earns a commission — plus monthly residuals that grow with your rank."),
+      p(`Track clicks, leads, and earnings on your dashboard.`),
+    ].join(""),
+    cta: { label: "Open your dashboard", href: `${APP_URL}/affiliate` },
+  });
 }
 
 // ─── Partner welcome ──────────────────────────────────────────────────────────
@@ -110,22 +121,21 @@ export async function sendPartnerWelcome(
   name: string,
   partnerCode: string
 ) {
-  return send(
-    email,
-    "You're in — here's exactly how your first week goes",
-    `<h2>Welcome to the book-of-business side, ${name}.</h2>
-<p>Most sales jobs make you re-earn your living every 30 days. Starting today, every client
-you close pays you on the way in <em>and</em> every month they stay. Your partner code —
-the one your closes get credited to — is <strong>${partnerCode}</strong>.</p>
-<p><strong>Your first week, in order:</strong></p>
-<ol>
-  <li><strong>Connect payouts.</strong> Stripe setup takes ~5 minutes on your dashboard. Money needs somewhere to land before you earn it.</li>
-  <li><strong>Study Handbook §6.</strong> The cold opener, the Mockup Close™, the battlecards. Your certification role-play comes straight from it.</li>
-  <li><strong>Pass certification.</strong> Then lead rotation switches on and the 4-Hour Rule starts working <em>for</em> you — every rep touches leads fast, or loses them to someone who will.</li>
-</ol>
-<p>Your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
-<p>— The OrenGen Team</p>`
-  );
+  return sendBranded(email, "You're in — here's exactly how your first week goes", "partner_welcome", {
+    preheader: "Your partner code is live. Three steps to your first close.",
+    headline: `Welcome to the book-of-business side, ${name}.`,
+    bodyHtml: [
+      p("Most sales jobs make you re-earn your living every 30 days. Starting today, every client you close pays you on the way in <strong>and</strong> every month they stay."),
+      highlightBox(`Your partner code: <strong>${partnerCode}</strong>`),
+      p("<strong>Your first week, in order:</strong>"),
+      ol([
+        "<strong>Connect payouts.</strong> Stripe setup takes ~5 minutes on your dashboard. Money needs somewhere to land before you earn it.",
+        "<strong>Study Handbook §6.</strong> The cold opener, the Mockup Close™, the battlecards. Your certification role-play comes straight from it.",
+        "<strong>Pass certification.</strong> Then lead rotation switches on and the 4-Hour Rule starts working <em>for</em> you.",
+      ]),
+    ].join(""),
+    cta: { label: "Open partner dashboard", href: `${APP_URL}/partner` },
+  });
 }
 
 // ─── Partner onboarding sequence (milestone-triggered) ───────────────────────
@@ -133,56 +143,53 @@ the one your closes get credited to — is <strong>${partnerCode}</strong>.</p>
 // leads unlocked → first lead assigned. Each fires once, on the event itself.
 
 export async function sendPartnerStripeReady(email: string, name: string) {
-  return send(
-    email,
-    "Payouts are live. One door left: certification.",
-    `<h2>Money has somewhere to land now, ${name} ✅</h2>
-<p>Stripe is connected and verified. From here, every commission you earn — the upfront
-and the monthly residuals — flows to your own account, visible per-client on your dashboard.</p>
-<p><strong>One door left before leads: the certification role-play.</strong> It's us playing
-a skeptical plumber, you running Handbook §6. Nobody gets live leads without passing it —
-which is exactly why the leads you'll get are worth getting.</p>
-<ol>
-  <li>Study §6 in the <a href="${APP_URL}/resources">Partner Handbook</a> — the cold opener, the Mockup Close™, the battlecards.</li>
-  <li>Reply to this email to book your role-play slot.</li>
-  <li>Pass it. Rotation switches on.</li>
-</ol>
-<p>Your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
-<p>— The OrenGen Team</p>`
-  );
+  return sendBranded(email, "Payouts are live. One door left: certification.", "partner_stripe_ready", {
+    preheader: "Stripe is connected — book your certification role-play next.",
+    headline: `Money has somewhere to land now, ${name} ✅`,
+    bodyHtml: [
+      p("Stripe is connected and verified. From here, every commission you earn — upfront and monthly residuals — flows to your own account, visible per-client on your dashboard."),
+      p("<strong>One door left before leads: the certification role-play.</strong> We play a skeptical business owner; you run Handbook §6. Nobody gets live leads without passing — which is exactly why the leads you'll get are worth getting."),
+      ol([
+        `Study §6 in the <a href="${APP_URL}/resources" style="color:#CC5500;">Partner Handbook</a> — cold opener, Mockup Close™, battlecards.`,
+        "Reply to this email to book your role-play slot.",
+        "Pass it. Rotation switches on.",
+      ]),
+    ].join(""),
+    cta: { label: "View dashboard", href: `${APP_URL}/partner` },
+  });
 }
 
 export async function sendPartnerCertified(email: string, name: string) {
-  return send(
-    email,
-    "Certified. You're cleared to sell.",
-    `<h2>You passed, ${name} 🎓</h2>
-<p>You held the script under pressure — that's the whole test. Lead rotation is being
-switched on for your account; you'll get an email the moment you're live.</p>
-<p><strong>Don't wait on us to start earning:</strong></p>
-<ul>
-  <li>Every business you know that's invisible online is yours to claim — register it from
-      <a href="${APP_URL}/partner/leads">your Leads page</a>. First to register owns the account. Permanently.</li>
-  <li>Keep Handbook §6 open on every call — it's a call companion, not homework.</li>
-</ul>
-<p>— The OrenGen Team</p>`
-  );
+  return sendBranded(email, "Certified. You're cleared to sell.", "partner_certified", {
+    preheader: "You passed — lead rotation is being switched on.",
+    headline: `You passed, ${name} 🎓`,
+    bodyHtml: [
+      p("You held the script under pressure — that's the whole test. Lead rotation is being switched on for your account; you'll get an email the moment you're live."),
+      p("<strong>Don't wait on us to start earning:</strong>"),
+      ul([
+        `Every business you know that's invisible online is yours to claim — register it from <a href="${APP_URL}/partner/leads" style="color:#CC5500;">your Leads page</a>. First to register owns the account. Permanently.`,
+        "Keep Handbook §6 open on every call — it's a call companion, not homework.",
+      ]),
+    ].join(""),
+    cta: { label: "Go to Leads", href: `${APP_URL}/partner/leads` },
+  });
 }
 
 export async function sendPartnerLeadsUnlocked(email: string, name: string) {
-  return send(
-    email,
-    "You're in rotation — the 4-Hour Rule is now your friend",
-    `<h2>Rotation is on, ${name} 🚀</h2>
-<p>Live leads now land on <a href="${APP_URL}/partner/leads">your Leads page</a>, with an
-email the moment each one arrives. Two rules keep your book growing instead of leaking:</p>
-<ul>
-  <li><strong>The 4-Hour Rule.</strong> First touch inside 4 hours, every lead. Untouched leads recycle to another rep — the same rule that just started feeding you.</li>
-  <li><strong>Same-day logging.</strong> The CRM record is the commission record. If it isn't logged, it didn't happen.</li>
-</ul>
-<p>Answer fast, run §6, ask for the mockup. That's the whole job.</p>
-<p>— The OrenGen Team</p>`
-  );
+  return sendBranded(email, "You're in rotation — the 4-Hour Rule is now your friend", "partner_leads_unlocked", {
+    preheader: "Live leads are heading to your dashboard now.",
+    headline: `Rotation is on, ${name} 🚀`,
+    bodyHtml: [
+      p(`Live leads now land on <a href="${APP_URL}/partner/leads" style="color:#CC5500;">your Leads page</a>, with an email the moment each one arrives.`),
+      p("Two rules keep your book growing instead of leaking:"),
+      ul([
+        "<strong>The 4-Hour Rule.</strong> First touch inside 4 hours, every lead. Untouched leads recycle to another rep.",
+        "<strong>Same-day logging.</strong> The CRM record is the commission record. If it isn't logged, it didn't happen.",
+      ]),
+      p("Answer fast, run §6, ask for the mockup. That's the whole job."),
+    ].join(""),
+    cta: { label: "View my leads", href: `${APP_URL}/partner/leads` },
+  });
 }
 
 export async function sendLeadAssigned(
@@ -191,16 +198,21 @@ export async function sendLeadAssigned(
   leadName: string,
   company?: string | null
 ) {
-  return send(
+  const label = `${leadName}${company ? ` (${company})` : ""}`;
+  return sendBranded(
     partnerEmail,
     `New lead: ${leadName} — the 4-hour clock is running`,
-    `<h2>${leadName}${company ? ` (${company})` : ""} is yours, ${partnerName}.</h2>
-<p>Assigned just now — which means the 4-Hour Rule clock started just now. Speed-to-lead
-is the single highest-leverage move in this business: the rep who calls first usually
-closes.</p>
-<p>Contact details are on your Leads page. Make the touch, log the touch:</p>
-<p><a href="${APP_URL}/partner/leads">${APP_URL}/partner/leads</a></p>
-<p>— The OrenGen Team</p>`
+    "lead_assigned",
+    {
+      preheader: "Speed-to-lead wins. Contact details are on your Leads page.",
+      headline: `${label} is yours, ${partnerName}.`,
+      bodyHtml: [
+        p("Assigned just now — which means the <strong>4-Hour Rule</strong> clock started just now. The rep who calls first usually closes."),
+        p("Contact details are on your Leads page. Make the touch, log the touch."),
+      ].join(""),
+      cta: { label: "Open lead now", href: `${APP_URL}/partner/leads` },
+      footerNote: "Miss the 4-hour window and this lead may recycle to another rep.",
+    }
   );
 }
 
@@ -209,19 +221,19 @@ export async function sendNumberAssigned(
   name: string,
   phoneNumber: string
 ) {
-  return send(
-    email,
-    `Your company number is ready: ${phoneNumber}`,
-    `<h2>Your company number is live, ${name} 📞</h2>
-<p>All your prospect calls and texts now run through your assigned OrenGen number:</p>
-<p style="font-size:22px;font-weight:700">${phoneNumber}</p>
-<ul>
-  <li>Use this number for <strong>every</strong> prospect call and text — it keeps you carrier-compliant and your outreach logged.</li>
-  <li>Texting rules still apply: prior consent, 8 AM–9 PM local time, honor every opt-out instantly.</li>
-</ul>
-<p>It's also shown on your dashboard: <a href="${APP_URL}/partner">${APP_URL}/partner</a></p>
-<p>— OrenGen Team</p>`
-  );
+  return sendBranded(email, `Your company number is ready: ${phoneNumber}`, "number_assigned", {
+    preheader: "Use this number for every prospect call and text.",
+    headline: `Your company number is live, ${name} 📞`,
+    bodyHtml: [
+      p("All your prospect calls and texts now run through your assigned OrenGen number:"),
+      highlightBox(phoneNumber),
+      ul([
+        "Use this number for <strong>every</strong> prospect call and text — carrier-compliant and logged.",
+        "Texting rules: prior consent, 8 AM–9 PM local time, honor every opt-out instantly.",
+      ]),
+    ].join(""),
+    cta: { label: "View on dashboard", href: `${APP_URL}/partner` },
+  });
 }
 
 // ─── Rep application → admin notice ──────────────────────────────────────────
@@ -279,18 +291,20 @@ export async function sendClientCancelledAlert(
   clientEmail: string,
   clientPhone?: string | null
 ) {
-  return send(
+  return sendBranded(
     partnerEmail,
     `Save call needed: ${clientName} just cancelled`,
-    `<h2>${clientName} cancelled, ${partnerName} — and you're the best shot at saving them.</h2>
-<p>Their subscription just ended, which means your <strong>$61.75/mo residual on this client
-stops</strong> unless someone brings them back. Nobody has a better win-back percentage than
-the person who sold them.</p>
-<p><strong>Client:</strong> ${clientName} · ${clientEmail}${clientPhone ? ` · ${clientPhone}` : ""}</p>
-<p>The save call, in one line: find out what broke ("What changed?"), fix what's fixable,
-and remind them what goes dark without the site. Log the touch either way:</p>
-<p><a href="${APP_URL}/partner/leads">${APP_URL}/partner/leads</a></p>
-<p>— The OrenGen Team</p>`
+    "client_cancelled",
+    {
+      preheader: "Your residual on this client stops unless someone brings them back.",
+      headline: `${clientName} cancelled, ${partnerName} — you're the best shot at saving them.`,
+      bodyHtml: [
+        p("Their subscription just ended, which means your <strong>$61.75/mo residual on this client stops</strong> unless someone brings them back. Nobody has a better win-back percentage than the person who sold them."),
+        highlightBox(`${clientName} · ${clientEmail}${clientPhone ? ` · ${clientPhone}` : ""}`),
+        p('The save call in one line: find out what broke ("What changed?"), fix what\'s fixable, and remind them what goes dark without the site.'),
+      ].join(""),
+      cta: { label: "Log the touch", href: `${APP_URL}/partner/leads` },
+    }
   );
 }
 
@@ -303,21 +317,21 @@ export async function sendOrderConfirmation(
   name: string,
   amountPaid: number
 ) {
-  return send(
-    email,
-    "Order confirmed — your build starts now",
-    `<h2>You're on the board, ${name}. 🎉</h2>
-<p>Payment of <strong>$${amountPaid.toFixed(2)}</strong> received — and as of this email,
-your business is done being invisible online. The build starts now.</p>
-<p><strong>Exactly what happens next:</strong></p>
-<ol>
-  <li><strong>Quick intake.</strong> A few short questions land in this inbox — services, hours, photos if you have them. Ten minutes of your time, total.</li>
-  <li><strong>We build.</strong> Our team designs and builds the whole thing. Most sites are live in five days or less — you never touch code.</li>
-  <li><strong>Launch &amp; ongoing care.</strong> Your $247/month plan covers hosting, maintenance, updates, and support. No surprise fees — surprise billing is how the other guys lose customers, and we plan on keeping you.</li>
-</ol>
-<p>Questions at any point? Reply to this email — a real person reads it, usually the same day.</p>
-<p>— The OrenGen Team<br>OrenGen Worldwide LLC</p>`
-  );
+  return sendBranded(email, "Order confirmed — your build starts now", "order_confirmation", {
+    preheader: "Payment received. Here's exactly what happens next.",
+    headline: `You're on the board, ${name}. 🎉`,
+    bodyHtml: [
+      p(`Payment of <strong>$${amountPaid.toFixed(2)}</strong> received — your business is done being invisible online. The build starts now.`),
+      p("<strong>Exactly what happens next:</strong>"),
+      ol([
+        "<strong>Quick intake.</strong> A few short questions land in this inbox — services, hours, photos if you have them. Ten minutes total.",
+        "<strong>We build.</strong> Our team designs and builds the whole thing. Most sites are live in five days or less — you never touch code.",
+        "<strong>Launch &amp; ongoing care.</strong> Your $247/month plan covers hosting, maintenance, updates, and support. No surprise fees.",
+      ]),
+      p("Questions at any point? Reply to this email — a real person reads it, usually the same day."),
+    ].join(""),
+    footerNote: "OrenGen Worldwide LLC",
+  });
 }
 
 // ─── Rank promotion ───────────────────────────────────────────────────────────
@@ -349,14 +363,19 @@ export async function sendPayoutNotification(
   amount: number,
   period: string
 ) {
-  return send(
+  return sendBranded(
     email,
     `Your WeShare payout of $${amount.toFixed(2)} has been sent`,
-    `<h2>Payout Sent, ${name}!</h2>
-<p>Your payout for <strong>${period}</strong> of <strong>$${amount.toFixed(2)}</strong> has been transferred to your Stripe account.</p>
-<p>It typically arrives within 2-3 business days.</p>
-<p>View your earnings history:<br>
-<a href="${APP_URL}/affiliate/earnings">${APP_URL}/affiliate/earnings</a></p>`
+    "payout_notification",
+    {
+      preheader: `Payout for ${period} is on its way to your Stripe account.`,
+      headline: `Payout sent, ${name}!`,
+      bodyHtml: [
+        p(`Your payout for <strong>${period}</strong> of <strong>$${amount.toFixed(2)}</strong> has been transferred to your Stripe account.`),
+        p("It typically arrives within 2–3 business days."),
+      ].join(""),
+      cta: { label: "View earnings history", href: `${APP_URL}/affiliate/earnings` },
+    }
   );
 }
 
@@ -385,14 +404,21 @@ export async function sendSLABreachAlert(
   leadEmail: string,
   leadName: string
 ) {
-  return send(
+  return sendBranded(
     partnerEmail,
     `Action required: Lead ${leadName} has not been contacted within 4 hours`,
-    `<h2>SLA Breach — Immediate Action Required</h2>
-<p>Hi ${partnerName},</p>
-<p>Lead <strong>${leadName}</strong> (${leadEmail}) was assigned to you over 4 hours ago and has not been contacted yet.</p>
-<p>Please reach out now to avoid lead recycling:</p>
-<a href="${APP_URL}/partner/leads">${APP_URL}/partner/leads</a>`
+    "sla_breach",
+    {
+      preheader: "The 4-Hour Rule clock expired — contact this lead now.",
+      headline: "SLA breach — immediate action required",
+      bodyHtml: [
+        p(`Hi ${partnerName},`),
+        p(`Lead <strong>${leadName}</strong> (${leadEmail}) was assigned over 4 hours ago and has not been contacted yet.`),
+        p("Reach out now to avoid lead recycling."),
+      ].join(""),
+      cta: { label: "Contact lead now", href: `${APP_URL}/partner/leads` },
+      footerNote: "Repeated breaches may affect your lead rotation priority.",
+    }
   );
 }
 
@@ -417,13 +443,19 @@ export async function sendPasswordReset(email: string, token: string) {
 // callers of this should await it and surface any error for diagnostics.
 export async function sendTestEmail(to: string) {
   const provider = getActiveEmailProvider();
-  return send(
-    to,
-    `WeShare email test ✅ (${provider})`,
-    `<h2>Your email is working 🎉</h2>
-<p>This is a test message from your WeShare deployment via <strong>${provider}</strong>.
-Because it arrived in your inbox (not spam), outbound email is configured correctly —
-partners will receive welcome emails, payout notifications, and password resets.</p>
-<p style="color:#6b7280;font-size:13px;margin-top:16px">Sent from ${APP_URL}</p>`
-  );
+  const geminiNote =
+    process.env.GEMINI_API_KEY && process.env.EMAIL_USE_GEMINI !== "false"
+      ? " Gemini polish is active for partner emails."
+      : "";
+  const html = await buildBrandedEmail("test_email", {
+    preheader: "If this looks good in your inbox, outbound mail is configured correctly.",
+    headline: "Your email is working 🎉",
+    bodyHtml: [
+      p(`This is a test from your WeShare deployment via <strong>${provider}</strong>.`),
+      p("Because it arrived in your inbox with the OrenGen branded layout, partners will receive polished welcome emails, payout notifications, and password resets."),
+      p(`<span style="color:#6b7280;font-size:13px;">Sent from ${APP_URL}${geminiNote}</span>`),
+    ].join(""),
+    cta: { label: "Open WeShare", href: APP_URL },
+  });
+  return send(to, `WeShare email test ✅ (${provider})`, html);
 }
