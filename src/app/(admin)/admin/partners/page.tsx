@@ -12,6 +12,7 @@ interface Partner {
   leadsUnlocked: boolean;
   isActive: boolean;
   isLeader: boolean;
+  crmSeatGrantedAt: string | null;
   totalLeadsAssigned: number;
   totalDealsWon: number;
   totalEarned: number;
@@ -167,6 +168,17 @@ export default function AdminPartnersPage() {
                       <button onClick={() => assignNumber(p)} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline text-left">
                         {p.assignedPhoneNumber ? "Change #" : "Assign #"}
                       </button>
+                      {p.crmSeatGrantedAt ? (
+                        <span className="text-xs text-green-700">CRM seat ✓</span>
+                      ) : (
+                        <button
+                          onClick={() => performAction(p.id, "grant_crm_seat")}
+                          disabled={actionId === p.id}
+                          className="text-xs text-[#00254B] hover:underline text-left"
+                        >
+                          Grant CRM seat
+                        </button>
+                      )}
                       <button onClick={() => deleteAccount(p)} disabled={actionId === p.id} className="text-xs text-red-700 hover:underline text-left">
                         Delete
                       </button>

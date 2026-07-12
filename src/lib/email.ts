@@ -192,6 +192,33 @@ export async function sendPartnerLeadsUnlocked(email: string, name: string) {
   });
 }
 
+const GHL_LOGIN_URL =
+  process.env.GHL_LOGIN_URL || process.env.NEXT_PUBLIC_GHL_LOGIN_URL || "https://crm.orengen.com";
+
+/** Sent when admin grants a GHL CRM seat — complements (does not replace) GHL's activation email. */
+export async function sendPartnerGHLAccessReady(email: string, name: string) {
+  return sendBranded(email, "Your OrenGen CRM seat is ready", "partner_ghl_access", {
+    preheader: "Activate your CRM login, then log your touches same-day.",
+    headline: `Your CRM seat is live, ${name}`,
+    bodyHtml: [
+      p("You now have a <strong>limited Sales Partner seat</strong> in the OrenGen CRM — contacts, conversations, and calendars for the leads assigned to you."),
+      p("<strong>Two emails, two jobs:</strong>"),
+      ol([
+        'A <strong>platform activation email</strong> from our CRM (sender may show as <em>acct-mgmt</em>) — click the button there first to set your password.',
+        "This email — your operating rules once you're in.",
+      ]),
+      p("<strong>Your permissions (by design):</strong>"),
+      ul([
+        '<strong>Only Assigned Data</strong> — you see your leads, not the full company pipeline.',
+        "Log every touch same-day. The CRM record is the commission record.",
+        "SMS only with prior consent; 8 AM–9 PM local; honor STOP immediately.",
+      ]),
+    ].join(""),
+    cta: { label: "Open OrenGen CRM", href: GHL_LOGIN_URL },
+    footerNote: "Questions? Reply here — do not share your CRM password in email.",
+  });
+}
+
 export async function sendLeadAssigned(
   partnerEmail: string,
   partnerName: string,

@@ -15,7 +15,8 @@ export type PartnerMilestone =
   | "payouts_connected"
   | "certified"
   | "leads_unlocked"
-  | "phone_assigned";
+  | "phone_assigned"
+  | "crm_seat_granted";
 
 const MILESTONE_TAGS: Record<PartnerMilestone, string> = {
   registered: "WS Partner Registered",
@@ -23,6 +24,7 @@ const MILESTONE_TAGS: Record<PartnerMilestone, string> = {
   certified: "WS Rep Certified",
   leads_unlocked: "WS Leads Active",
   phone_assigned: "WS Company Number",
+  crm_seat_granted: "WS CRM Seat Granted",
 };
 
 /**
