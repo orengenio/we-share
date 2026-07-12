@@ -112,6 +112,24 @@ export default async function PartnerDashboardPage() {
       <div className="space-y-6">
         <GettingStarted />
 
+        {partner.stripeAccountStatus !== "enabled" && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border-2 border-[#CC5500]/30 bg-gradient-to-r from-orange-50 to-white px-5 py-4 shadow-sm">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Step 1: Connect payouts before you close</p>
+              <p className="text-xs text-gray-600 mt-1 max-w-xl">
+                Stripe takes ~5 minutes. You need a connected account for 25% setup + 25% residual payouts — tax info is collected securely by Stripe.
+              </p>
+            </div>
+            <Link
+              href="/settings"
+              className="inline-flex shrink-0 items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
+              style={{ backgroundColor: "#00254B" }}
+            >
+              Set up Stripe Connect →
+            </Link>
+          </div>
+        )}
+
         {/* Sales Representative Agreement — banner self-hides once the
             CURRENT version is accepted (version-aware via the audit log) */}
         <AgreementBanner />

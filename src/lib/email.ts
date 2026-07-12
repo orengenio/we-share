@@ -1,5 +1,18 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { isGHLConfigured, sendEmailViaGHL } from "@/lib/ghl";
+import { isMailwizzConfigured, sendEmailViaMailwizz } from "@/lib/mailwizz";
+
+export type EmailProvider = "mailwizz" | "ghl" | "smtp";
+
+function resolveEmailProvider(): EmailProvider {
+  const explicit = (process.env.EMAIL_PROVIDER || "").toLowerCase();
+  if (explicit === "mailwizz" || explicit === "ghl" || explicit === "smtp") {
+    return explicit;
+  }
+  if (isMailwizzConfigured()) return "mailwizz";
+  if (isGHLConfigured()) return "ghl";
+  return "smtp";
+}
 
 // The deployment is configured for SMTP (mail.orengen.io) via SMTP_* env vars.
 // Build the transporter lazily so a missing/incomplete mail config never
@@ -34,11 +47,16 @@ const REPLY_TO = process.env.EMAIL_REPLY_TO || "support@orengen.io";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://weshare.orengen.io";
 
 async function send(to: string, subject: string, html: string) {
-  // Prefer GHL's email system when configured — no external SMTP dependency,
-  // and every recipient is kept in the CRM. Falls back to SMTP otherwise.
-  if (isGHLConfigured()) {
+  const provider = resolveEmailProvider();
+
+  if (provider === "mailwizz") {
+    return sendEmailViaMailwizz(to, subject, html);
+  }
+
+  if (provider === "ghl") {
     return sendEmailViaGHL(to, subject, html);
   }
+
   return getTransport().sendMail({
     from: FROM,
     replyTo: REPLY_TO,
@@ -46,6 +64,10 @@ async function send(to: string, subject: string, html: string) {
     subject,
     html,
   });
+}
+
+export function getActiveEmailProvider(): EmailProvider {
+  return resolveEmailProvider();
 }
 
 // ─── Affiliate welcome ────────────────────────────────────────────────────────

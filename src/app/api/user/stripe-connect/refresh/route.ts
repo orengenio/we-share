@@ -12,11 +12,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const returnUrl = `${APP_URL}/affiliate/settings?stripe=complete`;
+    const returnUrl = `${APP_URL}/settings?stripe=complete`;
     const refreshUrl = `${APP_URL}/api/user/stripe-connect/refresh?id=${accountId}`;
     const link = await createConnectOnboardingLink(accountId, returnUrl, refreshUrl);
     return NextResponse.redirect(link.url);
   } catch {
-    return NextResponse.redirect(`${APP_URL}/affiliate/settings?stripe=error`);
+    return NextResponse.redirect(`${APP_URL}/settings?stripe=error`);
   }
 }

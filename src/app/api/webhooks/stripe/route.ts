@@ -6,6 +6,7 @@
  * - invoice.payment_succeeded     → record monthly maintenance conversion
  * - charge.refunded               → trigger clawback pipeline
  * - customer.subscription.deleted → cancel future residual commissions
+ * - account.updated               → sync Connect onboarding status
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -20,6 +21,7 @@ import db from "@/lib/db";
 import { sendOrderConfirmation, sendClientCancelledAlert } from "@/lib/email";
 import { addDays } from "date-fns";
 import { emitEvent } from "@/lib/events";
+import { syncStripeConnectByAccountId } from "@/lib/stripe-connect-sync";
 import type Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -248,6 +250,14 @@ export async function POST(req: NextRequest) {
         }
 
         // Clawback event emitted from processClawback
+        break;
+      }
+
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        if (account.id) {
+          await syncStripeConnectByAccountId(account.id).catch(console.error);
+        }
         break;
       }
 

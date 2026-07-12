@@ -10,9 +10,8 @@ import db from "@/lib/db";
 import {
   createConnectAccount,
   createConnectOnboardingLink,
-  getConnectAccountStatus,
 } from "@/lib/stripe";
-import { sendPartnerStripeReady } from "@/lib/email";
+import { syncStripeConnectByAccountId } from "@/lib/stripe-connect-sync";
 import { apiSuccess, apiError, apiUnauthorized } from "@/lib/utils";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://weshare.orengen.io";
@@ -34,35 +33,13 @@ export async function GET(req: NextRequest) {
     return apiSuccess({ status: "not_connected", onboardingRequired: true });
   }
 
-  const status = await getConnectAccountStatus(connectId);
-
-  // Persist the status transition. The first flip to payouts-enabled is the
-  // "Stripe step done" milestone of partner onboarding — trigger the next-step
-  // email exactly once, on that flip.
-  const storedStatus = (profile as { stripeAccountStatus?: string | null }).stripeAccountStatus;
-  if (status.payoutsEnabled && storedStatus !== "enabled") {
-    if (session.role === "AFFILIATE") {
-      await db.affiliateProfile.update({
-        where: { id: session.affiliateId },
-        data: { stripeAccountStatus: "enabled" },
-      });
-    } else if (session.partnerId) {
-      await db.partnerProfile.update({
-        where: { id: session.partnerId },
-        data: { stripeAccountStatus: "enabled" },
-      });
-      const user = await db.user.findUnique({ where: { id: session.userId } });
-      if (user) {
-        sendPartnerStripeReady(user.email, user.name ?? "there").catch(console.error);
-      }
-    }
-  }
+  const synced = await syncStripeConnectByAccountId(connectId);
 
   return apiSuccess({
-    status: status.payoutsEnabled ? "enabled" : "pending",
-    detailsSubmitted: status.detailsSubmitted,
-    payoutsEnabled: status.payoutsEnabled,
-    requirementsCurrentlyDue: status.requirementsCurrentlyDue,
+    status: synced.nextStatus === "enabled" ? "enabled" : "pending",
+    detailsSubmitted: synced.detailsSubmitted,
+    payoutsEnabled: synced.payoutsEnabled,
+    requirementsCurrentlyDue: synced.requirementsCurrentlyDue,
     stripeConnectId: connectId,
   });
 }

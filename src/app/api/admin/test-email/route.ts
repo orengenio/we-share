@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     return apiSuccess({
       sent: true,
       to,
+      provider: process.env.EMAIL_PROVIDER || "auto",
       messageId: info.messageId ?? null,
       response: info.response ?? null,
     });

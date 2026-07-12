@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Camera, Loader2, Check, CreditCard, ShieldCheck, ExternalLink, Mail } from "lucide-react";
 
 interface Me {
@@ -50,6 +51,7 @@ function fileToResizedDataUrl(file: File, size = 256): Promise<string> {
 }
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,6 +68,8 @@ export default function SettingsPage() {
   const [testTo, setTestTo] = useState("");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const [stripeBanner, setStripeBanner] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/auth/me");
@@ -94,6 +98,23 @@ export default function SettingsPage() {
       .then(d => setStripeStatus(d.success ? d.data.status : "error"))
       .catch(() => setStripeStatus("error"));
   }, [me]);
+
+  useEffect(() => {
+    const stripe = searchParams.get("stripe");
+    if (stripe === "complete") {
+      setStripeBanner("Payout setup submitted — we're verifying your Stripe account. This usually takes a minute.");
+      if (me && me.role !== "ADMIN") {
+        fetch("/api/user/stripe-connect")
+          .then(r => r.json())
+          .then(d => {
+            if (d.success) setStripeStatus(d.data.status);
+          })
+          .catch(() => null);
+      }
+    } else if (stripe === "error") {
+      setStripeBanner("Stripe session expired or failed. Use the button below to try again.");
+    }
+  }, [searchParams, me]);
 
   async function save(partial: Record<string, unknown>) {
     setSaving(true);
@@ -154,7 +175,10 @@ export default function SettingsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        setTestResult({ ok: true, msg: `Sent to ${data.data.to}. SMTP is working — check the inbox (and spam).` });
+        setTestResult({
+          ok: true,
+          msg: `Sent to ${data.data.to} via ${data.data.provider ?? "mail"}. Check inbox and spam.`,
+        });
       } else {
         setTestResult({ ok: false, msg: data.error ?? "Send failed" });
       }
@@ -180,6 +204,11 @@ export default function SettingsPage() {
       </div>
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>}
+      {stripeBanner && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          {stripeBanner}
+        </div>
+      )}
       {savedAt && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700 flex items-center gap-2">
           <Check size={14} /> Saved

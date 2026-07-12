@@ -28,6 +28,7 @@ export default function GettingStarted() {
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [ackBusy, setAckBusy] = useState(false);
+  const [stripeLiveEnabled, setStripeLiveEnabled] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/auth/me");
@@ -36,7 +37,21 @@ export default function GettingStarted() {
     setLoading(false);
   }, []);
 
+  const refreshStripeStatus = useCallback(async () => {
+    const r = await fetch("/api/user/stripe-connect");
+    const d = await r.json().catch(() => ({}));
+    if (d.success && d.data.status === "enabled") {
+      setStripeLiveEnabled(true);
+      await load();
+    }
+  }, [load]);
+
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!me || me.role === "ADMIN") return;
+    refreshStripeStatus();
+  }, [me, refreshStripeStatus]);
 
   async function acknowledgeDocs() {
     setAckBusy(true);
@@ -56,6 +71,7 @@ export default function GettingStarted() {
 
   const isPartner = me.role === "PARTNER";
   const stripeEnabled =
+    stripeLiveEnabled ||
     (me.affiliateProfile?.stripeAccountStatus ?? me.partnerProfile?.stripeAccountStatus) === "enabled";
   const docsDone = Boolean(me.docsAcknowledgedAt);
 
