@@ -1,5 +1,29 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { isGHLConfigured, sendEmailViaGHL } from "@/lib/ghl";
+import { isMailwizzConfigured, sendEmailViaMailwizz } from "@/lib/mailwizz";
+
+export type EmailProvider = "mailwizz" | "ghl" | "smtp";
+
+function isSmtpConfigured(): boolean {
+  return !!(
+    process.env.SMTP_HOST &&
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS
+  );
+}
+
+function resolveEmailProvider(): EmailProvider {
+  const explicit = (process.env.EMAIL_PROVIDER || "").toLowerCase();
+  if (explicit === "mailwizz" || explicit === "ghl" || explicit === "smtp") {
+    return explicit;
+  }
+  // Prefer Mailwizz/SMTP over GHL for transactional mail — GHL only authenticates
+  // senders on crm.orengen.com; an @orengen.io From via GHL fails DMARC.
+  if (isMailwizzConfigured()) return "mailwizz";
+  if (isSmtpConfigured()) return "smtp";
+  if (isGHLConfigured()) return "ghl";
+  return "smtp";
+}
 
 // The deployment is configured for SMTP (mail.orengen.io) via SMTP_* env vars.
 // Build the transporter lazily so a missing/incomplete mail config never
@@ -34,11 +58,16 @@ const REPLY_TO = process.env.EMAIL_REPLY_TO || "support@orengen.io";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://weshare.orengen.io";
 
 async function send(to: string, subject: string, html: string) {
-  // Prefer GHL's email system when configured — no external SMTP dependency,
-  // and every recipient is kept in the CRM. Falls back to SMTP otherwise.
-  if (isGHLConfigured()) {
+  const provider = resolveEmailProvider();
+
+  if (provider === "mailwizz") {
+    return sendEmailViaMailwizz(to, subject, html);
+  }
+
+  if (provider === "ghl") {
     return sendEmailViaGHL(to, subject, html);
   }
+
   return getTransport().sendMail({
     from: FROM,
     replyTo: REPLY_TO,
@@ -46,6 +75,10 @@ async function send(to: string, subject: string, html: string) {
     subject,
     html,
   });
+}
+
+export function getActiveEmailProvider(): EmailProvider {
+  return resolveEmailProvider();
 }
 
 // ─── Affiliate welcome ────────────────────────────────────────────────────────
@@ -383,13 +416,14 @@ export async function sendPasswordReset(email: string, token: string) {
 // correctly. Unlike the notification helpers above (which are fire-and-forget),
 // callers of this should await it and surface any error for diagnostics.
 export async function sendTestEmail(to: string) {
+  const provider = getActiveEmailProvider();
   return send(
     to,
-    "WeShare SMTP test ✅",
+    `WeShare email test ✅ (${provider})`,
     `<h2>Your email is working 🎉</h2>
-<p>This is a test message from your WeShare deployment. Because it arrived, outbound
-email is configured correctly — partners will receive their welcome emails, payout
-notifications, and password resets.</p>
+<p>This is a test message from your WeShare deployment via <strong>${provider}</strong>.
+Because it arrived in your inbox (not spam), outbound email is configured correctly —
+partners will receive welcome emails, payout notifications, and password resets.</p>
 <p style="color:#6b7280;font-size:13px;margin-top:16px">Sent from ${APP_URL}</p>`
   );
 }
