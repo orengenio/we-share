@@ -2,14 +2,14 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
-import { sendPartnerCertified, sendPartnerLeadsUnlocked, sendNumberAssigned } from "@/lib/email";
+import { sendPartnerCertified, sendPartnerLeadsUnlocked, sendNumberAssigned, sendPartnerGHLAccessReady } from "@/lib/email";
 import { syncPartnerMilestoneToGHL } from "@/lib/ghl-milestones";
 import { emitEvent } from "@/lib/events";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const certifySchema = z.object({
   partnerId: z.string(),
-  action: z.enum(["certify", "unlock_leads", "suspend", "reinstate", "promote_leader", "demote_leader", "assign_number"]),
+  action: z.enum(["certify", "unlock_leads", "grant_crm_seat", "suspend", "reinstate", "promote_leader", "demote_leader", "assign_number"]),
   reason: z.string().optional(),
   phoneNumber: z.string().min(7).max(30).optional(),
 });
@@ -37,6 +37,8 @@ export async function PATCH(req: NextRequest) {
     } else if (action === "unlock_leads") {
       updates.leadsUnlocked = true;
       updates.leadsUnlockedAt = now;
+    } else if (action === "grant_crm_seat") {
+      updates.crmSeatGrantedAt = now;
     } else if (action === "suspend") {
       updates.isActive = false;
       updates.suspendedAt = now;
@@ -60,6 +62,7 @@ export async function PATCH(req: NextRequest) {
       select: {
         isCertified: true,
         leadsUnlocked: true,
+        crmSeatGrantedAt: true,
         assignedPhoneNumber: true,
         user: { select: { email: true, name: true } },
       },
@@ -81,6 +84,10 @@ export async function PATCH(req: NextRequest) {
     } else if (action === "assign_number" && phoneNumber && before.assignedPhoneNumber !== phoneNumber) {
       sendNumberAssigned(before.user.email, before.user.name ?? "there", phoneNumber).catch(console.error);
       syncPartnerMilestoneToGHL(before.user.email, "phone_assigned").catch(console.error);
+    } else if (action === "grant_crm_seat" && !before.crmSeatGrantedAt) {
+      sendPartnerGHLAccessReady(before.user.email, before.user.name ?? "there").catch(console.error);
+      syncPartnerMilestoneToGHL(before.user.email, "crm_seat_granted").catch(console.error);
+      emitEvent("partner.crm_seat_granted", { partnerId, email: before.user.email });
     }
 
     await db.auditLog.create({
