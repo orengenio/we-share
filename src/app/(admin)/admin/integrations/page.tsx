@@ -23,6 +23,7 @@ const EVENT_OPTIONS = [
   "commission.approved",
   "commission.clawback",
   "payout.completed",
+  "client.cancelled",
   "fraud.flagged",
   "partner.registered",
   "affiliate.registered",
@@ -86,6 +87,8 @@ export default function AdminIntegrationsPage() {
   const [description, setDescription] = useState("");
   const [events, setEvents] = useState<string[]>(["conversion.created", "commission.created"]);
   const [error, setError] = useState<string | null>(null);
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   async function loadData() {
     setLoading(true);
@@ -162,6 +165,48 @@ export default function AdminIntegrationsPage() {
     loadData();
   }
 
+  async function testHook(hook: OutboundWebhook) {
+    setTestingId(hook.id);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/admin/outbound-webhooks/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ webhookId: hook.id }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setTestResult(`Test sent to ${hook.name} (HTTP ${json.data?.statusCode ?? "ok"})`);
+      } else {
+        setTestResult(json.error ?? "Test failed");
+      }
+      loadData();
+    } finally {
+      setTestingId(null);
+    }
+  }
+
+  async function testCatchAllWebhook() {
+    setTestingId("catch-all");
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/admin/outbound-webhooks/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ useCatchAll: true }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setTestResult(`Catch-all test OK (HTTP ${json.data?.statusCode ?? "ok"})`);
+      } else {
+        setTestResult(json.error ?? "Catch-all test failed — set N8N_WEBHOOK_URL in Coolify");
+      }
+      loadData();
+    } finally {
+      setTestingId(null);
+    }
+  }
+
   async function matureCommissions() {
     const res = await fetch("/api/admin/commissions/mature", { method: "POST" });
     const json = await res.json();
@@ -191,6 +236,18 @@ export default function AdminIntegrationsPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button
+            onClick={() => testCatchAllWebhook()}
+            disabled={testingId === "catch-all"}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-60"
+          >
+            {testingId === "catch-all" ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Webhook size={14} />
+            )}
+            Test n8n catch-all
+          </button>
+          <button
             onClick={() => matureCommissions()}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50"
           >
@@ -207,6 +264,12 @@ export default function AdminIntegrationsPage() {
           </button>
         </div>
       </div>
+
+      {testResult && (
+        <p className="text-sm px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-700">
+          {testResult}
+        </p>
+      )}
 
       {showForm && (
         <form
@@ -331,6 +394,13 @@ export default function AdminIntegrationsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => testHook(hook)}
+                    disabled={testingId === hook.id}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-60"
+                  >
+                    {testingId === hook.id ? "Testing…" : "Test"}
+                  </button>
                   <button
                     onClick={() => toggleActive(hook)}
                     className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50"
