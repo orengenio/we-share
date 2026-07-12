@@ -209,10 +209,10 @@ export function isGHLConfigured(): boolean {
 // every recipient in the CRM), then post an Email message to the conversation.
 function ghlAlignedFrom(): string {
   if (process.env.GHL_EMAIL_FROM) return process.env.GHL_EMAIL_FROM;
-  const from = process.env.EMAIL_FROM || "team@crm.orengen.com";
-  // @orengen.io From addresses fail DMARC when relayed via crm.orengen.com (GHL).
+  const from = process.env.EMAIL_FROM || process.env.GHL_EMAIL_FROM || "team@crm.orengen.io";
+  // @orengen.io From addresses fail DMARC when relayed via the crm.orengen.io mail domain.
   if (from.toLowerCase().endsWith("@orengen.io")) {
-    return "team@crm.orengen.com";
+    return process.env.GHL_EMAIL_FROM || "team@crm.orengen.io";
   }
   return from;
 }

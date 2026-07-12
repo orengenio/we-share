@@ -61,7 +61,7 @@ You have been added as a Sales Partner in the OrenGen CRM. This seat is limited 
 
 Activate your login using the button below. You will use this CRM to log every call, text, and stage change on your leads. If it is not logged same-day, it did not happen for commission purposes.
 
-After activation, bookmark your login: https://crm.orengen.com
+After activation, bookmark your login: https://app.orengen.io
 
 Operating rules (non-negotiable):
 • Only Assigned Data — your leads, your book of business
@@ -69,7 +69,7 @@ Operating rules (non-negotiable):
 • SMS only with prior consent; 8 AM–9 PM local; honor STOP instantly
 • Never discuss commissions or income claims with prospects
 
-Questions? Reply to team@crm.orengen.com — do not email passwords.
+Questions? Reply to team@crm.orengen.io — do not email passwords.
 ```
 
 **Sign-off:**
@@ -112,4 +112,4 @@ WeShare sends a **second, branded email** (`sendPartnerGHLAccessReady`) that exp
 - "We're thrilled to have you join our platform!"
 - "Welcome aboard!"
 - "Click Here to Login" (use "Activate my CRM login" instead)
-- Generic copyright footer with random admin personal email — use `team@crm.orengen.com`
+- Generic copyright footer with random admin personal email — use `team@crm.orengen.io`

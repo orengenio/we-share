@@ -20,7 +20,7 @@ function resolveEmailProvider(): EmailProvider {
     return explicit;
   }
   // Prefer Mailwizz/SMTP over GHL for transactional mail — GHL only authenticates
-  // senders on crm.orengen.com; an @orengen.io From via GHL fails DMARC.
+  // senders on crm.orengen.io (email domain only — login is app.orengen.io).
   if (isMailwizzConfigured()) return "mailwizz";
   if (isSmtpConfigured()) return "smtp";
   if (isGHLConfigured()) return "ghl";
@@ -193,7 +193,7 @@ export async function sendPartnerLeadsUnlocked(email: string, name: string) {
 }
 
 const GHL_LOGIN_URL =
-  process.env.GHL_LOGIN_URL || process.env.NEXT_PUBLIC_GHL_LOGIN_URL || "https://crm.orengen.com";
+  process.env.GHL_LOGIN_URL || process.env.NEXT_PUBLIC_GHL_LOGIN_URL || "https://app.orengen.io";
 
 /** Sent when admin grants a GHL CRM seat — complements (does not replace) GHL's activation email. */
 export async function sendPartnerGHLAccessReady(email: string, name: string) {
@@ -215,7 +215,7 @@ export async function sendPartnerGHLAccessReady(email: string, name: string) {
       ]),
     ].join(""),
     cta: { label: "Open OrenGen CRM", href: GHL_LOGIN_URL },
-    footerNote: "Questions? Reply here — do not share your CRM password in email.",
+    footerNote: "Login at app.orengen.io — crm.orengen.io is outbound email only, not a login URL.",
   });
 }
 
