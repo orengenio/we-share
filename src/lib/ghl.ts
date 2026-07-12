@@ -210,9 +210,23 @@ export function isGHLConfigured(): boolean {
 export async function sendEmailViaGHL(to: string, subject: string, html: string): Promise<void> {
   const local = to.split("@")[0] || to;
   const contactId = await upsertContact({ firstName: local, lastName: "", email: to });
+  // From MUST live on the dedicated sending domain (crm.orengen.com) — the
+  // root orengen.io publishes strict DMARC (p=quarantine, adkim=s/aspf=s)
+  // WITHOUT LeadConnector in its SPF, so an @orengen.io From sent via GHL
+  // fails alignment and bounces/quarantines. Reply-to points humans back at
+  // the monitored inbox.
+  const emailFrom = process.env.EMAIL_FROM || "team@crm.orengen.com";
+  const replyTo = process.env.EMAIL_REPLY_TO || "support@orengen.io";
   await ghlFetch("/conversations/messages", {
     method: "POST",
-    body: JSON.stringify({ type: "Email", contactId, subject, html }),
+    body: JSON.stringify({
+      type: "Email",
+      contactId,
+      subject,
+      html,
+      emailFrom,
+      emailReplyTo: replyTo,
+    }),
   });
 }
 

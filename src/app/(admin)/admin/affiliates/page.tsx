@@ -237,7 +237,12 @@ export default async function AdminAffiliatesPage({ searchParams }: PageProps) {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <AffiliateRowActions affiliateId={aff.id} isActive={aff.isActive} />
+                        <AffiliateRowActions
+                          affiliateId={aff.id}
+                          isActive={aff.isActive}
+                          userId={aff.userId}
+                          userEmail={aff.user.email}
+                        />
                       </td>
                     </tr>
                   ))}

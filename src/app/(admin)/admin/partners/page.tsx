@@ -17,7 +17,7 @@ interface Partner {
   totalEarned: number;
   totalLeaderOverrides: number;
   pendingBalance: number;
-  user: { name: string | null; email: string; createdAt: string };
+  user: { id: string; name: string | null; email: string; createdAt: string };
 }
 
 export default function AdminPartnersPage() {
@@ -48,6 +48,22 @@ export default function AdminPartnersPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ partnerId, action, ...extra }),
     });
+    await load();
+    setActionId(null);
+  }
+
+  async function deleteAccount(p: Partner) {
+    if (!window.confirm(`PERMANENTLY DELETE ${p.user.email}?\n\nThe login, profile, and links are removed. Financial ledger rows are kept (owner unlinked) for tax/audit retention. This cannot be undone — suspending is usually the better option.`)) return;
+    setActionId(p.id);
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: p.user.id }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      window.alert(json.error ?? "Delete failed");
+    }
     await load();
     setActionId(null);
   }
@@ -150,6 +166,9 @@ export default function AdminPartnersPage() {
                       )}
                       <button onClick={() => assignNumber(p)} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline text-left">
                         {p.assignedPhoneNumber ? "Change #" : "Assign #"}
+                      </button>
+                      <button onClick={() => deleteAccount(p)} disabled={actionId === p.id} className="text-xs text-red-700 hover:underline text-left">
+                        Delete
                       </button>
                     </div>
                   </td>

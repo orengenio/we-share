@@ -12,9 +12,13 @@ import { ShieldOff, Loader2 } from "lucide-react";
 export default function AffiliateRowActions({
   affiliateId,
   isActive,
+  userId,
+  userEmail,
 }: {
   affiliateId: string;
   isActive: boolean;
+  userId?: string;
+  userEmail?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -57,6 +61,31 @@ export default function AffiliateRowActions({
           className="px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
         >
           {isPending ? "…" : "Reinstate"}
+        </button>
+      )}
+      {userId && (
+        <button
+          onClick={() => {
+            if (!confirm(`PERMANENTLY DELETE ${userEmail ?? "this account"}?\n\nThe login, profile, and links are removed. Financial ledger rows are kept (owner unlinked) for tax/audit retention. This cannot be undone — suspending is usually the better option.`)) return;
+            setError(null);
+            startTransition(async () => {
+              const res = await fetch("/api/admin/users", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId }),
+              });
+              if (!res.ok) {
+                const json = await res.json().catch(() => ({}));
+                setError(json.error ?? "Delete failed");
+                return;
+              }
+              router.refresh();
+            });
+          }}
+          disabled={isPending}
+          className="px-2.5 py-1 rounded-lg text-xs font-medium text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50"
+        >
+          Delete
         </button>
       )}
       {error && <span className="text-xs text-red-600">{error}</span>}

@@ -5,6 +5,7 @@ import { getSessionFromCookies } from "@/lib/auth";
 import db from "@/lib/db";
 import StatsCard from "@/components/dashboard/stats-card";
 import EarningsChart from "@/components/dashboard/earnings-chart";
+import AiComposer from "@/components/admin/ai-composer";
 import { formatCurrency } from "@/lib/utils";
 import {
   DollarSign, TrendingUp, Wallet, Users, ShieldAlert,
@@ -273,6 +274,11 @@ export default async function AdminOverviewPage() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* AI email composer — Gemini drafts, admin reviews & sends */}
+      <div className="mt-6">
+        <AiComposer />
       </div>
     </Suspense>
   );

@@ -97,7 +97,7 @@ export default function CookieConsent() {
           Essential cookies (sign-in and referral tracking) are always on. You can
           accept optional cookies or continue with essential only. See our{" "}
           <a
-            href="/docs/privacy-policy.pdf"
+            href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
             className="underline font-medium"
