@@ -190,12 +190,8 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
         {/* Logo */}
         <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div
-              className="flex items-center justify-center w-8 h-8 rounded-lg font-bold text-white text-sm"
-              style={{ backgroundColor: "#CC5500" }}
-            >
-              WS
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/favicon.svg" alt="OrenGen" className="w-8 h-8 rounded-lg" />
             <div className="flex-1">
               <p className="text-white font-bold text-base leading-tight tracking-tight">
                 WeShare

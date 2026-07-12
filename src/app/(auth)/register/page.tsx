@@ -154,7 +154,7 @@ function RegisterForm() {
           <span>
             I am at least 18 years old and I agree to the{" "}
             <a
-              href="/docs/program-terms.pdf"
+              href="/terms"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#CC5500] font-medium hover:underline"
@@ -163,7 +163,7 @@ function RegisterForm() {
             </a>{" "}
             and{" "}
             <a
-              href="/docs/privacy-policy.pdf"
+              href="/privacy"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#CC5500] font-medium hover:underline"

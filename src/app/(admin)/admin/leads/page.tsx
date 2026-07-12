@@ -88,6 +88,7 @@ export default function AdminLeadsPage() {
                 <th className="py-3 px-4 font-medium text-gray-600">Partner</th>
                 <th className="py-3 px-4 font-medium text-gray-600">SLA</th>
                 <th className="py-3 px-4 font-medium text-gray-600">Created</th>
+                <th className="py-3 px-4 font-medium text-gray-600"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -130,6 +131,26 @@ export default function AdminLeadsPage() {
                     )}
                   </td>
                   <td className="py-3 px-4 text-gray-500 text-xs">{formatDate(lead.createdAt)}</td>
+                  <td className="py-3 px-4">
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`Delete lead ${lead.email}?\n\nOnly allowed when no money is attached — leads with conversions are ledger records and stay.`)) return;
+                        const res = await fetch("/api/admin/leads", {
+                          method: "DELETE",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ leadId: lead.id }),
+                        });
+                        if (!res.ok) {
+                          const json = await res.json().catch(() => ({}));
+                          window.alert(json.error ?? "Delete failed");
+                        }
+                        load();
+                      }}
+                      className="text-xs text-red-700 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

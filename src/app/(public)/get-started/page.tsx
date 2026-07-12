@@ -25,6 +25,21 @@ export default function GetStartedPage() {
           <strong className="text-white">built for you, live in five days or less.</strong> You
           never touch code.
         </p>
+
+        {/* Hero video — renders as soon as NEXT_PUBLIC_HERO_VIDEO_URL is set
+            (Veo-generated brief: artifacts/weshare-launch/media/veo-hero-brief.md) */}
+        {process.env.NEXT_PUBLIC_HERO_VIDEO_URL && (
+          <video
+            className="mt-8 w-full max-w-2xl rounded-2xl border border-slate-500/30 shadow-2xl"
+            src={process.env.NEXT_PUBLIC_HERO_VIDEO_URL}
+            poster={process.env.NEXT_PUBLIC_HERO_VIDEO_POSTER || undefined}
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+          />
+        )}
       </section>
 
       {/* OFFER + CHECKOUT */}

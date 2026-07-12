@@ -78,7 +78,7 @@ export default function LeaderboardPage() {
           These are the program&apos;s top performers. Earnings shown are not typical —
           most participants earn less, and results depend on individual effort and client retention.
           See the{" "}
-          <a href="/docs/earnings-disclaimer.pdf" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "#CC5500" }}>
+          <a href="/earnings-disclaimer" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "#CC5500" }}>
             Earnings Disclaimer
           </a>
           .

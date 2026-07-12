@@ -47,6 +47,53 @@ const assignSchema = z.object({
   partnerId: z.string(),
 });
 
+// ─── Delete a lead (test/junk data cleanup) ───────────────────────────────────
+// Refuses when money is attached: a lead with conversions is part of the
+// commission ledger and must stay (7-year retention).
+
+export async function DELETE(req: NextRequest) {
+  const session = await getSessionFromRequest(req);
+  if (!session) return apiUnauthorized();
+  if (session.role !== "ADMIN") return apiForbidden();
+
+  try {
+    const { leadId } = z.object({ leadId: z.string().min(1) }).parse(await req.json());
+
+    const lead = await db.lead.findUnique({
+      where: { id: leadId },
+      include: { _count: { select: { conversions: true } }, ghlOpportunity: { select: { id: true } } },
+    });
+    if (!lead) return apiError("Lead not found", 404);
+    if (lead._count.conversions > 0) {
+      return apiError(
+        "This lead has recorded conversions (money is attached) — it can't be deleted. It's part of the commission ledger.",
+        400
+      );
+    }
+
+    await db.$transaction([
+      ...(lead.ghlOpportunity ? [db.gHLOpportunity.delete({ where: { id: lead.ghlOpportunity.id } })] : []),
+      db.lead.delete({ where: { id: leadId } }),
+    ]);
+
+    await db.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "LEAD_DELETED",
+        resource: "Lead",
+        resourceId: leadId,
+        details: { email: lead.email, status: lead.status },
+      },
+    });
+
+    return apiSuccess({ deleted: true });
+  } catch (err) {
+    if (err instanceof z.ZodError) return apiError(err.errors[0].message, 400);
+    console.error("lead delete failed:", err);
+    return apiError("Could not delete lead", 500);
+  }
+}
+
 export async function PATCH(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return apiUnauthorized();
