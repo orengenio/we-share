@@ -3,6 +3,8 @@ import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
 import { sendPartnerCertified, sendPartnerLeadsUnlocked, sendNumberAssigned } from "@/lib/email";
+import { syncPartnerMilestoneToGHL } from "@/lib/ghl-milestones";
+import { emitEvent } from "@/lib/events";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const certifySchema = z.object({
@@ -70,10 +72,15 @@ export async function PATCH(req: NextRequest) {
     // clicks never re-send. Non-blocking: a mail failure never fails the action.
     if (action === "certify" && !before.isCertified) {
       sendPartnerCertified(before.user.email, before.user.name ?? "there").catch(console.error);
+      syncPartnerMilestoneToGHL(before.user.email, "certified").catch(console.error);
+      emitEvent("partner.certified", { partnerId, email: before.user.email });
     } else if (action === "unlock_leads" && !before.leadsUnlocked) {
       sendPartnerLeadsUnlocked(before.user.email, before.user.name ?? "there").catch(console.error);
+      syncPartnerMilestoneToGHL(before.user.email, "leads_unlocked").catch(console.error);
+      emitEvent("partner.leads_unlocked", { partnerId, email: before.user.email });
     } else if (action === "assign_number" && phoneNumber && before.assignedPhoneNumber !== phoneNumber) {
       sendNumberAssigned(before.user.email, before.user.name ?? "there", phoneNumber).catch(console.error);
+      syncPartnerMilestoneToGHL(before.user.email, "phone_assigned").catch(console.error);
     }
 
     await db.auditLog.create({

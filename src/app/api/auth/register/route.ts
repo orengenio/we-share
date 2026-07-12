@@ -6,6 +6,7 @@ import { createSessionToken, setSessionCookie, isAdminEmail } from "@/lib/auth";
 import { generateAffiliateCode } from "@/lib/utils";
 import { sendAffiliateWelcome, sendPartnerWelcome } from "@/lib/email";
 import { syncPartnerToGHL } from "@/lib/ghl";
+import { syncPartnerMilestoneToGHL } from "@/lib/ghl-milestones";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 const schema = z.object({
@@ -143,6 +144,14 @@ export async function POST(req: NextRequest) {
         role: type,
         code: user.affiliateProfile?.affiliateCode ?? user.partnerProfile?.partnerCode,
       }).catch(console.error);
+
+      if (type === "PARTNER" && user.partnerProfile) {
+        syncPartnerMilestoneToGHL(normalizedEmail, "registered", {
+          firstName: firstName || name,
+          lastName: rest.join(" "),
+          partnerCode: user.partnerProfile.partnerCode,
+        }).catch(console.error);
+      }
     }
 
     return apiSuccess(
