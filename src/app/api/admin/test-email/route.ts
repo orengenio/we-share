@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth";
-import { sendTestEmail } from "@/lib/email";
+import { sendTestEmail, getActiveEmailProvider } from "@/lib/email";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const schema = z.object({ to: z.string().email().optional() });
@@ -26,12 +26,14 @@ export async function POST(req: NextRequest) {
       messageId?: string;
       response?: string;
       accepted?: string[];
-    };
+    } | void;
+
     return apiSuccess({
       sent: true,
       to,
-      messageId: info.messageId ?? null,
-      response: info.response ?? null,
+      provider: getActiveEmailProvider(),
+      messageId: info?.messageId ?? null,
+      response: info?.response ?? "queued",
     });
   } catch (err) {
     // Surface the underlying SMTP error verbatim — this is a diagnostic tool.

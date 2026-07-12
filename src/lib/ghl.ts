@@ -207,15 +207,20 @@ export function isGHLConfigured(): boolean {
 // Sends a transactional email through GHL's own email system (no external
 // SMTP). GHL requires a contact, so we upsert by email first (which also keeps
 // every recipient in the CRM), then post an Email message to the conversation.
+function ghlAlignedFrom(): string {
+  if (process.env.GHL_EMAIL_FROM) return process.env.GHL_EMAIL_FROM;
+  const from = process.env.EMAIL_FROM || "team@crm.orengen.com";
+  // @orengen.io From addresses fail DMARC when relayed via crm.orengen.com (GHL).
+  if (from.toLowerCase().endsWith("@orengen.io")) {
+    return "team@crm.orengen.com";
+  }
+  return from;
+}
+
 export async function sendEmailViaGHL(to: string, subject: string, html: string): Promise<void> {
   const local = to.split("@")[0] || to;
   const contactId = await upsertContact({ firstName: local, lastName: "", email: to });
-  // From MUST live on the dedicated sending domain (crm.orengen.com) — the
-  // root orengen.io publishes strict DMARC (p=quarantine, adkim=s/aspf=s)
-  // WITHOUT LeadConnector in its SPF, so an @orengen.io From sent via GHL
-  // fails alignment and bounces/quarantines. Reply-to points humans back at
-  // the monitored inbox.
-  const emailFrom = process.env.EMAIL_FROM || "team@crm.orengen.com";
+  const emailFrom = ghlAlignedFrom();
   const replyTo = process.env.EMAIL_REPLY_TO || "support@orengen.io";
   await ghlFetch("/conversations/messages", {
     method: "POST",
