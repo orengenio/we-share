@@ -139,3 +139,10 @@ successors and assigns.
 Open for counsel: confirm #9 (lifetime residual obligation as written), and that
 incorporation by reference (#10) sufficiently imports the ToS arbitration/liability
 provisions for this contractor context.
+
+> **RESOLVED — owner-confirmed 2026-07-11 (Andre Mandel).** #9: the uncapped
+> lifetime-residual obligation on good-standing exit is accepted as written and
+> matches the published recruiting promise. #10: incorporation-by-reference of the
+> Program ToS (TX governing law, Tarrant County arbitration, liability cap,
+> indemnification) and the Partner Handbook is accepted as sufficient. Attorney-review
+> gate CLOSED.
