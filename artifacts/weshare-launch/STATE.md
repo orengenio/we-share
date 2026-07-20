@@ -28,7 +28,7 @@
 | Artifact | Status | Opened | Notes |
 |---|---|---|---|
 | Partner Payment Authorization & Contractor Agreement v1-2026-07-08 | **SUPERSEDED by v2** | 2026-07-08 | Risk map at `legal/contract-risk-map.md` drove the v2 fills. |
-| Sales Representative Agreement v2-2026-07-09 (live in-app + `/partner-agreement`) | **SUBSTANTIALLY CLOSED — attorney-reviewed template adopted; fills flagged** | 2026-07-09 | Owner supplied an attorney-reviewed template; filled per `legal/sales-representative-agreement.md` (Appendix A lists every fill/addition). v2 closes risk-map V1 (cause defined), G1–G3 (via ToS incorporation). Remaining counsel confirm: lifetime-residual clause as written + incorporation-by-reference sufficiency (Appendix A #9–10). Re-acceptance is version-aware — v1 acceptors get the banner again. |
+| Sales Representative Agreement v2-2026-07-09 (live in-app + `/partner-agreement`) | **CLOSED — owner-confirmed 2026-07-11 (Andre Mandel)** | 2026-07-09 → closed 2026-07-11 | Owner supplied an attorney-reviewed template; filled per `legal/sales-representative-agreement.md` (Appendix A lists every fill/addition). v2 closes risk-map V1 (cause defined), G1–G3 (via ToS incorporation). **Both flagged items confirmed by Andre Mandel on 2026-07-11:** (#9) the uncapped lifetime-residual obligation on good-standing exit is accepted as written and matches the published promise; (#10) incorporation-by-reference of the ToS (TX law/Tarrant County arbitration/liability cap/indemnity) + Handbook is accepted as sufficient. Re-acceptance is version-aware — v1 acceptors re-accept v2. |
 
 ## v3 unlocked queue (ranked)
 
