@@ -129,6 +129,17 @@ export default function PublicHeader() {
                 {label}
               </Link>
             ))}
+            {/* Parent-brand link — the header's OrenGen wordmark is hidden
+                below 480px, so keep a click path to orengen.io on phones */}
+            <a
+              href="https://orengen.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center px-3 py-3.5 rounded-xl text-base font-semibold transition-all duration-150 min-[480px]:hidden"
+              style={{ color: "rgba(148,163,184,0.75)" }}
+            >
+              OrenGen Worldwide ↗
+            </a>
           </nav>
           <div
             className="px-4 py-4 border-t"

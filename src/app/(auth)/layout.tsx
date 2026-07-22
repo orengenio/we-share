@@ -13,10 +13,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     >
       <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* WeShare lockup (links home) + OrenGen wordmark, equal 40px height */}
+        {/* WeShare lockup (links home) + OrenGen wordmark, equal 36px height.
+            36px (not 40) so the row fits a 360px viewport without wrapping —
+            a wrapped second line would strand the divider rule. */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <WeShareLogo height={40} />
+          <div className="flex items-center justify-center gap-4">
+            <WeShareLogo height={36} />
             <a
               href="https://orengen.io"
               target="_blank"
@@ -27,8 +29,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <Image
                 src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
                 alt="OrenGen Worldwide"
-                width={160}
-                height={40}
+                width={144}
+                height={36}
                 unoptimized
               />
             </a>
