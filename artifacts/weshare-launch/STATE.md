@@ -67,6 +67,20 @@
 - Session network policy blocks `weshare.orengen.io` + `backoffice.orengen.io` → live test + Coolify env writes need allowlisting or owner-run.
 - W-9 vs Stripe decision gates the "sign docs" email + runbook §3 doc pack.
 
+## Google-AI conversation absorbed — 2026-07-22 (owner upload, implemented)
+
+Owner's Google-AI planning conversation (recruiting/50-state launch) implemented. Decisions executed in code:
+
+- **72-hour Texas §601 rescission payout lock** replaces NET-15/30-day everywhere: commission maturity default → 3 days (`COMMISSION_MATURITY_DAYS`, .env.example updated — **Coolify env must be set to 3 or removed**), landing card, partners FAQ, agreement banner, AI-compose brand facts, Stripe clawback reason.
+- **Sales Representative Agreement bumped v2 → v3-2026-07-22** with the ch. 601 clause (72-hour lock; rescission-window clawback replaces 30-day refund voiding). Version-aware re-acceptance will re-surface the banner for v2 acceptors. **Mode 23 ATTORNEY-REVIEW GATE: OPEN** — owner to confirm v3 like v2 (log below when closed).
+- **$50 partner Fast-Start bonus** on first settled deal (idempotent, auto).
+- **Partner Leader auto-promotion at 5 settled deals** (`LEADER_PROMOTION_DEALS`), audit-logged, new webhook event `partner.promoted_leader`. 5% one-tier overrides were already live.
+- **Handbook → v1.2**: 72-hour lock, Fast-Start, Partner Leader track (earned-never-bought, one-tier cap, 60-day maintenance), 72-hour activation clause (framed as software-access condition, 1099-safe), state-pool routing. PDF regenerated.
+- **Corrected n8n lead router** (`artifacts/n8n/sanctifier-lead-router.json` + README): real Anthropic/GHL endpoints, current model, persistent state-pool round-robin; deliberately OMITS the draft's commission-split node — WeShare owns the money ledger (single source of truth).
+- **Recruiting + ops packs** → `artifacts/weshare-launch/recruiting/` (brand-guarded rewrites; income-claim disclaimers enforced).
+- **Higgsfield creative**: 16:9 recruiting banner + 1:1 social ad generated on-brand (navy/orange, WESHARE arrow badge), delivered to owner.
+- NOT implemented (external/owner): GHL smart lists/permissions/72-hour deactivation workflow, Sanctifier config, Sequence banking, job-post publishing, LinkedIn ads.
+
 ## Brand Guard log — 2026-07-22
 
 - **WeShare logo parity fix (owner-directed):** new `src/components/weshare-logo.tsx` lockup (mark + wordmark + "by OrenGen", always a `Link` to `/`), rendered at exact OrenGen-logo height on all three client-facing surfaces — PublicHeader (32px, now visible on mobile), auth layout (40px), dashboard/admin sidebar (linked). Adversarial review run before ship.

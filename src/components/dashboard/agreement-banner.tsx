@@ -81,7 +81,7 @@ export default function AgreementBanner() {
                   className="font-semibold underline"
                   style={{ color: "#CC5500" }}
                 >
-                  Sales Representative Agreement (v2-2026-07-09)
+                  Sales Representative Agreement (v3-2026-07-22)
                 </a>
                 . The short version:
               </p>
@@ -94,8 +94,8 @@ export default function AgreementBanner() {
                 <li>
                   You earn <strong>25% of the setup fee + 25% of the monthly, for the life of
                   each client you close</strong>. Commissions mature on a{" "}
-                  <strong>NET-15 hold</strong> and are subject to <strong>clawback</strong> on
-                  customer refunds within 30 days — including netting against future payouts.
+                  <strong>72-hour rescission hold</strong> and are subject to <strong>clawback</strong> only
+                  if the client cancels within that statutory window — after hour 72 the commission is locked.
                 </li>
                 <li>
                   You sell at the fixed price ($997 + $247/mo) through the official checkout,
@@ -115,7 +115,7 @@ export default function AgreementBanner() {
                 </li>
               </ol>
               <p className="text-xs text-gray-500">
-                Version v2-2026-07-09 · incorporates the Program Terms of Service and Partner
+                Version v3-2026-07-22 · incorporates the Program Terms of Service and Partner
                 Handbook by reference. Your acceptance is recorded with a timestamp and your
                 account identity.
               </p>

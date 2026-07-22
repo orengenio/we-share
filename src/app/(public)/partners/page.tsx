@@ -149,7 +149,7 @@ export default function PartnersLandingPage() {
           ["What does it cost to join?", "Nothing. We don't sell seats; we recruit closers. Your only investment is work."],
           ["Is this MLM?", "No. You earn on your sales: 25% + 25%, flat. There's a separate referral program with its own rules; as a Sales Partner your money comes from closing, period."],
           ["What do I actually sell?", "One thing: a professional business website — $997 setup + $247/mo maintenance. Fixed pricing, official checkout, no games."],
-          ["When do I get paid?", "Commissions mature on a NET-15 hold (refund protection), then pay out via Stripe on the payout run."],
+          ["When do I get paid?", "Commissions lock 72 hours after your client's payment clears (the Texas right-of-rescission window), then pay out via Stripe every Friday."],
           ["What if I leave?", "In good standing: your residuals continue on every client you closed. For life. It's in the handbook, in writing."],
         ].map(([q, a]) => (
           <div key={q} className="rounded-xl border border-slate-500/30 bg-white/5 p-5">

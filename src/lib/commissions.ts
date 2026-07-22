@@ -21,6 +21,7 @@ import {
   COMMISSION_CONFIGS,
   PARTNER_COMMISSION,
   LEADER_COMMISSION,
+  LEADER_PROMOTION_DEALS,
   PRODUCT_PRICING,
   MILESTONE_BONUSES,
   RANK_THRESHOLDS,
@@ -28,9 +29,15 @@ import {
 } from "@/types";
 import db from "./db";
 
-/** Days before a commission becomes payout-eligible (NET-15 default). */
+/**
+ * Days before a commission becomes payout-eligible.
+ * Default 3 days = the Texas Bus. & Com. Code ch. 601 right-of-rescission
+ * window (owner decision 2026-07-22): sales are non-refundable once the
+ * client's 72-hour rescission window closes, so commissions lock then too —
+ * no 30-day hold. Override with COMMISSION_MATURITY_DAYS if policy changes.
+ */
 export function commissionMaturityDate(from: Date = new Date()): Date {
-  const days = parseInt(process.env.COMMISSION_MATURITY_DAYS ?? "15", 10);
+  const days = parseInt(process.env.COMMISSION_MATURITY_DAYS ?? "3", 10);
   return addDays(from, days);
 }
 
@@ -309,11 +316,33 @@ export async function processSetupFeeConversion(conversionId: string) {
       status: "PENDING",
     });
 
-    // Partner Leader override — 5% × gross revenue paid to the upline leader
-    const partnerForLeader = await db.partnerProfile.findUnique({
+    const closingPartner = await db.partnerProfile.findUnique({
       where: { id: conversion.partnerId },
-      select: { uplineLeaderId: true },
+      select: { uplineLeaderId: true, totalDealsWon: true },
     });
+
+    // Fast-start bonus — flat $50 on a partner's first settled deal. The
+    // commission-count guard makes this idempotent if two conversions land
+    // before the deal counter increments.
+    if (closingPartner?.totalDealsWon === 0) {
+      const priorFastStart = await db.commission.count({
+        where: { partnerId: conversion.partnerId, type: "FAST_START_BONUS" },
+      });
+      if (priorFastStart === 0) {
+        commissionsToCreate.push({
+          conversionId,
+          partnerId: conversion.partnerId,
+          type: "FAST_START_BONUS",
+          grossRevenue: 0,
+          commissionRate: 1,
+          amount: PRODUCT_PRICING.fastStartBonus,
+          status: "PENDING",
+        });
+      }
+    }
+
+    // Partner Leader override — 5% × gross revenue paid to the upline leader
+    const partnerForLeader = closingPartner;
     if (partnerForLeader?.uplineLeaderId) {
       const leader = await db.partnerProfile.findUnique({
         where: { id: partnerForLeader.uplineLeaderId },
@@ -409,12 +438,37 @@ export async function processSetupFeeConversion(conversionId: string) {
     });
   }
 
-  // Update partner stats
+  // Update partner stats + Partner Leader auto-promotion at 5 settled deals
+  // (owner decision 2026-07-22): hitting the milestone flips isLeader so the
+  // 5% team overrides start flowing; the Leadership Addendum e-sign happens in
+  // GHL on promotion day. Admin demote remains available.
   if (conversion.partnerId) {
-    await db.partnerProfile.update({
+    const updatedPartner = await db.partnerProfile.update({
       where: { id: conversion.partnerId },
       data: { totalDealsWon: { increment: 1 } },
+      select: { id: true, userId: true, totalDealsWon: true, isLeader: true },
     });
+
+    if (updatedPartner.totalDealsWon >= LEADER_PROMOTION_DEALS && !updatedPartner.isLeader) {
+      await db.partnerProfile.update({
+        where: { id: updatedPartner.id },
+        data: { isLeader: true, promotedLeaderAt: new Date() },
+      });
+      await db.auditLog.create({
+        data: {
+          userId: updatedPartner.userId,
+          action: "PARTNER_AUTO_PROMOTED_LEADER",
+          resource: "PartnerProfile",
+          resourceId: updatedPartner.id,
+          details: { dealsWon: updatedPartner.totalDealsWon, threshold: LEADER_PROMOTION_DEALS },
+        },
+      });
+      const { emitEvent } = await import("./events");
+      emitEvent("partner.promoted_leader", {
+        partnerId: updatedPartner.id,
+        dealsWon: updatedPartner.totalDealsWon,
+      });
+    }
   }
 
   return { commissionsCreated: commissionsToCreate.length };
