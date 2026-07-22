@@ -36,6 +36,12 @@ const LEGACY_ENV_MAP: Partial<Record<WebhookEventType, string>> = {
   "payout.completed": "N8N_PAYOUT_WEBHOOK_URL",
 };
 
+/** Catch-all n8n inbox — receives every event when set (Coolify-friendly bootstrap). */
+const N8N_CATCH_ALL_ENV = "N8N_WEBHOOK_URL";
+const N8N_CATCH_ALL_SECRET_ENV = "N8N_WEBHOOK_SECRET";
+
+export const TEST_WEBHOOK_EVENT = "webhook.test" as const;
+
 const MAX_ATTEMPTS = 3;
 const DELIVERY_TIMEOUT_MS = 10_000;
 
@@ -71,6 +77,14 @@ export function isSafeWebhookUrl(rawUrl: string): boolean {
   }
 }
 
+function buildWebhookBody(eventType: string, payload: Record<string, unknown>) {
+  return JSON.stringify({
+    event: eventType,
+    timestamp: new Date().toISOString(),
+    data: payload,
+  });
+}
+
 async function deliverOnce(
   url: string,
   eventType: string,
@@ -78,11 +92,7 @@ async function deliverOnce(
   secret?: string | null,
   webhookId?: string | null
 ) {
-  const body = JSON.stringify({
-    event: eventType,
-    timestamp: new Date().toISOString(),
-    data: payload,
-  });
+  const body = buildWebhookBody(eventType, payload);
 
   const delivery = await db.webhookDelivery.create({
     data: {
@@ -146,6 +156,106 @@ async function deliverOnce(
   });
 }
 
+function collectEnvFallbackUrls(
+  eventType: WebhookEventType,
+  subscribedUrls: Set<string>
+): Array<{ url: string; secret?: string | null }> {
+  const fallbacks: Array<{ url: string; secret?: string | null }> = [];
+
+  const catchAll = process.env[N8N_CATCH_ALL_ENV];
+  if (catchAll && !subscribedUrls.has(catchAll)) {
+    fallbacks.push({
+      url: catchAll,
+      secret: process.env[N8N_CATCH_ALL_SECRET_ENV] ?? null,
+    });
+    subscribedUrls.add(catchAll);
+  }
+
+  const legacyKey = LEGACY_ENV_MAP[eventType];
+  const legacyUrl = legacyKey ? process.env[legacyKey] : undefined;
+  if (legacyUrl && !subscribedUrls.has(legacyUrl)) {
+    fallbacks.push({ url: legacyUrl });
+    subscribedUrls.add(legacyUrl);
+  }
+
+  return fallbacks;
+}
+
+export type WebhookDeliveryResult = {
+  ok: boolean;
+  statusCode: number | null;
+  error?: string;
+  deliveryId: string;
+};
+
+/**
+ * Send a single test ping (one attempt, awaited). Used by admin diagnostics.
+ */
+export async function sendTestWebhook(
+  url: string,
+  options?: { secret?: string | null; webhookId?: string | null }
+): Promise<WebhookDeliveryResult> {
+  const payload = {
+    message: "WeShare webhook test — ignore in production automations",
+    source: "admin-test",
+  };
+
+  const body = buildWebhookBody(TEST_WEBHOOK_EVENT, payload);
+  const delivery = await db.webhookDelivery.create({
+    data: {
+      webhookId: options?.webhookId ?? undefined,
+      eventType: TEST_WEBHOOK_EVENT,
+      payload: payload as object,
+      url,
+      status: "pending",
+    },
+  });
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-WeShare-Event": TEST_WEBHOOK_EVENT,
+  };
+  if (options?.secret) {
+    headers["X-WeShare-Signature"] = signPayload(options.secret, body);
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body,
+      signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),
+    });
+    const statusCode = res.status;
+    if (res.ok) {
+      await db.webhookDelivery.update({
+        where: { id: delivery.id },
+        data: {
+          status: "success",
+          attempts: 1,
+          responseCode: statusCode,
+          deliveredAt: new Date(),
+        },
+      });
+      return { ok: true, statusCode, deliveryId: delivery.id };
+    }
+
+    const error = `HTTP ${statusCode}`;
+    await db.webhookDelivery.update({
+      where: { id: delivery.id },
+      data: { status: "failed", attempts: 1, responseCode: statusCode, lastError: error },
+    });
+    return { ok: false, statusCode, error, deliveryId: delivery.id };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : "Delivery failed";
+    await db.webhookDelivery.update({
+      where: { id: delivery.id },
+      data: { status: "failed", attempts: 1, lastError: error },
+    });
+    return { ok: false, statusCode: null, error, deliveryId: delivery.id };
+  }
+}
+
 /**
  * Emit an event to all subscribed webhooks. Non-blocking — errors are logged only.
  */
@@ -156,17 +266,21 @@ export function emitEvent(eventType: WebhookEventType, payload: Record<string, u
         where: { isActive: true, events: { has: eventType } },
       });
 
+      const seenUrls = new Set<string>();
+      const safeHooks = hooks.filter((h) => {
+        if (!isSafeWebhookUrl(h.url)) return false;
+        seenUrls.add(h.url);
+        return true;
+      });
+
       await Promise.all(
-        hooks
-          .filter((h) => isSafeWebhookUrl(h.url))
-          .map((h) => deliverOnce(h.url, eventType, payload, h.secret, h.id))
+        safeHooks.map((h) => deliverOnce(h.url, eventType, payload, h.secret, h.id))
       );
 
-      const legacyKey = LEGACY_ENV_MAP[eventType];
-      const legacyUrl = legacyKey ? process.env[legacyKey] : undefined;
-      if (legacyUrl && !hooks.some((h) => h.url === legacyUrl)) {
-        await deliverOnce(legacyUrl, eventType, payload);
-      }
+      const fallbacks = collectEnvFallbackUrls(eventType, seenUrls);
+      await Promise.all(
+        fallbacks.map((f) => deliverOnce(f.url, eventType, payload, f.secret))
+      );
     } catch (err) {
       console.error("[events] emit failed", eventType, err);
     }
