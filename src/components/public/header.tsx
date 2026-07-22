@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import WeShareLogo from "@/components/weshare-logo";
 
 const LINE  = "rgba(148,163,184,0.18)";
 const MUTED = "rgba(203,213,225,0.85)";
@@ -34,9 +35,17 @@ export default function PublicHeader() {
     >
       {/* ── Main bar ────────────────────────────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center justify-between gap-4">
-        {/* Logo */}
+        {/* Logo — WeShare lockup (always links home, every breakpoint) +
+            OrenGen wordmark at the same 32px height */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <a href="https://orengen.io" target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+          <WeShareLogo height={32} />
+          <a
+            href="https://orengen.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden min-[480px]:block flex-shrink-0 pl-3"
+            style={{ borderLeft: "1px solid rgba(148,163,184,0.2)" }}
+          >
             <Image
               src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
               alt="OrenGen Worldwide"
@@ -45,13 +54,6 @@ export default function PublicHeader() {
               unoptimized
             />
           </a>
-          <Link
-            href="/"
-            className="hidden sm:block text-[10px] font-bold tracking-[0.18em] uppercase pl-3"
-            style={{ color: "rgba(148,163,184,0.65)", borderLeft: "1px solid rgba(148,163,184,0.2)" }}
-          >
-            WeShare
-          </Link>
         </div>
 
         {/* Desktop nav */}
@@ -127,6 +129,17 @@ export default function PublicHeader() {
                 {label}
               </Link>
             ))}
+            {/* Parent-brand link — the header's OrenGen wordmark is hidden
+                below 480px, so keep a click path to orengen.io on phones */}
+            <a
+              href="https://orengen.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center px-3 py-3.5 rounded-xl text-base font-semibold transition-all duration-150 min-[480px]:hidden"
+              style={{ color: "rgba(148,163,184,0.75)" }}
+            >
+              OrenGen Worldwide ↗
+            </a>
           </nav>
           <div
             className="px-4 py-4 border-t"
