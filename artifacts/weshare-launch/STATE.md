@@ -67,12 +67,18 @@
 - Session network policy blocks `weshare.orengen.io` + `backoffice.orengen.io` → live test + Coolify env writes need allowlisting or owner-run.
 - W-9 vs Stripe decision gates the "sign docs" email + runbook §3 doc pack.
 
+## Brand Guard log — 2026-07-22
+
+- **WeShare logo parity fix (owner-directed):** new `src/components/weshare-logo.tsx` lockup (mark + wordmark + "by OrenGen", always a `Link` to `/`), rendered at exact OrenGen-logo height on all three client-facing surfaces — PublicHeader (32px, now visible on mobile), auth layout (40px), dashboard/admin sidebar (linked). Adversarial review run before ship.
+- **BLOCKER flagged to owner:** `WeShare Convo W_Google AI.md` (commit bbd776e "Add files via upload") arrived **empty — 0 bytes**. Its implementations cannot be executed until the owner re-uploads or pastes the content.
+
 ## Next actions
 
-1. Andre: paste env block into Coolify (incl. `WESHARE_API_KEY`) + redeploy.
-2. Andre: approve funnel copy → build pages in GHL per `funnel/ghl-element-map.md`.
-3. Run `scripts/test-purchase-loop.sh` end-to-end; log result here.
-4. First live close → write winning lines to `winners-library.md`.
+1. **Andre: re-upload/paste the Google AI conversation MD** (current file is 0 bytes) → then implement its items.
+2. Andre: paste env block into Coolify (incl. `WESHARE_API_KEY`) + redeploy.
+3. Andre: approve funnel copy → build pages in GHL per `funnel/ghl-element-map.md`.
+4. Run `scripts/test-purchase-loop.sh` end-to-end; log result here.
+5. First live close → write winning lines to `winners-library.md`.
 
 ## Voiceprint (Mode O — seeded from Brand Guard + Handbook §6)
 

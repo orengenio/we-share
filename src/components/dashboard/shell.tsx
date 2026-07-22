@@ -187,19 +187,25 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
         ].join(" ")}
         style={{ backgroundColor: "#00254B" }}
       >
-        {/* Logo */}
+        {/* Logo — always a link back to the home page */}
         <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/favicon.svg" alt="OrenGen" className="w-8 h-8 rounded-lg" />
-            <div className="flex-1">
-              <p className="text-white font-bold text-base leading-tight tracking-tight">
-                WeShare
-              </p>
-              <p className="text-white/50 text-[11px] leading-none tracking-wide uppercase">
-                by OrenGen
-              </p>
-            </div>
+            <Link
+              href="/"
+              aria-label="WeShare — back to home"
+              className="flex items-center gap-2.5 flex-1 min-w-0"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/favicon.svg" alt="" className="w-8 h-8 rounded-lg" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-white font-bold text-base leading-tight tracking-tight">
+                  WeShare
+                </span>
+                <span className="block text-white/50 text-[11px] leading-none tracking-wide uppercase">
+                  by OrenGen
+                </span>
+              </span>
+            </Link>
             {/* Close (mobile only) */}
             <button
               onClick={() => setSidebarOpen(false)}
