@@ -11,7 +11,7 @@ export default function PartnerAgreementPage() {
     <LegalDoc
       title="Sales Representative Agreement"
       subtitle="OrenGen Sales Partner Program — accepted electronically from your dashboard"
-      effective="Version v2-2026-07-09"
+      effective="Version v3-2026-07-22"
     >
       <p>
         This Sales Representative Agreement (the &quot;Agreement&quot;) is made and effective
@@ -47,13 +47,16 @@ export default function PartnerAgreementPage() {
           Pay the following commissions to the Sales Representative: <strong>25% of the setup
           fee</strong> on each completed sale closed by the Representative, and{" "}
           <strong>25% of the monthly maintenance fee</strong> for each such client,{" "}
-          <strong>for the life of the client account</strong>, subject to the refund and
-          non-commissioned provisions below. Commissions become payout-eligible fifteen (15)
-          days after the underlying payment clears (NET-15 maturity) and are paid via Stripe
-          Connect on the Company&apos;s scheduled payout runs.
+          <strong>for the life of the client account</strong>, subject to the rescission and
+          non-commissioned provisions below. All client transactions are governed by the
+          Company&apos;s non-refund policy and Texas Business &amp; Commerce Code Chapter 601
+          (72-hour Right of Rescission). Commissions are <strong>locked into the
+          Representative&apos;s ledger seventy-two (72) hours after the client&apos;s payment
+          clears</strong> and are paid via Stripe Connect on the Company&apos;s weekly Friday
+          payout runs.
         </li>
         <li>To negotiate in advance of sale the commission treatment of any order on which the Company allows a discount or other trade concession. (Company pricing is currently fixed; no discounts are offered.)</li>
-        <li>Commissions on refunds to customers in which a commission has already been paid to the Representative shall be deducted from future commissions to be paid to the Representative by the Company — including negative adjustments netted against subsequent payouts. Refunds within thirty (30) days of payment void the associated commission.</li>
+        <li>If a client exercises their statutory right of rescission within the 72-hour window, the associated commission is voided and subject to clawback — including negative adjustments netted against subsequent payouts. From hour seventy-three (73) onward the transaction is final and the commission is fully locked to the Representative.</li>
         <li>Except by special arrangement, the following shall not be commissioned: sales not completed through the Company&apos;s official checkout; purchases made by the Representative on their own behalf; refunded sales; and amounts attributable to taxes or payment-processing adjustments.</li>
         <li>To provide the Sales Representative with reasonable sales materials in digital form — the Partner Handbook, approved scripts, CRM access, the marketing materials library, and, upon certification, a Company-assigned business phone number.</li>
         <li>To set minimum activity standards after consultation with the Sales Representative, as published in the Partner Handbook (including the four-hour first-touch standard and same-day logging). Lead assignments begin upon certification.</li>

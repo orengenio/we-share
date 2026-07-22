@@ -241,6 +241,9 @@ export const LEADER_COMMISSION = {
   residualOverrideRate: 0.05,
 };
 
+// Settled personal deals that auto-promote a Sales Partner to Partner Leader.
+export const LEADER_PROMOTION_DEALS = 5;
+
 export const PRODUCT_PRICING = {
   fastStartBonus: 50.00,
   fastStartWindowDays: 14,

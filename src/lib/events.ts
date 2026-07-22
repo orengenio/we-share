@@ -24,6 +24,7 @@ export const WEBHOOK_EVENTS = [
   "partner.payouts_connected",
   "partner.certified",
   "partner.leads_unlocked",
+  "partner.promoted_leader",
   "partner.crm_seat_granted",
   "affiliate.registered",
 ] as const;

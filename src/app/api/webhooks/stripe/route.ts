@@ -244,7 +244,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (withinClawback) {
-          await processClawback(conversion.id, "Customer refund within 30-day window", "STRIPE_WEBHOOK");
+          await processClawback(conversion.id, "Customer refund (rescission window)", "STRIPE_WEBHOOK");
         }
 
         // Clawback event emitted from processClawback

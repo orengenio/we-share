@@ -359,7 +359,7 @@ export default async function Home() {
             {[
               { icon: "💸", title: "Paid Every Friday",      desc: "Commissions released every Friday via Stripe direct deposit. $25 minimum balance." },
               { icon: "📅", title: "Residuals Stack Monthly", desc: "Every client adds a compounding monthly residual — for as long as they stay active." },
-              { icon: "🔒", title: "30-Day Clawback Only",    desc: "After 30 days your client is locked. No retroactive reversals after the protection window." },
+              { icon: "🔒", title: "72-Hour Commission Lock", desc: "Once your client's 72-hour rescission window closes, your commission is locked. No 30-day holds, no retroactive reversals." },
               { icon: "📊", title: "Real-Time Dashboard",     desc: "Track clicks, leads, earnings, commissions, and payout history in one place." },
             ].map(f => (
               <div

@@ -1,0 +1,101 @@
+{
+  "name": "OrenGen — Sanctifier Lead Router (state pools + AI hook)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sanctifier-inbound-leads",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Sanctifier Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [80, 300],
+      "webhookId": "sanctifier-inbound-leads"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-5\",\n  \"max_tokens\": 150,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Write one direct, factual cold-call opener sentence a sales rep can read aloud to the owner of '{{ $json.body.company_name }}'. Their site runs {{ $json.body.custom_fields.current_cms }}; SSL status: {{ $json.body.custom_fields.ssl_status }}; mobile responsiveness: {{ $json.body.custom_fields.mobile_responsive }}. Name the specific flaw and its business cost. No hype words, no exclamation points, no intro — output the sentence only.\"\n    }\n  ]\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Claude — Custom Hook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic x-api-key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// State-pool weighted round-robin.\n// EDIT: map each state to the GHL user IDs of the reps in that pool.\nconst POOLS = {\n  TX: ['GHL_USER_ID_TX_REP_1', 'GHL_USER_ID_TX_REP_2'],\n  FL: ['GHL_USER_ID_FL_REP_1'],\n  // ...add a line per state as reps are provisioned\n};\nconst FALLBACK_ADMIN = 'GHL_USER_ID_ADMIN';\n\nconst lead = $('Sanctifier Webhook').first().json.body;\nconst hookText = ($json.content?.[0]?.text || '').trim();\nconst state = String(lead.state || '').toUpperCase().trim();\nconst pool = POOLS[state];\n\nlet assignedTo = FALLBACK_ADMIN;\nif (pool && pool.length) {\n  // Rotation survives restarts via workflow static data.\n  const store = $getWorkflowStaticData('global');\n  store.rr = store.rr || {};\n  const i = (store.rr[state] ?? -1) + 1;\n  store.rr[state] = i % pool.length;\n  assignedTo = pool[store.rr[state]];\n}\n\nreturn [{\n  json: {\n    ...lead,\n    assignedTo,\n    routed_pool: pool ? state : 'FALLBACK_ADMIN',\n    custom_hook: hookText,\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "State Pool Round-Robin",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Version", "value": "2021-07-28" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"locationId\": \"dMEB004RUX8JRRi42Kzq\",\n  \"firstName\": \"{{ $json.first_name }}\",\n  \"companyName\": \"{{ $json.company_name }}\",\n  \"phone\": \"{{ $json.phone }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"state\": \"{{ $json.state }}\",\n  \"source\": \"Sanctifier Scraper\",\n  \"assignedTo\": \"{{ $json.assignedTo }}\",\n  \"tags\": [\"Sanctifier Lead\", \"Pool: {{ $json.state }}\", \"Score: {{ $json.custom_fields.lead_score }}\"],\n  \"customFields\": [\n    { \"key\": \"lead_score\", \"field_value\": \"{{ $json.custom_fields.lead_score }}\" },\n    { \"key\": \"ssl_status\", \"field_value\": \"{{ $json.custom_fields.ssl_status }}\" },\n    { \"key\": \"mobile_responsive\", \"field_value\": \"{{ $json.custom_fields.mobile_responsive }}\" },\n    { \"key\": \"current_cms\", \"field_value\": \"{{ $json.custom_fields.current_cms }}\" },\n    { \"key\": \"instant_mockup_url\", \"field_value\": \"{{ $json.custom_fields.instant_mockup_url }}\" },\n    { \"key\": \"custom_hook\", \"field_value\": \"{{ $json.custom_hook }}\" }\n  ]\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "GHL — Upsert Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (agency-level)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Sanctifier Webhook": {
+      "main": [[{ "node": "Claude — Custom Hook", "type": "main", "index": 0 }]]
+    },
+    "Claude — Custom Hook": {
+      "main": [[{ "node": "State Pool Round-Robin", "type": "main", "index": 0 }]]
+    },
+    "State Pool Round-Robin": {
+      "main": [[{ "node": "GHL — Upsert Contact", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

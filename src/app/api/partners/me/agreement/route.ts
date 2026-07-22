@@ -14,7 +14,7 @@ import { getSessionFromRequest } from "@/lib/auth";
 import db from "@/lib/db";
 import { apiSuccess, apiUnauthorized, apiForbidden, getClientIP } from "@/lib/utils";
 
-const AGREEMENT_VERSION = "v2-2026-07-09";
+const AGREEMENT_VERSION = "v3-2026-07-22";
 
 async function acceptedVersion(partnerId: string): Promise<string | null> {
   const entry = await db.auditLog.findFirst({

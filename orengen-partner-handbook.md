@@ -1,5 +1,5 @@
 # OrenGen Sales Partner Handbook
-**Rules of Engagement · Standard Operating Procedures · v1.1 (July 2026)**
+**Rules of Engagement · Standard Operating Procedures · v1.2 (July 2026)**
 
 You are a 100% commission closer for OrenGen Worldwide. We hand you the leads, the scripts, the CRM, and a company number. You run the conversations and close. We build, deliver, and support everything after. This handbook is the complete operating manual.
 
@@ -17,22 +17,33 @@ Professional business website (new or rebuilt): **$997 setup + $247/month** main
 | Residual | 25% of maintenance | **$61.75/mo per client — for life of the client** | Each month the client pays |
 
 - **Payable when funds clear.** A close isn't a commission until the client's money lands.
+- **The 72-hour lock.** Client sales are non-refundable under Company policy except the statutory right of rescission (Texas Bus. & Com. Code ch. 601). Your commission locks into your ledger **72 hours after the client's payment clears** — no 30-day holds. If the client rescinds inside that window, the commission is voided; from hour 73 it's yours.
 - **Payouts:** weekly, every Friday, via Stripe Connect (onboard from your dashboard — required). $25 minimum rolls forward. Stripe issues your 1099.
-- **Clawback:** client refund within 30 days reverses the upfront as a negative ledger entry on your next payout.
+- **Fast-Start Bonus:** a flat **$50** on your **first settled deal**, automatic.
 - **Residuals are payment-driven:** client skips or churns → that month doesn't pay. Save the client, save the income.
 - If a WeShare Referral Partner sourced the lead, their commission comes from OrenGen's share — **your rates never change.**
+
+### The Partner Leader track (earned, never bought)
+
+Close **5 settled deals** and you're automatically promoted to **Partner Leader**:
+
+- You keep your full 25% / 25% on every personal close — that never changes.
+- You may recruit and mentor a team in your state pool, and you earn a **flat 5% override on every setup fee and every monthly residual your direct team generates.**
+- **One tier deep, hard cap.** No overrides on your recruits' recruits — this is a sales-management track, not a matrix.
+- Leadership is earned by closing, never by paying. A Leadership Addendum is signed at promotion; keep your team producing (at least one settled team deal per rolling 60 days) to retain override privileges.
 
 ## 3 · Onboarding SOP
 
 1. **Apply** → screening interview (we're a curated roster, not an open door).
 2. **Sign** the Sales Partner Agreement + complete W-9/Stripe Connect.
-3. **Provisioning:** CRM seat (GoHighLevel), your assigned OrenGen phone number, script library, objection guide.
+3. **Provisioning:** CRM seat, your assigned OrenGen phone number with your state pool's local area code, script library, objection guide.
 4. **Certification:** one recorded role-play close with OrenGen leadership. Pass = leads unlock.
 5. **First leads assigned.** You're live.
+6. **The 72-hour activation clause.** Your CRM seat, phone line, and lead feed are company-funded. To keep that seat active, log your first outbound dials within **72 hours** of provisioning — a seat showing zero activity at hour 72 is automatically released to the next closer on the waitlist. (This is a software-access condition, not a work schedule — your hours are always your own.)
 
 ## 4 · Lead Lifecycle SOP
 
-1. **Assignment** — leads appear in your CRM pipeline with source tag (house / referral partner / self-sourced).
+1. **Assignment** — leads route into your pipeline by **state pool** (scored leads auto-assigned round-robin among your pool's active reps), tagged by source (house / referral partner / self-sourced). Inbound calls and AI-agent closes on your assigned number credit **you**.
 2. **First touch within 4 business hours.** Speed is the single biggest close-rate lever.
 3. **Cadence:** minimum **6 touches across 10 business days** — call, voicemail, SMS, email, mixed. Use the scripts.
 4. **Status discipline:** every lead sits in exactly one stage — New → Contacted → Appointment → Proposal → Won / Lost / Nurture. Update same day, every day.
