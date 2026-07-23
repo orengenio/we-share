@@ -59,10 +59,12 @@ function score(f) {
 
 // Matches host (or a subdomain of it) only in the authority position of a
 // resource URL — "evil-static.parastorage.com.attacker.io" won't match.
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function resourceHost(host, path = "/") {
-  const h = host.replace(/\./g, "\\.");
-  const p = path.replace(/\//g, "\\/");
-  return new RegExp(`(?:src|href)=["']https?:\\/\\/(?:[a-z0-9-]+\\.)*${h}${p}`, "i");
+  return new RegExp(
+    `(?:src|href)=["']https?://(?:[a-z0-9-]+\\.)*${escapeRe(host)}${escapeRe(path)}`,
+    "i"
+  );
 }
 
 function detectCms(html, headers) {
