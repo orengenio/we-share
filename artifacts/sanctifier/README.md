@@ -21,7 +21,7 @@ node audit-leads.mjs leads.json
 
 The Google-AI draft imagined Sanctifier "building the site." It doesn't (it's a scraper) — and no GHL API exists for cloning site templates. This is the honest, working version:
 
-- **The template** is one static HTML file that personalizes itself from query params: `?biz=&trade=&city=&color=&accent=&logo=&phone=`. Premium navy/orange by default, the prospect's own brand color/logo when extracted. Includes the booking-widget demo, click-to-call, and a "PREVIEW built for {business}" ribbon. Inputs are validated (https-only logo, hex-only colors, tel-pattern phone) so a crafted link can't inject anything.
+- **The template** is one static HTML file that personalizes itself from query params: `?biz=&trade=&city=&color=&accent=&phone=`. Premium navy/orange by default, the prospect's own brand color when extracted, and a monogram mark built from the business name (deliberately no remote logo loading — prospects' hosts often block hotlinks, and the page never loads third-party content). Params only ever land in `textContent` or validated hex CSS variables — never in URLs, srcs, hrefs, or HTML — so a crafted link can't inject or redirect anything.
 - **Host it once**, anywhere static — simplest: drop it in the WeShare repo at `public/mockup.html` and every preview URL becomes `https://weshare.orengen.io/mockup.html?biz=...`. (Say the word and that's a 1-line PR.)
 - **The extractor** pulls the prospect's name, logo (og:image → touch-icon → header img), primary color (theme-color → header background), and phone (first tel: link), then composes the final `instant_mockup_url`:
 

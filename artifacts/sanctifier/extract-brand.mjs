@@ -73,8 +73,11 @@ export async function extractBrand(domain, fallbackName = "", trade = "", city =
   if (brand.trade) u.searchParams.set("trade", brand.trade);
   if (brand.city) u.searchParams.set("city", brand.city);
   if (brand.color) u.searchParams.set("color", brand.color);
-  if (brand.logo) u.searchParams.set("logo", brand.logo);
   if (brand.phone) u.searchParams.set("phone", brand.phone);
+  // brand.logo is deliberately NOT put in the URL — the preview renders a
+  // monogram mark (no remote images: prospects' hosts often block hotlinks,
+  // and the preview page never loads third-party content). The logo URL in
+  // the JSON output is intel for the build team.
   return { brand, mockupUrl: u.href };
 }
 

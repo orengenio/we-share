@@ -57,15 +57,22 @@ function score(f) {
   return s;
 }
 
+// Matches host (or a subdomain of it) only in the authority position of a
+// resource URL — "evil-static.parastorage.com.attacker.io" won't match.
+function resourceHost(host, path = "/") {
+  const h = host.replace(/\./g, "\\.");
+  const p = path.replace(/\//g, "\\/");
+  return new RegExp(`(?:src|href)=["']https?:\\/\\/(?:[a-z0-9-]+\\.)*${h}${p}`, "i");
+}
+
 function detectCms(html, headers) {
-  const h = html.toLowerCase();
   const gen = html.match(/<meta[^>]+name=["']generator["'][^>]+content=["']([^"']+)/i)?.[1];
   if (gen) return gen.slice(0, 60);
-  if (h.includes("wp-content/") || h.includes("wp-includes/")) return "WordPress (version hidden)";
-  if (h.includes("static.parastorage.com") || h.includes("wixstatic.com")) return "Wix";
-  if (h.includes("squarespace.com") || headers["x-servedby"]?.includes("squarespace")) return "Squarespace";
-  if (h.includes("cdn.shopify.com")) return "Shopify";
-  if (h.includes("godaddy.com/websites")) return "GoDaddy Builder";
+  if (/(?:src|href)=["'][^"']*wp-(?:content|includes)\//i.test(html)) return "WordPress (version hidden)";
+  if (resourceHost("parastorage.com").test(html) || resourceHost("wixstatic.com").test(html)) return "Wix";
+  if (resourceHost("squarespace.com").test(html) || /squarespace/i.test(headers["x-servedby"] ?? "")) return "Squarespace";
+  if (resourceHost("shopify.com").test(html)) return "Shopify";
+  if (resourceHost("godaddy.com", "/websites").test(html)) return "GoDaddy Builder";
   return "Custom/Unknown";
 }
 
