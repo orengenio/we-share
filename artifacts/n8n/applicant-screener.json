@@ -1,0 +1,101 @@
+{
+  "name": "OrenGen — Applicant Screener (Claude rubric → GHL)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "applicant-intake",
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000001",
+      "name": "Applicant Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [80, 300],
+      "webhookId": "applicant-intake"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-5\",\n  \"max_tokens\": 300,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Grade this 1099 commission-sales applicant for a website-sales partner role on a 1.0-5.0 scale. Rubric: evidence of commission-only/1099 sales history (+1.5), B2B outbound/closing experience (+1.0), local-services or SMB market familiarity (+0.5), clear written communication in their answers (+0.5), explicit acceptance of the 72-hour first-dial activation window (+0.5). Base score 1.0. Salary-only history with no commission evidence caps the score at 2.0. Applicant data — Name: {{ $json.body.name }} · State requested: {{ $json.body.state }} · Sales background: {{ $json.body.background }} · Biggest commission close: {{ $json.body.biggest_close }} · Accepts 72-hour activation: {{ $json.body.accepts_72h }} · LinkedIn: {{ $json.body.linkedin }}. Reply with STRICT JSON only, no prose: {\\\"score\\\": <number>, \\\"reasons\\\": \\\"<one sentence>\\\"}\"\n    }\n  ]\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "b2000000-0000-4000-8000-000000000002",
+      "name": "Claude — Rubric Grade",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic x-api-key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const applicant = $('Applicant Webhook').first().json.body;\nlet score = 0, reasons = 'ungraded';\ntry {\n  const text = $json.content?.[0]?.text ?? '{}';\n  const parsed = JSON.parse(text.replace(/^```json?\\s*|```\\s*$/g, ''));\n  score = Number(parsed.score) || 0;\n  reasons = String(parsed.reasons || '').slice(0, 250);\n} catch (e) { reasons = 'grade-parse-failed: manual review'; }\nconst topTier = score >= 4.0;\nreturn [{ json: { ...applicant, screen_score: score, screen_reasons: reasons, tier_tag: topTier ? 'Applicant: Top Tier' : 'Applicant: Manual Review' } }];"
+      },
+      "id": "b2000000-0000-4000-8000-000000000003",
+      "name": "Parse Grade + Tier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Version", "value": "2021-07-28" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"locationId\": \"dMEB004RUX8JRRi42Kzq\",\n  \"firstName\": \"{{ $json.name }}\",\n  \"phone\": \"{{ $json.phone }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"state\": \"{{ $json.state }}\",\n  \"source\": \"Rep Application\",\n  \"tags\": [\"Rep Applicant\", \"{{ $json.tier_tag }}\", \"Pool Request: {{ $json.state }}\"],\n  \"customFields\": [\n    { \"key\": \"screen_score\", \"field_value\": \"{{ $json.screen_score }}\" },\n    { \"key\": \"screen_reasons\", \"field_value\": \"{{ $json.screen_reasons }}\" }\n  ]\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "b2000000-0000-4000-8000-000000000004",
+      "name": "GHL — Upsert Applicant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (agency-level)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Applicant Webhook": {
+      "main": [[{ "node": "Claude — Rubric Grade", "type": "main", "index": 0 }]]
+    },
+    "Claude — Rubric Grade": {
+      "main": [[{ "node": "Parse Grade + Tier", "type": "main", "index": 0 }]]
+    },
+    "Parse Grade + Tier": {
+      "main": [[{ "node": "GHL — Upsert Applicant", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
