@@ -268,6 +268,9 @@ model PartnerProfile {
   userId      String  @unique
   partnerCode String  @unique
 
+  // State pool claim — one state per partner; capacity enforced in app layer
+  assignedState String?
+
   // GoHighLevel CRM
   ghlContactId      String? @unique
   ghlUserId         String?
@@ -327,6 +330,7 @@ model PartnerProfile {
   @@index([isActive])
   @@index([isLeader])
   @@index([uplineLeaderId])
+  @@index([assignedState])
 }
 
 // ─── Tracking Engine ─────────────────────────────────────────────────────────

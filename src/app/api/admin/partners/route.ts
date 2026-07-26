@@ -5,13 +5,15 @@ import db from "@/lib/db";
 import { sendPartnerCertified, sendPartnerLeadsUnlocked, sendNumberAssigned, sendPartnerGHLAccessReady } from "@/lib/email";
 import { syncPartnerMilestoneToGHL } from "@/lib/ghl-milestones";
 import { emitEvent } from "@/lib/events";
+import { claimState } from "@/lib/state-pools";
 import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from "@/lib/utils";
 
 const certifySchema = z.object({
   partnerId: z.string(),
-  action: z.enum(["certify", "unlock_leads", "grant_crm_seat", "suspend", "reinstate", "promote_leader", "demote_leader", "assign_number"]),
+  action: z.enum(["certify", "unlock_leads", "grant_crm_seat", "suspend", "reinstate", "promote_leader", "demote_leader", "assign_number", "assign_state"]),
   reason: z.string().optional(),
   phoneNumber: z.string().min(7).max(30).optional(),
+  state: z.string().length(2).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -21,7 +23,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { partnerId, action, reason, phoneNumber } = certifySchema.parse(body);
+    const { partnerId, action, reason, phoneNumber, state } = certifySchema.parse(body);
 
     const now = new Date();
 
@@ -29,6 +31,27 @@ export async function PATCH(req: NextRequest) {
 
     if (action === "assign_number" && !phoneNumber) {
       return apiError("phoneNumber is required for assign_number", 400);
+    }
+
+    // State reassignment goes through the transactional pool claim so admin
+    // overrides obey the same capacity rules as signup.
+    if (action === "assign_state") {
+      if (!state) return apiError("state is required for assign_state", 400);
+      try {
+        await claimState(partnerId, state);
+      } catch (e) {
+        return apiError(e instanceof Error ? e.message : "State claim failed", 409);
+      }
+      await db.auditLog.create({
+        data: {
+          userId: session.userId,
+          action: "PARTNER_STATE_ASSIGNED",
+          resource: "PartnerProfile",
+          resourceId: partnerId,
+          details: { state: state.toUpperCase() },
+        },
+      });
+      return apiSuccess({ updated: true, assignedState: state.toUpperCase() });
     }
 
     if (action === "certify") {
@@ -64,6 +87,8 @@ export async function PATCH(req: NextRequest) {
         leadsUnlocked: true,
         crmSeatGrantedAt: true,
         assignedPhoneNumber: true,
+        partnerCode: true,
+        assignedState: true,
         user: { select: { email: true, name: true } },
       },
     });
@@ -76,7 +101,16 @@ export async function PATCH(req: NextRequest) {
     if (action === "certify" && !before.isCertified) {
       sendPartnerCertified(before.user.email, before.user.name ?? "there").catch(console.error);
       syncPartnerMilestoneToGHL(before.user.email, "certified").catch(console.error);
-      emitEvent("partner.certified", { partnerId, email: before.user.email });
+      // Payload carries everything the n8n Rep Provisioner needs to run
+      // (name split, state pool, partner code) — no extra lookups downstream.
+      emitEvent("partner.certified", {
+        partnerId,
+        email: before.user.email,
+        partner_code: before.partnerCode,
+        first_name: (before.user.name ?? "").split(/\s+/)[0] || "Partner",
+        last_name: (before.user.name ?? "").split(/\s+/).slice(1).join(" "),
+        state: before.assignedState,
+      });
     } else if (action === "unlock_leads" && !before.leadsUnlocked) {
       sendPartnerLeadsUnlocked(before.user.email, before.user.name ?? "there").catch(console.error);
       syncPartnerMilestoneToGHL(before.user.email, "leads_unlocked").catch(console.error);

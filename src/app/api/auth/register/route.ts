@@ -7,6 +7,7 @@ import { generateAffiliateCode } from "@/lib/utils";
 import { sendAffiliateWelcome, sendPartnerWelcome } from "@/lib/email";
 import { syncPartnerToGHL } from "@/lib/ghl";
 import { syncPartnerMilestoneToGHL } from "@/lib/ghl-milestones";
+import { getStatePools, claimState, isValidState } from "@/lib/state-pools";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 const schema = z.object({
@@ -16,14 +17,29 @@ const schema = z.object({
   type: z.enum(["AFFILIATE", "PARTNER"]).default("AFFILIATE"),
   referralCode: z.string().optional(), // upline affiliate code (army builder)
   leaderCode: z.string().optional(),   // partner leader code (partner program only)
+  state: z.string().length(2).optional(), // sales-partner state pool claim
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password, type, referralCode, leaderCode } = schema.parse(body);
+    const { name, email, password, type, referralCode, leaderCode, state } = schema.parse(body);
 
     const normalizedEmail = email.toLowerCase().trim();
+
+    // Sales partners claim a state pool at signup; reject full/invalid states
+    // up front so no account is created for an unclaimable territory. (The
+    // claim itself is re-run transactionally after the profile exists.)
+    const requestedState = type === "PARTNER" && state ? state.toUpperCase().trim() : null;
+    if (type === "PARTNER" && requestedState) {
+      if (!isValidState(requestedState)) {
+        return apiError(`"${state}" is not a valid US state`, 400);
+      }
+      const pool = (await getStatePools()).find((p) => p.code === requestedState);
+      if (!pool || pool.available <= 0) {
+        return apiError(`${requestedState} is fully claimed — choose another state`, 409);
+      }
+    }
 
     const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
@@ -89,6 +105,18 @@ export async function POST(req: NextRequest) {
         partnerProfile: true,
       },
     });
+
+    // Claim the state pool transactionally (closes the two-reps-last-slot
+    // race). A lost race surfaces as a clear error; the account stands and
+    // the rep picks another state from their dashboard/admin.
+    if (requestedState && user.partnerProfile) {
+      try {
+        await claimState(user.partnerProfile.id, requestedState);
+        user.partnerProfile.assignedState = requestedState;
+      } catch (e) {
+        console.error("state claim lost after signup:", e);
+      }
+    }
 
     const token = await createSessionToken({
       sub: user.id,

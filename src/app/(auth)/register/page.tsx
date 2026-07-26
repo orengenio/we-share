@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+
+type StatePool = { code: string; name: string; capacity: number; taken: number; available: number };
 
 function RegisterForm() {
   const router = useRouter();
@@ -21,10 +23,22 @@ function RegisterForm() {
     type: initialType,
     referralCode: refCode,
     leaderCode: leaderRef,
+    state: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [pools, setPools] = useState<StatePool[] | null>(null);
+
+  // Live state-pool availability — full states render disabled so a claimed
+  // territory can't even be selected.
+  useEffect(() => {
+    if (form.type !== "PARTNER" || pools) return;
+    fetch("/api/public/state-pools")
+      .then((r) => r.json())
+      .then((d) => { if (d?.success && d.data?.pools) setPools(d.data.pools); })
+      .catch(() => null);
+  }, [form.type, pools]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -132,16 +146,40 @@ function RegisterForm() {
           </div>
         )}
         {form.type === "PARTNER" && (
-          <div>
-            <label className="form-label">Leader code <span className="text-gray-400">(optional)</span></label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Partner Leader who invited you"
-              value={form.leaderCode}
-              onChange={(e) => setForm({ ...form, leaderCode: e.target.value })}
-            />
-          </div>
+          <>
+            <div>
+              <label className="form-label">Your state territory</label>
+              <select
+                required
+                className="form-input"
+                value={form.state}
+                onChange={(e) => setForm({ ...form, state: e.target.value })}
+              >
+                <option value="" disabled>
+                  {pools ? "Choose your state pool" : "Loading state availability…"}
+                </option>
+                {(pools ?? []).map((p) => (
+                  <option key={p.code} value={p.code} disabled={p.available <= 0}>
+                    {p.name}{p.available <= 0 ? " — fully claimed" : p.capacity > 1 ? ` (${p.available} of ${p.capacity} open)` : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Your leads and local-presence phone number come from the state you claim.
+                Fully claimed states are unavailable.
+              </p>
+            </div>
+            <div>
+              <label className="form-label">Leader code <span className="text-gray-400">(optional)</span></label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Partner Leader who invited you"
+                value={form.leaderCode}
+                onChange={(e) => setForm({ ...form, leaderCode: e.target.value })}
+              />
+            </div>
+          </>
         )}
         <label className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed cursor-pointer">
           <input
