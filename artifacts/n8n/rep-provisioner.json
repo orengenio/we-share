@@ -161,6 +161,53 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/users/{{ $json.id ?? $json.user?.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000008",
+      "name": "GHL \u2014 Read Seat Back",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1270,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_AGENCY_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (agency \u2014 users.write + phonenumbers)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Trust, then verify: assert the lockdown actually applied. A seat that\n// fails ANY of these must never reach a rep \u2014 the run fails loudly and\n// the admin fixes it before credentials go out.\nconst u = $json.user ?? $json;\nconst perms = u.permissions ?? {};\nconst mustBeTrue = ['assignedDataOnly','contactsEnabled','conversationsEnabled','opportunitiesEnabled','appointmentsEnabled','phoneCallEnabled'];\nconst mustBeFalse = ['bulkRequestsEnabled','settingsEnabled','funnelsEnabled','websitesEnabled','workflowsEnabled','campaignsEnabled','marketingEnabled'];\nconst bad = [];\nfor (const k of mustBeTrue) if (perms[k] !== true) bad.push(`${k} should be TRUE, got ${perms[k]}`);\nfor (const k of mustBeFalse) if (perms[k] === true) bad.push(`${k} should be FALSE, got true`);\nif (u.roles?.role && u.roles.role !== 'user' && u.role !== 'user') bad.push(`role should be 'user', got ${u.roles?.role ?? u.role}`);\nif (bad.length) throw new Error('SEAT LOCKDOWN VERIFY FAILED \u2014 do NOT hand out credentials. Fix in My Staff, then re-verify: ' + bad.join(' | '));\nconst prep = $('Pick Number').first().json;\nreturn [{ json: { ...prep, seat_user_id: u.id, seat_verified: true } }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000009",
+      "name": "Verify Seat Lockdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1490,
+        300
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://services.leadconnectorhq.com/contacts/upsert",
         "authentication": "genericCredentialType",
@@ -190,7 +237,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1380,
+        1710,
         300
       ],
       "credentials": {
@@ -258,6 +305,28 @@
       ]
     },
     "GHL \u2014 Create Rep Seat (locked-down)": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Read Seat Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL \u2014 Read Seat Back": {
+      "main": [
+        [
+          {
+            "node": "Verify Seat Lockdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Seat Lockdown": {
       "main": [
         [
           {

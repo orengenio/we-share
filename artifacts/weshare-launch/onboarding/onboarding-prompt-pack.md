@@ -100,6 +100,8 @@ Import into n8n. This is the piece that kills the manual entry: fired once per c
 3. Wire WeShare's `partner.certified` outbound event (Integrations page → Add webhook → this workflow's URL) or fire it manually per rep while volumes are small.
 4. After each run, do the one manual click: **My Staff → rep → Inbound Number → select their new number.** Then log/verify their `first_dial` tracking field exists.
 
+**Seat template & verification (why we don't clone a demo user):** GHL's API has no "duplicate user" endpoint, so the provisioner doesn't copy a demo account — it writes the full lockdown template explicitly on every create (`assignedDataOnly: true`, Contacts/Conversations/Opportunities/Calendars/Phone on, everything else off). That's deliberate: a demo user can drift if anyone edits it in the UI; the code template is identical every run and version-controlled. And because writing settings isn't proof they applied, the workflow then **reads the new user back and hard-fails if any lockdown flag didn't stick** — a mis-provisioned seat can never silently reach a rep. On your one-time first run, also eyeball the seat in My Staff once (a couple of niche UI toggles aren't exposed in the API's permission object), then trust the pipeline.
+
 **Cost note:** each purchase bills your location's Twilio/LC Phone wallet (~$1.15/mo per local number) — 50 reps ≈ $57.50/mo, matching the ops-pack estimate.
 
 **Also wire (already emitted by WeShare):** `partner.promoted_leader` → trigger the Leadership Addendum e-sign send in GHL (Prompt 1 handles the congratulations email once the tag is applied).
