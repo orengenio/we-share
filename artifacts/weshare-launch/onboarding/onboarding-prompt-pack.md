@@ -95,7 +95,7 @@ Import into n8n. This is the piece that kills the manual entry: fired once per c
 **Flow:** `partner.certified` webhook (or manual fire with the rep's details) → maps their state to local-presence area codes (all 50 states pre-mapped) → searches GHL's purchasable inventory for that area code → **purchases the number into your location** → **creates their locked-down GHL user seat** (assigned-data-only, no exports/bulk/settings/funnels — the decision-B template, plus a random 16-char first-login password) → tags the contact `Partner: Number Assigned` and stores `assigned_voip_number` — which is exactly the tag your onboarding master workflow (Prompt 1, Step 5) is waiting on, so the "your line is live, 72-hour window open" email fires automatically.
 
 **Before activating:**
-1. Attach two credentials: the **location** PIT (needs `phonenumbers.read/write` — create/extend a location Private Integration with Phone scopes) on the search/purchase/contact nodes, and your **agency** PIT (`users.write`) on the create-seat node.
+1. Attach ONE credential: your **agency-level PIT** on all GHL nodes — **verified live 2026-07-26**: the agency token authorizes the phone-system endpoints (your location key returned 401; either fix its scopes or just use the agency token, which the workflow now defaults to).
 2. Replace `REPLACE_WITH_AGENCY_COMPANY_ID` in the create-seat node with your agency Company ID (Settings → Company → copy ID).
 3. Wire WeShare's `partner.certified` outbound event (Integrations page → Add webhook → this workflow's URL) or fire it manually per rep while volumes are small.
 4. After each run, do the one manual click: **My Staff → rep → Inbound Number → select their new number.** Then log/verify their `first_dial` tracking field exists.
@@ -108,3 +108,26 @@ Import into n8n. This is the piece that kills the manual entry: fired once per c
 
 ## Reusable master template
 To regenerate any of the above with changed facts (new tiers, new bonus), edit the numbers in the prompts directly — they are the source of truth. There is deliberately no ChatGPT intermediary step: every fact above is locked program-of-record, and a generator step would only add drift risk.
+
+
+---
+
+## Verification log (how we know this works — tested 2026-07-26)
+
+**Proven by live execution against your accounts:**
+- `GET /phone-system/.../available` — real endpoint, agency PIT authorized, returned **34 purchasable numbers** across TX area codes 469/972/817/512 in exactly the `numbers[].phoneNumber` shape the workflow parses. (Also caught two fixes: 214 has zero inventory → demoted from TX primary; the location key 401s → workflow now uses the agency credential.)
+- Audit script executed end-to-end in dry-run (flow, scoring, unreachable-skip all exercised); detection regexes validated against live orengen.io HTML (viewport ✓, CMS ✓, copyright-year ✓, no false e-commerce flag).
+- All 4 n8n JSONs structurally linted (nodes/connections/reachability); the provisioner's embedded JS compiles; all 50 states present in the area-code map.
+- MailWizz API + GHL contacts/opportunities/email paths verified live earlier in the engagement.
+
+**Verified against official docs only (not yet executed):**
+- `POST .../purchase` (the actual buy — costs ~$1.15/mo, so it's reserved for the controlled first run below) and `POST /users/` (creates a real seat). Both confirmed to exist in GHL's official OpenAPI spec with the exact fields used here.
+- GHL AI-tool behavior (Workflow AI / Ask AI / AI Studio) per official help docs — generation is inherently variable; GHL itself mandates the human review step before publishing.
+
+**The controlled first run (do this once, ~5 minutes):**
+1. Import the provisioner, attach the agency credential, set your Company ID.
+2. Fire it manually with **one real rep** (your first certified partner — or yourself as a test rep).
+3. Watch the execution: search → purchase (this buys ONE number, ~$1.15/mo — it's the rep's real number, nothing wasted) → seat creation → contact tagged.
+4. Do the one manual click (My Staff → rep → Inbound Number), confirm the onboarding workflow's "your line is live" email fired.
+5. If the seat call returns 403: Agency Settings → toggle "Enhanced Security" off for API user management (documented GHL behavior).
+That single supervised run converts every remaining docs-only claim into an executed one — then batch freely.
