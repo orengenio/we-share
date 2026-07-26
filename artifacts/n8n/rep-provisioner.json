@@ -1,0 +1,345 @@
+{
+  "name": "OrenGen \u2014 Rep Provisioner (seat + local VoIP purchase)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rep-provision",
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000001",
+      "name": "Partner Certified Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        60,
+        300
+      ],
+      "webhookId": "rep-provision"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Local-presence area codes per state pool (primary first). Extend as pools open.\nconst AREA = {\n  AL:['205','251'], AK:['907'], AZ:['602','480'], AR:['501','479'], CA:['213','415','619'],\n  CO:['303','719'], CT:['203','860'], DE:['302'], FL:['305','407','813'], GA:['404','678'],\n  HI:['808'], ID:['208'], IL:['312','773'], IN:['317'], IA:['515'], KS:['316','913'],\n  KY:['502','859'], LA:['504','225'], ME:['207'], MD:['410','301'], MA:['617','508'],\n  MI:['313','616'], MN:['612','651'], MS:['601'], MO:['314','816'], MT:['406'], NE:['402'],\n  NV:['702','775'], NH:['603'], NJ:['201','732'], NM:['505'], NY:['212','718','516'],\n  NC:['704','919'], ND:['701'], OH:['614','216'], OK:['405','918'], OR:['503'],\n  PA:['215','412'], RI:['401'], SC:['803','843'], SD:['605'], TN:['615','901'],\n  // TX order: 469/972/817 verified in-stock via live API 2026-07-26; 214 was dry.\n  TX:['469','972','817','214','512','713'], UT:['801'], VT:['802'], VA:['703','804'], WA:['206','253'],\n  WV:['304'], WI:['414','608'], WY:['307']\n};\nconst b = $json.body ?? $json;\nconst state = String(b.state || '').toUpperCase().trim();\nconst codes = AREA[state] || [];\n// Random seat password meeting GHL's policy (verified live 2026-07-26:\n// upper + lower + digit + special required, else 422). Rep resets on first login.\nconst pick = (s) => s[crypto.getRandomValues(new Uint32Array(1))[0] % s.length];\nconst CH = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%^&*';\nconst pw = pick('ABCDEFGHJKMNPQRSTUVWXYZ') + pick('abcdefghjkmnpqrstuvwxyz') + pick('23456789') + pick('!@#$%^&*')\n  + Array.from(crypto.getRandomValues(new Uint32Array(14)), n => CH[n % CH.length]).join('');\nreturn [{ json: {\n  first_name: b.first_name, last_name: b.last_name || '', email: b.email,\n  phone: b.phone || '', state, partner_code: b.partner_code || '',\n  area_primary: codes[0] || '', area_fallbacks: codes.slice(1), seat_password: pw,\n}}];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000002",
+      "name": "Prep \u2014 Area Codes + Seat Password",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/phone-system/numbers/location/dMEB004RUX8JRRi42Kzq/available?countryCode=US&numberTypes=local{{ $json.area_primary ? '&firstPart=' + $json.area_primary : '' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000003",
+      "name": "GHL \u2014 Search Local Numbers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick the first available number; surface a clear error if the area code is dry.\nconst prep = $('Prep \u2014 Area Codes + Seat Password').first().json;\nconst list = $json.numbers ?? $json.data ?? (Array.isArray($json) ? $json : []);\nconst pick = Array.isArray(list) && list.length ? (list[0].phoneNumber ?? list[0].number ?? list[0]) : null;\nif (!pick) {\n  throw new Error(`No local numbers available for area code ${prep.area_primary} (state ${prep.state}). Re-run with a fallback code: ${prep.area_fallbacks.join(', ') || 'none mapped'} \u2014 or buy manually in Settings \u2192 Phone Numbers.`);\n}\nreturn [{ json: { ...prep, chosen_number: typeof pick === 'string' ? pick : String(pick) } }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000004",
+      "name": "Pick Number",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/phone-system/numbers/location/dMEB004RUX8JRRi42Kzq/purchase",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneNumber\": \"{{ $json.chosen_number }}\",\n  \"countryCode\": \"US\",\n  \"numberType\": \"local\"\n}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000005",
+      "name": "GHL \u2014 Purchase Number",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/users/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"companyId\": \"Kne2Wa2yjqmQY2V8oKU7\",\n  \"firstName\": \"{{ $('Pick Number').item.json.first_name }}\",\n  \"lastName\": \"{{ $('Pick Number').item.json.last_name }}\",\n  \"email\": \"{{ $('Pick Number').item.json.email }}\",\n  \"password\": \"{{ $('Pick Number').item.json.seat_password }}\",\n  \"phone\": \"{{ $('Pick Number').item.json.phone }}\",\n  \"type\": \"account\",\n  \"role\": \"user\",\n  \"locationIds\": [\n    \"dMEB004RUX8JRRi42Kzq\"\n  ],\n  \"permissions\": {\n    \"assignedDataOnly\": true,\n    \"contactsEnabled\": true,\n    \"conversationsEnabled\": true,\n    \"opportunitiesEnabled\": true,\n    \"appointmentsEnabled\": true,\n    \"phoneCallEnabled\": true,\n    \"dashboardStatsEnabled\": true,\n    \"leadValueEnabled\": true,\n    \"agentReportingEnabled\": true,\n    \"tagsEnabled\": false,\n    \"bulkRequestsEnabled\": false,\n    \"campaignsEnabled\": false,\n    \"workflowsEnabled\": false,\n    \"triggersEnabled\": false,\n    \"funnelsEnabled\": false,\n    \"websitesEnabled\": false,\n    \"marketingEnabled\": false,\n    \"settingsEnabled\": false,\n    \"membershipEnabled\": false,\n    \"reviewsEnabled\": false,\n    \"onlineListingsEnabled\": false,\n    \"bloggingEnabled\": false,\n    \"invoiceEnabled\": false,\n    \"affiliateManagerEnabled\": false,\n    \"adwordsReportingEnabled\": false,\n    \"facebookAdsReportingEnabled\": false,\n    \"attributionsReportingEnabled\": false,\n    \"botService\": false,\n    \"socialPlanner\": false\n  },\n  \"scopes\": [\n    \"askai.write\",\n    \"calendars.readonly\",\n    \"calendars/events.write\",\n    \"contacts.write\",\n    \"conversations.readonly\",\n    \"conversations.write\",\n    \"conversations/message.readonly\",\n    \"conversations/message.write\",\n    \"copilot.readonly\",\n    \"dashboard/stats.readonly\",\n    \"native-integrations.readonly\",\n    \"native-integrations.write\",\n    \"opportunities.write\",\n    \"opportunities/leadValue.readonly\",\n    \"prospecting.readonly\",\n    \"prospecting.write\",\n    \"prospecting/reports.readonly\",\n    \"reporting/agent.readonly\",\n    \"reporting/phone.readonly\"\n  ],\n  \"scopesAssignedToOnly\": [\n    \"calendars.readonly\",\n    \"contacts.write\",\n    \"opportunities.write\"\n  ]\n}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000006",
+      "name": "GHL \u2014 Create Rep Seat (locked-down)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/users/{{ $json.id ?? $json.user?.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000008",
+      "name": "GHL \u2014 Read Seat Back",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1270,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Trust, then verify \u2014 against the GRANULAR scope layer (authoritative)\n// AND the legacy flags. Template = verbatim copy of the live Demo User.\nconst u = $json.user ?? $json;\nconst perms = u.permissions ?? {};\nconst scopes = new Set(u.scopes ?? []);\nconst DEMO = [\"askai.write\", \"calendars.readonly\", \"calendars/events.write\", \"contacts.write\", \"conversations.readonly\", \"conversations.write\", \"conversations/message.readonly\", \"conversations/message.write\", \"copilot.readonly\", \"dashboard/stats.readonly\", \"native-integrations.readonly\", \"native-integrations.write\", \"opportunities.write\", \"opportunities/leadValue.readonly\", \"prospecting.readonly\", \"prospecting.write\", \"prospecting/reports.readonly\", \"reporting/agent.readonly\", \"reporting/phone.readonly\"];\nconst bad = [];\nfor (const s of DEMO) if (!scopes.has(s)) bad.push(`missing scope ${s}`);\nfor (const s of scopes) if (!DEMO.includes(s)) bad.push(`unexpected scope ${s}`);\nfor (const s of scopes) if (s.toLowerCase().includes('affiliate')) bad.push(`AFFILIATE SCOPE PRESENT: ${s}`);\nconst ado = u.scopesAssignedToOnly ?? [];\nfor (const s of [\"calendars.readonly\", \"contacts.write\", \"opportunities.write\"]) if (!ado.includes(s)) bad.push(`assigned-only missing ${s}`);\nif (perms.affiliateManagerEnabled === true) bad.push('legacy affiliateManagerEnabled true');\nif (perms.assignedDataOnly !== true) bad.push('legacy assignedDataOnly not true');\nconst role = u.roles?.role ?? u.role;\nif (role && role !== 'user') bad.push(`role should be user, got ${role}`);\nif (bad.length) throw new Error('SEAT LOCKDOWN VERIFY FAILED \u2014 do NOT hand out credentials: ' + bad.join(' | '));\nconst prep = $('Pick Number').first().json;\nreturn [{ json: { ...prep, seat_user_id: u.id, seat_verified: true } }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000009",
+      "name": "Verify Seat Lockdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1490,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"locationId\": \"dMEB004RUX8JRRi42Kzq\",\n  \"firstName\": \"{{ $('Pick Number').item.json.first_name }}\",\n  \"lastName\": \"{{ $('Pick Number').item.json.last_name }}\",\n  \"email\": \"{{ $('Pick Number').item.json.email }}\",\n  \"phone\": \"{{ $('Pick Number').item.json.phone }}\",\n  \"tags\": [\"Sales Partner\", \"Partner: Number Assigned\", \"Pool: {{ $('Pick Number').item.json.state }}\"],\n  \"customFields\": [\n    { \"key\": \"assigned_voip_number\", \"field_value\": \"{{ $('Pick Number').item.json.chosen_number }}\" },\n    { \"key\": \"partner_code\", \"field_value\": \"{{ $('Pick Number').item.json.partner_code }}\" }\n  ]\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000007",
+      "name": "GHL \u2014 Tag Contact + Store Number",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1710,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Partner Certified Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prep \u2014 Area Codes + Seat Password",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep \u2014 Area Codes + Seat Password": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Search Local Numbers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL \u2014 Search Local Numbers": {
+      "main": [
+        [
+          {
+            "node": "Pick Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Number": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Purchase Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL \u2014 Purchase Number": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Create Rep Seat (locked-down)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL \u2014 Create Rep Seat (locked-down)": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Read Seat Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GHL \u2014 Read Seat Back": {
+      "main": [
+        [
+          {
+            "node": "Verify Seat Lockdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Seat Lockdown": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Tag Contact + Store Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
