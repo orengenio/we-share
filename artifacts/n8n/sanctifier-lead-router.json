@@ -1,5 +1,5 @@
 {
-  "name": "OrenGen — Sanctifier Lead Router (state pools + AI hook)",
+  "name": "OrenGen \u2014 Sanctifier Lead Router (state pools + AI hook)",
   "nodes": [
     {
       "parameters": {
@@ -11,7 +11,10 @@
       "name": "Sanctifier Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [80, 300],
+      "position": [
+        80,
+        300
+      ],
       "webhookId": "sanctifier-inbound-leads"
     },
     {
@@ -23,24 +26,35 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-sonnet-5\",\n  \"max_tokens\": 150,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Write one direct, factual cold-call opener sentence a sales rep can read aloud to the owner of '{{ $json.body.company_name }}'. Their site runs {{ $json.body.custom_fields.current_cms }}; SSL status: {{ $json.body.custom_fields.ssl_status }}; mobile responsiveness: {{ $json.body.custom_fields.mobile_responsive }}. Name the specific flaw and its business cost. No hype words, no exclamation points, no intro — output the sentence only.\"\n    }\n  ]\n}",
-        "options": { "timeout": 30000 }
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-5\",\n  \"max_tokens\": 150,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Write one direct, factual cold-call opener sentence a sales rep can read aloud to the owner of '{{ $json.body.company_name }}'. Their site runs {{ $json.body.custom_fields.current_cms }}; SSL status: {{ $json.body.custom_fields.ssl_status }}; mobile responsiveness: {{ $json.body.custom_fields.mobile_responsive }}. Name the specific flaw and its business cost. No hype words, no exclamation points, no intro \u2014 output the sentence only.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 30000
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000002",
-      "name": "Claude — Custom Hook",
+      "name": "Claude \u2014 Custom Hook",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [320, 300],
+      "position": [
+        320,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
-          "name": "Anthropic x-api-key"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     },
@@ -52,7 +66,10 @@
       "name": "State Pool Round-Robin",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [560, 300]
+      "position": [
+        560,
+        300
+      ]
     },
     {
       "parameters": {
@@ -63,39 +80,76 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Version", "value": "2021-07-28" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"locationId\": \"dMEB004RUX8JRRi42Kzq\",\n  \"firstName\": \"{{ $json.first_name }}\",\n  \"companyName\": \"{{ $json.company_name }}\",\n  \"phone\": \"{{ $json.phone }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"state\": \"{{ $json.state }}\",\n  \"source\": \"Sanctifier Scraper\",\n  \"assignedTo\": \"{{ $json.assignedTo }}\",\n  \"tags\": [\"Sanctifier Lead\", \"Pool: {{ $json.state }}\", \"Score: {{ $json.custom_fields.lead_score }}\"],\n  \"customFields\": [\n    { \"key\": \"lead_score\", \"field_value\": \"{{ $json.custom_fields.lead_score }}\" },\n    { \"key\": \"ssl_status\", \"field_value\": \"{{ $json.custom_fields.ssl_status }}\" },\n    { \"key\": \"mobile_responsive\", \"field_value\": \"{{ $json.custom_fields.mobile_responsive }}\" },\n    { \"key\": \"current_cms\", \"field_value\": \"{{ $json.custom_fields.current_cms }}\" },\n    { \"key\": \"instant_mockup_url\", \"field_value\": \"{{ $json.custom_fields.instant_mockup_url }}\" },\n    { \"key\": \"custom_hook\", \"field_value\": \"{{ $json.custom_hook }}\" }\n  ]\n}",
-        "options": { "timeout": 30000 }
+        "options": {
+          "timeout": 30000
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000004",
-      "name": "GHL — Upsert Contact",
+      "name": "GHL \u2014 Upsert Contact",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [800, 300],
+      "position": [
+        800,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_GHL_CREDENTIAL_ID",
-          "name": "GHL Bearer PIT (agency-level)"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     }
   ],
   "connections": {
     "Sanctifier Webhook": {
-      "main": [[{ "node": "Claude — Custom Hook", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Claude \u2014 Custom Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Claude — Custom Hook": {
-      "main": [[{ "node": "State Pool Round-Robin", "type": "main", "index": 0 }]]
+    "Claude \u2014 Custom Hook": {
+      "main": [
+        [
+          {
+            "node": "State Pool Round-Robin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "State Pool Round-Robin": {
-      "main": [[{ "node": "GHL — Upsert Contact", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Upsert Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }

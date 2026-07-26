@@ -59,8 +59,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_GHL_AGENCY_CREDENTIAL_ID",
-          "name": "GHL Bearer PIT (agency \u2014 users.write + phonenumbers)"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     },
@@ -113,8 +113,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_GHL_AGENCY_CREDENTIAL_ID",
-          "name": "GHL Bearer PIT (agency \u2014 users.write + phonenumbers)"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     },
@@ -154,8 +154,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_GHL_AGENCY_CREDENTIAL_ID",
-          "name": "GHL Bearer PIT (agency \u2014 users.write + phonenumbers)"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     },
@@ -188,8 +188,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_GHL_AGENCY_CREDENTIAL_ID",
-          "name": "GHL Bearer PIT (agency \u2014 users.write + phonenumbers)"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     },
@@ -242,8 +242,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "REPLACE_WITH_GHL_AGENCY_CREDENTIAL_ID",
-          "name": "GHL Bearer PIT (agency \u2014 users.write + phonenumbers)"
+          "id": "REPLACE_WITH_GHL_LOCATION_CREDENTIAL_ID",
+          "name": "GHL Bearer PIT (location \u2014 ALL scopes)"
         }
       }
     }
