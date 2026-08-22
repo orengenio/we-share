@@ -21,7 +21,7 @@ export default function FloatingCalculator() {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  if (pathname === "/calculator") return null;
+  if (pathname === "/calculator" || pathname === "/influencers") return null;
 
   return (
     <>

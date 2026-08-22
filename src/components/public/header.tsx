@@ -13,6 +13,7 @@ const MUTED = "rgba(203,213,225,0.85)";
 const NAV_LINKS = [
   { href: "/get-started", label: "Get Your Website" },
   { href: "/partners",    label: "Become a Partner" },
+  { href: "/influencers", label: "Ambassadors" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/calculator",  label: "Calculator"  },
 ];

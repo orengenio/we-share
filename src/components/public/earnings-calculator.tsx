@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
-import { Calculator, TrendingUp, Crown, DollarSign, Lock } from "lucide-react";
+import CalculatorNumberInput from "@/components/public/calculator-number-input";
+import { Calculator, TrendingUp, Crown, DollarSign, Lock, Sparkles } from "lucide-react";
 import { COMMISSION_CONFIGS, PARTNER_COMMISSION, LEADER_COMMISSION, WEBSITE_PACKAGES } from "@/types";
 import { RANK_LABELS } from "@/lib/utils";
 
@@ -88,12 +89,12 @@ function AffiliateCalculator({ pkg }: { pkg: PkgKey }) {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Sales Per Month</label>
-          <input
-            type="number" min={1} max={100} value={salesPerMonth}
-            onChange={e => setSalesPerMonth(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
+          <CalculatorNumberInput
+            label="Sales Per Month"
+            value={salesPerMonth}
+            onChange={setSalesPerMonth}
+            min={0}
+            step="any"
           />
         </div>
       </div>
@@ -117,15 +118,13 @@ function AffiliateCalculator({ pkg }: { pkg: PkgKey }) {
           </p>
         </div>
         <div>
-          <p className="text-xs mb-1" style={{ color: MUTED }}>Projection (months)</p>
-          <div className="flex items-center gap-1 justify-center">
-            <input
-              type="number" min={1} max={60} value={months}
-              onChange={e => setMonths(Math.max(1, Math.min(60, parseInt(e.target.value) || 12)))}
-              className="w-16 rounded px-1.5 py-1 text-sm font-bold text-center focus:outline-none"
-              style={{ background: "rgba(255,255,255,0.1)", border: `1px solid ${LINE}`, color: "#CC5500" }}
-            />
-          </div>
+          <CalculatorNumberInput
+            label="Projection (months)"
+            value={months}
+            onChange={setMonths}
+            min={1}
+            hint="Enter any timeframe — no cap"
+          />
         </div>
       </div>
 
@@ -188,24 +187,19 @@ function PartnerCalculator({ pkg }: { pkg: PkgKey }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Deals Closed Per Month</label>
-          <input
-            type="number" min={1} max={50} value={dealsPerMonth}
-            onChange={e => setDealsPerMonth(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>Projection (months)</label>
-          <input
-            type="number" min={1} max={60} value={months}
-            onChange={e => setMonths(Math.max(1, Math.min(60, parseInt(e.target.value) || 12)))}
-            className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-            style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
-          />
-        </div>
+        <CalculatorNumberInput
+          label="Deals Closed Per Month"
+          value={dealsPerMonth}
+          onChange={setDealsPerMonth}
+          min={0}
+          step="any"
+        />
+        <CalculatorNumberInput
+          label="Projection (months)"
+          value={months}
+          onChange={setMonths}
+          min={1}
+        />
         <div className="flex flex-col justify-end">
           <div className="rounded-lg p-3 text-center" style={{ background: SURF2, border: `1px solid ${LINE}` }}>
             <p className="text-xs" style={{ color: MUTED }}>Residual at Mo.{months}</p>
@@ -285,22 +279,10 @@ function LeaderCalculator({ pkg }: { pkg: PkgKey }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Your Deals/Month", value: personalDeals, set: setPersonalDeals, min: 0, max: 50 },
-          { label: "Team Size (partners)", value: teamSize, set: setTeamSize, min: 1, max: 100 },
-          { label: "Avg Team Deals/Partner/Mo", value: teamDealsPerPartner, set: setTeamDealsPerPartner, min: 0, max: 20 },
-          { label: "Projection (months)", value: months, set: setMonths, min: 1, max: 60 },
-        ].map(f => (
-          <div key={f.label}>
-            <label className="block text-xs font-semibold mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>{f.label}</label>
-            <input
-              type="number" min={f.min} max={f.max} value={f.value}
-              onChange={e => f.set(Math.max(f.min, Math.min(f.max, parseFloat(e.target.value) || f.min)))}
-              className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-              style={{ background: "rgba(255,255,255,0.08)", border: `1px solid ${LINE}` }}
-            />
-          </div>
-        ))}
+        <CalculatorNumberInput label="Your Deals/Month" value={personalDeals} onChange={setPersonalDeals} min={0} step="any" />
+        <CalculatorNumberInput label="Team Size (partners)" value={teamSize} onChange={setTeamSize} min={0} />
+        <CalculatorNumberInput label="Avg Team Deals/Partner/Mo" value={teamDealsPerPartner} onChange={setTeamDealsPerPartner} min={0} step="any" />
+        <CalculatorNumberInput label="Projection (months)" value={months} onChange={setMonths} min={1} />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -388,6 +370,16 @@ export default function EarningsCalculator() {
         {tab === "affiliate" && <AffiliateCalculator pkg={pkg} />}
         {tab === "partner" && <PartnerCalculator pkg={pkg} />}
         {tab === "leader" && <LeaderCalculator pkg={pkg} />}
+      </div>
+
+      <div className="text-center pt-2">
+        <a
+          href="/influencers"
+          className="inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-80"
+          style={{ color: "#FCD34D" }}
+        >
+          <Sparkles size={15} /> Celebrity / Ambassador model (2.5% network overrides) →
+        </a>
       </div>
 
       <div className="text-center">
