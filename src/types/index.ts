@@ -241,6 +241,16 @@ export const LEADER_COMMISSION = {
   residualOverrideRate: 0.05,
 };
 
+/**
+ * Ambassador / Major Influencer tier — invite-only.
+ * 2.5% of gross setup + 2.5% of gross monthly residual on all volume from
+ * Sales Partners (and sub-Ambassadors) in their network, for the life of each client.
+ */
+export const INFLUENCER_COMMISSION = {
+  setupOverrideRate: 0.025,
+  residualOverrideRate: 0.025,
+} as const;
+
 // Settled personal deals that auto-promote a Sales Partner to Partner Leader.
 export const LEADER_PROMOTION_DEALS = 5;
 
