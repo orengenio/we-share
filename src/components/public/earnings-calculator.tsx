@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import CalculatorNumberInput from "@/components/public/calculator-number-input";
-import { Calculator, TrendingUp, Crown, DollarSign, Lock, Sparkles } from "lucide-react";
+import { Calculator, TrendingUp, Crown, DollarSign, Lock } from "lucide-react";
 import { COMMISSION_CONFIGS, PARTNER_COMMISSION, LEADER_COMMISSION, WEBSITE_PACKAGES } from "@/types";
 import { RANK_LABELS } from "@/lib/utils";
 
@@ -370,16 +370,6 @@ export default function EarningsCalculator() {
         {tab === "affiliate" && <AffiliateCalculator pkg={pkg} />}
         {tab === "partner" && <PartnerCalculator pkg={pkg} />}
         {tab === "leader" && <LeaderCalculator pkg={pkg} />}
-      </div>
-
-      <div className="text-center pt-2">
-        <a
-          href="/influencers"
-          className="inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-80"
-          style={{ color: "#FCD34D" }}
-        >
-          <Sparkles size={15} /> Celebrity / Ambassador model (5% network overrides) →
-        </a>
       </div>
 
       <div className="text-center">

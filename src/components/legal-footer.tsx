@@ -70,6 +70,16 @@ export default function ComplianceFooter({
         <p className="text-[11px] text-center" style={{ color: bodyColor }}>
           © {year} OrenGen Worldwide LLC · WeShare Referral Partner &amp; Sales Partner Program. All rights reserved.
         </p>
+
+        <p className="text-[10px] text-center" style={{ color: dark ? "rgba(148,163,184,0.35)" : "rgba(107,114,128,0.45)" }}>
+          <a
+            href="/influencers"
+            className="hover:underline underline-offset-2 transition-opacity hover:opacity-80"
+            style={{ color: "inherit" }}
+          >
+            Ambassador program
+          </a>
+        </p>
       </div>
     </footer>
   );
