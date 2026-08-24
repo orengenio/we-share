@@ -5,7 +5,7 @@ import { Sparkles, Shield, Network, Mail } from "lucide-react";
 export const metadata = {
   title: "Ambassador Program | Celebrity & Influencer Partners | WeShare",
   description:
-    "Invite-only Ambassador tier for major influencers: 2.5% on every setup fee and 2.5% on monthly residuals for the life of each client — across your Sales Partner network and Sub-Ambassadors you recruit.",
+    "Invite-only Ambassador tier for major influencers: 5% on every setup fee and 5% on monthly residuals for the life of each client — across your Sales Partner network and Sub-Ambassadors you recruit.",
 };
 
 const MUTED = "rgba(203,213,225,0.75)";
@@ -21,12 +21,12 @@ export default function InfluencersPage() {
           {
             icon: <Network size={20} style={{ color: "#CC5500" }} />,
             title: "Network overrides",
-            body: "2.5% of gross setup + 2.5% of gross monthly on every deal your Sales Partners close — for the life of the client.",
+            body: "5% of gross setup + 5% of gross monthly on every deal your Sales Partners close — for the life of the client.",
           },
           {
             icon: <Sparkles size={20} style={{ color: "#FCD34D" }} />,
             title: "Sub-Ambassadors",
-            body: "Recruit other major creators. You earn the same 2.5% / 2.5% on their entire downstream network.",
+            body: "Recruit other major creators. You earn the same 5% / 5% on their entire downstream network.",
           },
           {
             icon: <Shield size={20} style={{ color: "#93C5FD" }} />,
