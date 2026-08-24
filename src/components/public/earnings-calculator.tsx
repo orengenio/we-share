@@ -378,7 +378,7 @@ export default function EarningsCalculator() {
           className="inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-80"
           style={{ color: "#FCD34D" }}
         >
-          <Sparkles size={15} /> Celebrity / Ambassador model (2.5% network overrides) →
+          <Sparkles size={15} /> Celebrity / Ambassador model (5% network overrides) →
         </a>
       </div>
 

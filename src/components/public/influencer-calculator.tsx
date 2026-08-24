@@ -124,8 +124,8 @@ export default function InfluencerCalculator() {
           Influencer &amp; Celebrity Earnings Model
         </h1>
         <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: MUTED }}>
-          Model your network: <strong className="text-white">2.5% of every setup fee</strong> and{" "}
-          <strong className="text-white">2.5% of monthly residual</strong> for the life of each client —
+          Model your network: <strong className="text-white">5% of every setup fee</strong> and{" "}
+          <strong className="text-white">5% of monthly residual</strong> for the life of each client —
           on all Sales Partner volume you bring in, plus the same on any Ambassador you recruit.
         </p>
       </div>
@@ -194,8 +194,8 @@ export default function InfluencerCalculator() {
           <h2 className="text-sm font-bold text-white">Ambassadors you recruit (optional)</h2>
         </div>
         <p className="text-xs" style={{ color: MUTED }}>
-          Each Ambassador you bring in earns the same 2.5% / 2.5% deal on their own network — and you
-          also earn 2.5% / 2.5% on everything their network produces.
+          Each Ambassador you bring in earns the same 5% / 5% deal on their own network — and you
+          also earn 5% / 5% on everything their network produces.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <CalculatorNumberInput
