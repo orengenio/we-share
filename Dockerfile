@@ -5,11 +5,12 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json* .npmrc ./
 COPY prisma ./prisma/
 
 # Coolify may inject NODE_ENV=production at build time — devDeps are required to build Next.js
-RUN npm ci --include=dev
+ENV NODE_ENV=development
+RUN npm ci --include=dev --no-audit --no-fund
 
 # ─── Builder ──────────────────────────────────────────────────────────────────
 FROM base AS builder
@@ -24,6 +25,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Prevent Coolify build-time DATABASE_URL from triggering DB calls during next build
 ENV DATABASE_URL=""
 ENV REDIS_URL=""
+# Next.js build can spike memory on small VPS hosts
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # ─── Runner ───────────────────────────────────────────────────────────────────
