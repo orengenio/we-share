@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import CalculatorNumberInput from "@/components/public/calculator-number-input";
-import { Calculator, TrendingUp, Crown, DollarSign, Lock } from "lucide-react";
+import { TrendingUp, Crown, DollarSign, Lock } from "lucide-react";
 import { COMMISSION_CONFIGS, PARTNER_COMMISSION, LEADER_COMMISSION, WEBSITE_PACKAGES } from "@/types";
 import { RANK_LABELS } from "@/lib/utils";
 
 type Tab = "affiliate" | "partner" | "leader";
 type PkgKey = "STANDARD" | "PROFESSIONAL" | "PREMIUM";
 
-const MUTED = "rgba(203,213,225,0.75)";
-const LINE  = "rgba(148,163,184,0.18)";
-const SURF  = "rgba(255,255,255,0.06)";
-const SURF2 = "rgba(255,255,255,0.09)";
+const MUTED = "var(--ws-text-muted)";
+const LINE  = "var(--ws-line)";
+const SURF  = "var(--ws-panel-solid)";
+const SURF2 = "var(--ws-panel-2)";
 
 const RANK_ORDER = ["CATALYST", "BUILDER", "ARCHITECT", "SOVEREIGN"] as const;
 const PKG_ORDER: PkgKey[] = ["STANDARD", "PROFESSIONAL", "PREMIUM"];
@@ -179,7 +179,7 @@ function PartnerCalculator({ pkg }: { pkg: PkgKey }) {
     <div className="space-y-6">
       <div className="rounded-xl p-4" style={{ background: "rgba(204,85,0,0.1)", border: "1px solid rgba(204,85,0,0.25)" }}>
         <p className="text-sm font-semibold text-white mb-1">Sales Partner — {WEBSITE_PACKAGES[pkg].name} Package</p>
-        <p className="text-xs" style={{ color: "rgba(253,186,116,0.85)" }}>
+        <p className="text-xs" style={{ color: MUTED }}>
           <strong>25% setup fee</strong> ({formatCurrency(setupPerDeal)}/deal) +{" "}
           <strong>25% monthly residual</strong> ({formatCurrency(residualPerClient)}/mo) for the life of every client.
           Flat rate — no ranking system.
@@ -267,11 +267,11 @@ function LeaderCalculator({ pkg }: { pkg: PkgKey }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl p-4 flex gap-3" style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }}>
-        <Lock size={16} className="mt-0.5 shrink-0" style={{ color: "#FCD34D" }} />
+      <div className="rounded-xl p-4 flex gap-3" style={{ background: "var(--ws-orange-soft)", border: "1px solid rgba(232,118,43,0.3)" }}>
+        <Lock size={16} className="mt-0.5 shrink-0" style={{ color: "var(--ws-orange-bright)" }} />
         <div>
           <p className="text-sm font-semibold text-white">Partner Leader — Internal Promotion Only</p>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(253,224,132,0.8)" }}>
+          <p className="text-xs mt-0.5" style={{ color: MUTED }}>
             Leadership is not available at signup. It is an earned position awarded internally to top-performing Sales Partners by OrenGen management.
             This calculator shows what a promoted Leader can earn on the <strong>{WEBSITE_PACKAGES[pkg].name}</strong> package.
           </p>
@@ -296,12 +296,12 @@ function LeaderCalculator({ pkg }: { pkg: PkgKey }) {
             key={s.label}
             className="rounded-xl p-4 text-center"
             style={s.amber
-              ? { background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }
+              ? { background: "var(--ws-orange-soft)", border: "1px solid rgba(232,118,43,0.3)" }
               : { background: SURF, border: `1px solid ${LINE}` }
             }
           >
             <p className="text-xs mb-1" style={{ color: MUTED }}>{s.label}</p>
-            <p className="font-bold text-base" style={{ color: s.amber ? "#FCD34D" : "white" }}>{formatCurrency(s.value)}</p>
+            <p className="font-bold text-base" style={{ color: s.amber ? "var(--ws-orange-bright)" : "white" }}>{formatCurrency(s.value)}</p>
             <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.5)" }}>{s.sub}</p>
           </div>
         ))}
@@ -330,13 +330,11 @@ export default function EarningsCalculator() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <div className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Calculator className="w-8 h-8" style={{ color: "#CC5500" }} />
-          <h1 className="text-3xl font-black text-white">Earnings Calculator</h1>
-        </div>
+      <div className="space-y-2 text-center">
+        <span className="ws-eyebrow mx-auto">Earnings Calculator</span>
+        <h1 className="ws-display mx-auto mt-5" style={{ fontSize: "clamp(28px,4vw,44px)" }}>What could you earn?</h1>
         <p style={{ color: MUTED }}>
-          See what you could earn. Pick a package, choose your track, and adjust the numbers.
+          Pick a package, choose your track, and adjust the numbers.
         </p>
       </div>
 
@@ -373,11 +371,7 @@ export default function EarningsCalculator() {
       </div>
 
       <div className="text-center">
-        <a
-          href="/register"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "#CC5500", boxShadow: "0 8px 24px rgba(204,85,0,0.3)" }}
-        >
+        <a href="/register" className="ws-cta">
           <DollarSign size={16} /> Join WeShare &amp; Start Earning
         </a>
       </div>

@@ -5,10 +5,7 @@ import FloatingCalculator from "@/components/public/floating-calculator";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "linear-gradient(165deg, #001F3F 0%, #00254B 35%, #003D7A 70%, #002952 100%)" }}
-    >
+    <div className="ws-shell min-h-screen">
       <PublicHeader />
 
       {/* ── Page content ───────────────────────────────────────────────────── */}
