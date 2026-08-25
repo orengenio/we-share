@@ -2,9 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+/* Public Sans is loaded via next/font (see src/app/layout.tsx) and exposed as
+   --font-public-sans. --og-font is the single brand font token consumed below. */
 
 :root {
+  /* ── Brand font ─────────────────────────────────────────────────────────── */
+  --og-font: var(--font-public-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ── Core brand palette ─────────────────────────────────────────────────── */
   --og-navy:       #00254B;
   --og-navy-2:     #07111f;
   --og-navy-3:     #0b1b31;
@@ -18,16 +23,58 @@
   /* legacy aliases */
   --brand-navy:    #00254B;
   --brand-orange:  #CC5500;
+
+  /* ══ WeShare "billion-dollar brand" system ══════════════════════════════════
+     Distilled from the OrenGen social-campaign assets: near-black navy
+     canvases, a single vivid-orange master accent, heavy Public Sans display
+     type, neon glow cards, brushed-metal seals, and HUD corner framing. */
+
+  /* Dark canvases (deep navy → near-black) */
+  --ws-bg:          #05070d;
+  --ws-bg-2:        #0a1120;
+  --ws-bg-3:        #0f1d34;
+  --ws-panel:       rgba(255, 255, 255, 0.035);
+  --ws-panel-2:     rgba(255, 255, 255, 0.06);
+  --ws-panel-solid: #0c1728;
+
+  /* Master accent — orange */
+  --ws-orange:        #CC5500;
+  --ws-orange-bright: #E8762B;
+  --ws-orange-hot:    #FF6A1A;
+  --ws-orange-soft:   rgba(204, 85, 0, 0.14);
+  --ws-orange-glow:   rgba(232, 118, 43, 0.45);
+
+  /* Product / tier accents (used sparingly, never as the master brand color) */
+  --ws-tier-standard: #3b82f6; /* Standard — blue  */
+  --ws-tier-pro:      #22c55e; /* Professional — green */
+  --ws-tier-premium:  #CC5500; /* Premium — orange */
+
+  /* Metallic (seal / 3D lettering) */
+  --ws-metal-1: #f4f7fb;
+  --ws-metal-2: #b9c6d6;
+  --ws-metal-3: #6d7d92;
+
+  /* Text on dark */
+  --ws-text:       #f2f6fc;
+  --ws-text-muted: rgba(210, 225, 245, 0.66);
+  --ws-text-soft:  rgba(210, 225, 245, 0.42);
+  --ws-line:       rgba(210, 225, 245, 0.10);
+  --ws-line-strong:rgba(210, 225, 245, 0.18);
+
+  /* Radii + elevation */
+  --ws-radius:    16px;
+  --ws-radius-lg: 22px;
+  --ws-shadow:    0 30px 80px rgba(0, 0, 0, 0.55);
 }
 
 body {
-  font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--og-font);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--og-font);
 }
 
 @layer components {
@@ -92,4 +139,240 @@ h1, h2, h3, h4, h5, h6 {
     background: #CC5500;
     box-shadow: 0 0 10px rgba(204, 85, 0, 0.65);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WeShare brand system — utilities distilled from the OrenGen campaign assets.
+   All classes are prefixed `.ws-` so they never collide with existing styles.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Dark premium canvas ──────────────────────────────────────────────────── */
+.ws-shell {
+  position: relative;
+  color: var(--ws-text);
+  background:
+    radial-gradient(1200px 620px at 78% -8%, rgba(0, 90, 180, 0.28), transparent 60%),
+    radial-gradient(900px 560px at 8% 4%, rgba(204, 85, 0, 0.14), transparent 55%),
+    linear-gradient(180deg, var(--ws-bg-2) 0%, var(--ws-bg) 60%, #04060b 100%);
+  font-family: var(--og-font);
+}
+/* Faint circuit/starfield dot-grid overlay, like the campaign backgrounds. */
+.ws-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(210, 225, 245, 0.05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(120% 90% at 60% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 90% at 60% 0%, #000 40%, transparent 100%);
+}
+.ws-shell > * { position: relative; z-index: 1; }
+
+/* ── Eyebrow pill (orange master + tier variants) ─────────────────────────── */
+.ws-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ws-orange-bright) 55%, transparent);
+  background: color-mix(in srgb, var(--ws-orange-bright) 12%, transparent);
+  color: var(--ws-orange-bright);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.ws-eyebrow::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+}
+.ws-eyebrow[data-tier="standard"] {
+  color: var(--ws-tier-standard);
+  border-color: color-mix(in srgb, var(--ws-tier-standard) 55%, transparent);
+  background: color-mix(in srgb, var(--ws-tier-standard) 12%, transparent);
+}
+.ws-eyebrow[data-tier="pro"] {
+  color: var(--ws-tier-pro);
+  border-color: color-mix(in srgb, var(--ws-tier-pro) 55%, transparent);
+  background: color-mix(in srgb, var(--ws-tier-pro) 12%, transparent);
+}
+
+/* ── Display headline (heavy, tight, uppercase) ───────────────────────────── */
+.ws-display {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  font-size: clamp(34px, 6vw, 76px);
+  text-transform: uppercase;
+  color: var(--ws-text);
+}
+.ws-display--accent { color: var(--ws-orange-bright); }
+.ws-subhead {
+  font-size: clamp(17px, 2.2vw, 26px);
+  font-weight: 700;
+  color: var(--ws-text);
+  letter-spacing: -0.01em;
+}
+.ws-subhead--accent { color: var(--ws-orange-bright); }
+.ws-lead {
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.6;
+  color: var(--ws-text-muted);
+  font-weight: 500;
+}
+/* Orange gradient underline used beneath section titles. */
+.ws-rule {
+  height: 3px;
+  width: 64px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ws-orange-bright), transparent);
+}
+
+/* ── Glow card (the neon product cards) ───────────────────────────────────── */
+.ws-glow-card {
+  --glow: var(--ws-orange-bright);
+  position: relative;
+  border-radius: var(--ws-radius);
+  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    var(--ws-panel-solid);
+  border: 1px solid color-mix(in srgb, var(--glow) 45%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--glow) 18%, transparent),
+    0 0 26px color-mix(in srgb, var(--glow) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform 0.25s var(--og-ease), box-shadow 0.25s var(--og-ease);
+}
+.ws-glow-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--glow) 30%, transparent),
+    0 0 40px color-mix(in srgb, var(--glow) 34%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.ws-glow-card[data-glow="standard"] { --glow: var(--ws-tier-standard); }
+.ws-glow-card[data-glow="pro"]      { --glow: var(--ws-tier-pro); }
+.ws-glow-card[data-glow="orange"]   { --glow: var(--ws-orange-bright); }
+
+/* ── Corner-bracket HUD frame ─────────────────────────────────────────────── */
+.ws-bracket {
+  position: relative;
+  border-radius: var(--ws-radius);
+}
+.ws-bracket::before,
+.ws-bracket::after {
+  content: "";
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 2px solid var(--ws-orange-bright);
+  pointer-events: none;
+}
+.ws-bracket::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
+.ws-bracket::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
+
+/* ── CTAs ─────────────────────────────────────────────────────────────────── */
+.ws-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 26px;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: #fff;
+  background: linear-gradient(180deg, var(--ws-orange-bright), var(--ws-orange));
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--ws-orange) 40%, transparent);
+  transition: transform 0.2s var(--og-ease), box-shadow 0.2s var(--og-ease);
+}
+.ws-cta:hover { transform: translateY(-2px); box-shadow: 0 18px 44px color-mix(in srgb, var(--ws-orange) 52%, transparent); }
+.ws-cta--outline {
+  background: transparent;
+  color: var(--ws-orange-bright);
+  border: 1.5px solid var(--ws-orange-bright);
+  box-shadow: none;
+}
+.ws-cta--outline:hover { background: var(--ws-orange-soft); box-shadow: none; }
+
+/* ── Thin-line icon tile ──────────────────────────────────────────────────── */
+.ws-icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  /* Inside a glow card this inherits the card's accent; standalone it is orange. */
+  color: var(--glow, var(--ws-orange-bright));
+  border: 1px solid var(--ws-line-strong);
+  background: var(--ws-panel);
+}
+/* Check bullets inside a glow card track the card accent. */
+.ws-check { color: var(--glow, var(--ws-tier-pro)); }
+.ws-icon-tile--round { border-radius: 999px; }
+
+/* ── Stat card (dashboard reference from the campaign mockups) ────────────── */
+.ws-stat-card {
+  border-radius: var(--ws-radius);
+  padding: 18px 20px;
+  background: var(--ws-panel-solid);
+  border: 1px solid var(--ws-line);
+}
+.ws-stat-card .ws-stat-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--ws-text-soft); text-transform: uppercase;
+}
+.ws-stat-card .ws-stat-value {
+  font-size: clamp(24px, 3vw, 34px); font-weight: 900; color: var(--ws-text); line-height: 1.1;
+}
+.ws-delta-up   { color: var(--ws-tier-pro); font-weight: 800; font-size: 13px; }
+.ws-delta-down { color: #f87171;            font-weight: 800; font-size: 13px; }
+
+/* ── Trust / credential bar ───────────────────────────────────────────────── */
+.ws-trust-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--ws-line);
+}
+.ws-trust-bar .ws-trust-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--ws-text-muted); text-transform: uppercase;
+}
+.ws-trust-bar .ws-trust-item + .ws-trust-item { border-left: 1px solid var(--ws-line-strong); padding-left: 22px; }
+
+/* ── Brushed-metal worldwide seal ─────────────────────────────────────────── */
+.ws-seal {
+  position: relative;
+  width: 132px; height: 132px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  color: #0a1120;
+  background:
+    conic-gradient(from 210deg, #eef3f9, #9fb0c4, #f4f7fb, #7f91a6, #e7edf5, #9fb0c4, #eef3f9);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.5),
+    inset 0 0 0 10px #2b3543,
+    inset 0 0 0 11px rgba(255, 255, 255, 0.25),
+    0 20px 50px rgba(0, 0, 0, 0.6);
+}
+.ws-seal .ws-seal-core {
+  width: 78px; height: 78px; border-radius: 999px;
+  display: grid; place-items: center; text-align: center;
+  background: radial-gradient(circle at 40% 30%, #dfe7f0, #93a3b6 70%, #5f6f83);
+  color: #0a1120; font-weight: 900; letter-spacing: 0.02em; font-size: 11px; line-height: 1.05;
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.7), inset 0 -3px 8px rgba(0, 0, 0, 0.35);
 }

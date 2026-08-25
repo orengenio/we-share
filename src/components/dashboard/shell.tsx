@@ -196,7 +196,7 @@ export default function DashboardShell({ session, avatarUrl, children }: Dashboa
               className="flex items-center gap-2.5 flex-1 min-w-0"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/favicon.svg" alt="" className="w-8 h-8 rounded-lg" />
+              <img src="/brand/orengen-icon.svg" alt="" className="w-8 h-8 rounded-lg" />
               <span className="flex-1 min-w-0">
                 <span className="block text-white font-bold text-base leading-tight tracking-tight">
                   WeShare
