@@ -9,13 +9,26 @@
  * hardcoded across headers, auth, and marketing pages.
  */
 
-/** Official OrenGen wordmark (white, for dark surfaces) — hosted on the brand CDN. */
-export const ORENGEN_WORDMARK_WHITE =
-  "https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png";
+/**
+ * Official OrenGen brand marks — self-hosted in /public/brand so WeShare stays in
+ * lock-step with orengen.io (these are the exact asset files committed there) and
+ * doesn't depend on a third-party CDN for its core identity.
+ */
 
-/** Official OrenGen wordmark (navy, for light surfaces). */
-export const ORENGEN_WORDMARK_NAVY =
-  "https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/bmeUUijIh8dkwmEIWUWDktHNGX2nMZ0HewKw9Q0e.png";
+/** Full wordmark, "GEN" in white — for dark surfaces (headers, hero, footer). */
+export const ORENGEN_WORDMARK_WHITE = "/brand/logo-orengen-white.png";
+
+/** Full wordmark, "GEN" in navy — for light surfaces. */
+export const ORENGEN_WORDMARK_NAVY = "/brand/logo-orengen-navy.png";
+
+/** Navy "W" monogram on transparent — for light surfaces. */
+export const ORENGEN_MARK = "/brand/orengen-mark.png";
+
+/** Navy square app icon (white "W" + orange dot) — favicon / compact mark on dark. */
+export const ORENGEN_ICON = "/brand/orengen-icon.svg";
+
+/** Brushed-metal "OrenGen Worldwide" seal. */
+export const ORENGEN_SEAL = "/brand/orengen-seal.png";
 
 export const ORENGEN_URL = "https://orengen.io";
 

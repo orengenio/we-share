@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import {
   Mail, Headphones, Calendar, Check, Bot, Clock, Puzzle, Lock,
   BarChart3, Users, ArrowRight, ShieldCheck, Globe, Zap, Phone,
 } from "lucide-react";
 import { OrenGenWordmark, WsMonogram } from "@/components/brand/orengen-marks";
+import { ORENGEN_SEAL } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: "Brand System",
@@ -118,12 +120,14 @@ export default function BrandPage() {
           </div>
 
           <div className="flex justify-center lg:justify-end">
-            <div className="ws-seal">
-              <div className="ws-seal-core">
-                ORENGEN<br />WORLDWIDE<br />
-                <span style={{ fontSize: 9, fontWeight: 800 }}>EST. 2018</span>
-              </div>
-            </div>
+            <Image
+              src={ORENGEN_SEAL}
+              alt="OrenGen Worldwide seal"
+              width={168}
+              height={168}
+              priority
+              style={{ filter: "drop-shadow(0 20px 50px rgba(0,0,0,0.6))" }}
+            />
           </div>
         </section>
 

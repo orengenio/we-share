@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import WeShareLogo from "@/components/weshare-logo";
+import { OrenGenWordmark } from "@/components/brand/orengen-marks";
 
 const LINE  = "rgba(148,163,184,0.18)";
 const MUTED = "rgba(203,213,225,0.85)";
@@ -39,21 +39,10 @@ export default function PublicHeader() {
             OrenGen wordmark at the same 32px height */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <WeShareLogo height={32} />
-          <a
-            href="https://orengen.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden min-[480px]:block flex-shrink-0 pl-3"
-            style={{ borderLeft: "1px solid rgba(148,163,184,0.2)" }}
-          >
-            <Image
-              src="https://cdn.content360.io/ea2381f4-12e0-4efd-b95b-6012c981eae0/uploads/05-2026/wJb1wZczjrrxwoRKmtjrspq1IJwjW00FtCsIfdn6.png"
-              alt="OrenGen Worldwide"
-              width={130}
-              height={32}
-              unoptimized
-            />
-          </a>
+          <OrenGenWordmark
+            height={32}
+            className="hidden min-[480px]:block flex-shrink-0 pl-3 border-l border-white/20"
+          />
         </div>
 
         {/* Desktop nav */}

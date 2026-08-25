@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="OrenGen">
+  <rect width="512" height="512" fill="#00254B"/>
+  <polyline points="84,150 192,438 256,262 320,438 428,150"
+            fill="none" stroke="#ffffff" stroke-width="66"
+            stroke-linejoin="miter" stroke-linecap="butt"/>
+  <circle cx="256" cy="150" r="42" fill="#CC5500"/>
+</svg>

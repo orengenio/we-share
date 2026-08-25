@@ -28,9 +28,10 @@ export default function WeShareLogo({
       className={`inline-flex items-center flex-shrink-0 ${className}`}
       style={{ gap: Math.round(height * 0.25), lineHeight: 1 }}
     >
+      {/* Official OrenGen navy-square mark (white W + orange dot). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/favicon.svg"
+        src="/brand/orengen-icon.svg"
         alt=""
         width={height}
         height={height}

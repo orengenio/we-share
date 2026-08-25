@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   description: "Track clicks, leads, and earnings. Manage your OrenGen referral partner or sales partner account.",
   themeColor: "#00254B",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: "/brand/orengen-icon.svg",
+    apple: "/brand/orengen-icon.svg",
   },
 };
 
