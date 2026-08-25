@@ -33,6 +33,36 @@
     {
       "parameters": {
         "method": "GET",
+        "url": "=https://weshare.orengen.io/api/public/state-pools?verify={{ $json.partner_code }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "c3000000-0000-4000-8000-000000000010",
+      "name": "WeShare \u2014 Verify State Claim",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        390,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pre-purchase gate: the partner must hold a live claim on the exact\n// state we're about to buy a number for. Anything else aborts BEFORE\n// the purchase step \u2014 an unclaimed/mismatched state never spends money.\nconst prep = $('Prep \u2014 Area Codes + Seat Password').first().json;\nconst claim = $json.data ?? $json;\nconst held = String(claim.assignedState || '').toUpperCase();\nif (!held) {\n  throw new Error(`ABORT: partner ${prep.partner_code} has no claimed state in WeShare \u2014 assign one (admin \u2192 assign_state) before provisioning.`);\n}\nif (held !== prep.state) {\n  throw new Error(`ABORT: webhook asked for ${prep.state} but partner ${prep.partner_code} holds ${held}. No number purchased.`);\n}\nreturn [{ json: prep }];"
+      },
+      "id": "c3000000-0000-4000-8000-000000000011",
+      "name": "Gate \u2014 Abort If Unclaimed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
         "url": "=https://services.leadconnectorhq.com/phone-system/numbers/location/dMEB004RUX8JRRi42Kzq/available?countryCode=US&numberTypes=local{{ $json.area_primary ? '&firstPart=' + $json.area_primary : '' }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -54,7 +84,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        500,
+        940,
         300
       ],
       "credentials": {
@@ -73,7 +103,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
+        1160,
         300
       ]
     },
@@ -108,7 +138,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        940,
+        1380,
         300
       ],
       "credentials": {
@@ -149,7 +179,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1160,
+        1600,
         300
       ],
       "credentials": {
@@ -183,7 +213,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1270,
+        1710,
         300
       ],
       "credentials": {
@@ -202,7 +232,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1490,
+        1930,
         300
       ]
     },
@@ -237,7 +267,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1710,
+        2150,
         300
       ],
       "credentials": {
@@ -264,7 +294,7 @@
       "main": [
         [
           {
-            "node": "GHL \u2014 Search Local Numbers",
+            "node": "WeShare \u2014 Verify State Claim",
             "type": "main",
             "index": 0
           }
@@ -331,6 +361,28 @@
         [
           {
             "node": "GHL \u2014 Tag Contact + Store Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WeShare \u2014 Verify State Claim": {
+      "main": [
+        [
+          {
+            "node": "Gate \u2014 Abort If Unclaimed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gate \u2014 Abort If Unclaimed": {
+      "main": [
+        [
+          {
+            "node": "GHL \u2014 Search Local Numbers",
             "type": "main",
             "index": 0
           }

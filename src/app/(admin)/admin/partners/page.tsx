@@ -8,6 +8,7 @@ interface Partner {
   id: string;
   partnerCode: string;
   assignedPhoneNumber: string | null;
+  assignedState: string | null;
   isCertified: boolean;
   leadsUnlocked: boolean;
   isActive: boolean;
@@ -76,6 +77,15 @@ export default function AdminPartnersPage() {
     );
     if (!phoneNumber || phoneNumber.trim().length < 7) return;
     performAction(p.id, "assign_number", { phoneNumber: phoneNumber.trim() });
+  }
+
+  function assignState(p: Partner) {
+    const state = window.prompt(
+      `State pool for ${p.user.name ?? p.partnerCode} (2-letter code, e.g. GA). Capacity rules apply — a full state is rejected:`,
+      p.assignedState ?? ""
+    );
+    if (!state || state.trim().length !== 2) return;
+    performAction(p.id, "assign_state", { state: state.trim().toUpperCase() });
   }
 
   return (
@@ -167,6 +177,9 @@ export default function AdminPartnersPage() {
                       )}
                       <button onClick={() => assignNumber(p)} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline text-left">
                         {p.assignedPhoneNumber ? "Change #" : "Assign #"}
+                      </button>
+                      <button onClick={() => assignState(p)} disabled={actionId === p.id} className="text-xs text-[#00254B] hover:underline text-left">
+                        {p.assignedState ? `State: ${p.assignedState}` : "Assign State"}
                       </button>
                       {p.crmSeatGrantedAt ? (
                         <span className="text-xs text-green-700">CRM seat ✓</span>
