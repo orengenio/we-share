@@ -1,8 +1,19 @@
 import type { Metadata } from "next";
+import { Public_Sans } from "next/font/google";
 import CookieConsent from "@/components/cookie-consent";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
+
+// Brand typeface — Public Sans across the board, self-hosted/optimized via
+// next/font and exposed as --font-public-sans (consumed by --og-font in
+// globals.css). Replaces the render-blocking Google Fonts @import.
+const publicSans = Public_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  variable: "--font-public-sans",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -19,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" className={publicSans.variable}>
       <body className="min-h-screen">
         {children}
         <CookieConsent />

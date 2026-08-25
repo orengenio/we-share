@@ -27,10 +27,22 @@ const config: Config = {
           orange: "#CC5500",
           navy:   "#00254B",
         },
+        // Dark-premium brand system (mirrors the --ws-* tokens in globals.css)
+        ws: {
+          bg:      "#05070d",
+          bg2:     "#0a1120",
+          panel:   "#0c1728",
+          orange:  "#CC5500",
+          "orange-bright": "#E8762B",
+          text:    "#f2f6fc",
+          muted:   "rgba(210,225,245,0.66)",
+          standard:"#3b82f6",
+          pro:     "#22c55e",
+        },
       },
       fontFamily: {
-        sans: ["Public Sans", "system-ui", "sans-serif"],
-        heading: ["Public Sans", "system-ui", "sans-serif"],
+        sans: ["var(--font-public-sans)", "system-ui", "sans-serif"],
+        heading: ["var(--font-public-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
