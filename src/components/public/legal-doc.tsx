@@ -21,7 +21,7 @@ export default function LegalDoc({
   return (
     <div className="max-w-3xl mx-auto pb-10">
       <div className="mb-6">
-        <p className="text-[11px] font-bold tracking-[0.18em] uppercase mb-2" style={{ color: "#E66100" }}>
+        <p className="text-[11px] font-bold tracking-[0.18em] uppercase mb-2" style={{ color: "var(--ws-orange-bright)" }}>
           WeShare by OrenGen · Legal
         </p>
         <h1 className="text-3xl font-black text-white tracking-tight" style={{ textWrap: "balance" }}>{title}</h1>
