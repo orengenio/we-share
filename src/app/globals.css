@@ -310,10 +310,13 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   width: 52px; height: 52px;
   border-radius: 14px;
-  color: var(--ws-orange-bright);
+  /* Inside a glow card this inherits the card's accent; standalone it is orange. */
+  color: var(--glow, var(--ws-orange-bright));
   border: 1px solid var(--ws-line-strong);
   background: var(--ws-panel);
 }
+/* Check bullets inside a glow card track the card accent. */
+.ws-check { color: var(--glow, var(--ws-tier-pro)); }
 .ws-icon-tile--round { border-radius: 999px; }
 
 /* ── Stat card (dashboard reference from the campaign mockups) ────────────── */

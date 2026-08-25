@@ -177,7 +177,7 @@ export default function BrandPage() {
                   {items.map((it) => (
                     <li key={it} className="flex items-center gap-2 text-sm"
                         style={{ color: "var(--ws-text-muted)" }}>
-                      <Check size={16} style={{ color: "var(--ws-tier-pro)" }} /> {it}
+                      <Check size={16} className="ws-check" /> {it}
                     </li>
                   ))}
                 </ul>
